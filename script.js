@@ -39,10 +39,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- INFRASTRUCTURE CONFIG ---
-    // PLACEHOLDERS: Replace these with your actual keys from Supabase Dashboard
-    const SUPABASE_URL = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwY3J4ZHN4dGF1am1jbG1haHZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjI1NzEsImV4cCI6MjA4NTE5ODU3MX0.FJTvbP3WK6 - pX8e37fxq8 - a_juG7Hg04gZVa00rNGZk;
-    const SUPABASE_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwY3J4ZHN4dGF1am1jbG1haHZrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTYyMjU3MSwiZXhwIjoyMDg1MTk4NTcxfQ.0WDQ - AJjrQfUY51uDQoDlAqPaGYfOH9DIJmI626S044
-        ;
+    // [CRITICAL SECURITY WARNING]
+    // You pasted your "service_role" key (starting with ey...ServiceRole...). 
+    // This gives FULL ADMIN ACCESS to your database. DO NOT USE THIS IN FRONTEND CODE.
+    // Please replace it with your "anon" / "public" key from Supabase Settings -> API.
+
+    const SUPABASE_URL = 'https://dpcxdsxtaujmclmahvk.supabase.co';
+    const SUPABASE_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwY3J4ZHN4dGF1am1jbG1haHZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjI1NzEsImV4cCI6MjA4NTE5ODU3MX0.FJTvbP3WK6 - pX8e37fxq8 - a_juG7Hg04gZVa00rNGZk;
 
     // Initialize Supabase (Global access)
     const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
@@ -61,12 +64,18 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('User signed in:', session.user);
             activeUser = session.user;
             updateUIForLoggedUser(activeUser);
+            loadMemberDashboard(activeUser); // New: Load dashboard
         }
 
         // Listen for auth changes
         supabase.auth.onAuthStateChange((_event, session) => {
             activeUser = session ? session.user : null;
-            if (activeUser) updateUIForLoggedUser(activeUser);
+            if (activeUser) {
+                updateUIForLoggedUser(activeUser);
+                loadMemberDashboard(activeUser);
+            } else {
+                hideMemberDashboard();
+            }
         });
     }
 
@@ -79,6 +88,35 @@ document.addEventListener('DOMContentLoaded', () => {
             loginBtn.classList.add('logged-in');
         }
     }
+
+    // --- MEMBER DASHBOARD LOGIC ---
+    function loadMemberDashboard(user) {
+        const dashboard = document.getElementById('member-dashboard');
+        const hero = document.querySelector('.hero-section');
+
+        if (dashboard) {
+            dashboard.style.display = 'block';
+            dashboard.scrollIntoView({ behavior: 'smooth' });
+            // Optional: visual toggle
+        }
+
+        // Unlock Buttons
+        document.querySelectorAll('.btn-buy').forEach(btn => {
+            btn.textContent = 'DOWNLOAD_ACCESS_GRANTED';
+            btn.classList.add('unlocked');
+            btn.onclick = (e) => {
+                e.preventDefault();
+                alert("Initiating Secure Download Protocol...");
+            };
+        });
+    }
+
+    function hideMemberDashboard() {
+        const dashboard = document.getElementById('member-dashboard');
+        if (dashboard) dashboard.style.display = 'none';
+    }
+
+
 
     async function handleLogin() {
         if (!supabase) {

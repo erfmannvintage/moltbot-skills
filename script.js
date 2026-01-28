@@ -1,5 +1,47 @@
 document.addEventListener('DOMContentLoaded', () => {
     const terminalBody = document.getElementById('hero-terminal');
+
+    // --- MATRIX BACKGROUND EFFECT ---
+    function initMatrixEffect() {
+        const canvas = document.getElementById('matrix-bg');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()";
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+
+        function draw() {
+            ctx.fillStyle = 'rgba(0, 5, 0, 0.05)'; // Fade effect
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#0F0'; // Green text
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+        setInterval(draw, 50);
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    }
+    initMatrixEffect(); // Start effect
+
     const commands = [
         { type: 'input', text: 'npx elite install senior-dev-bundle', delay: 800 },
         { type: 'process', text: 'initializing neural handshake...', delay: 400 },
@@ -49,6 +91,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize Supabase (Global access)
     const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+    // --- NEWSLETTER HANDLING ---
+    const newsForm = document.getElementById('newsletter-form');
+    if (newsForm) {
+        newsForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = newsForm.querySelector('button');
+            const originalText = btn.textContent;
+
+            btn.textContent = 'ENCRYPTING...';
+            btn.style.background = '#333';
+
+            setTimeout(() => {
+                btn.textContent = 'ESTABLISHED';
+                btn.style.background = 'var(--neon-green)';
+                btn.style.color = '#000';
+                // Reset after delay
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '';
+                    btn.style.color = '';
+                    newsForm.reset();
+                }, 3000);
+            }, 1000);
+        });
+    }
 
     // --- STATE MANAGEMENT ---
     let activeUser = null;

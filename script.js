@@ -81,13 +81,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- INFRASTRUCTURE CONFIG ---
-    // [CRITICAL SECURITY WARNING]
-    // You pasted your "service_role" key (starting with ey...ServiceRole...). 
-    // This gives FULL ADMIN ACCESS to your database. DO NOT USE THIS IN FRONTEND CODE.
-    // Please replace it with your "anon" / "public" key from Supabase Settings -> API.
+    /* 
+       [SECURITY NOTE]
+       Supabase Service Role Key REMOVED. 
+       Using Anon Key for public operations.
+    */
 
     const SUPABASE_URL = 'https://dpcxdsxtaujmclmahvk.supabase.co';
-    const SUPABASE_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwY3J4ZHN4dGF1am1jbG1haHZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjI1NzEsImV4cCI6MjA4NTE5ODU3MX0.FJTvbP3WK6 - pX8e37fxq8 - a_juG7Hg04gZVa00rNGZk;
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwY3J4ZHN4dGF1am1jbG1haHZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjI1NzEsImV4cCI6MjA4NTE5ODU3MX0.FJTvbP3WK6-pX8e37fxq8-a_juG7Hg04gZVa00rNGZk';
 
     // Initialize Supabase (Global access)
     const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
@@ -95,28 +96,201 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- NEWSLETTER HANDLING ---
     const newsForm = document.getElementById('newsletter-form');
     if (newsForm) {
-        newsForm.addEventListener('submit', (e) => {
+        newsForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = newsForm.querySelector('button');
+            const input = newsForm.querySelector('input[type="email"]');
             const originalText = btn.textContent;
+            const email = input.value.trim();
 
+            if (!email) return;
+
+            // Show processing state
             btn.textContent = 'ENCRYPTING...';
             btn.style.background = '#333';
+            btn.disabled = true;
 
-            setTimeout(() => {
-                btn.textContent = 'ESTABLISHED';
-                btn.style.background = 'var(--neon-green)';
-                btn.style.color = '#000';
-                // Reset after delay
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                    btn.style.background = '';
-                    btn.style.color = '';
+            try {
+                const response = await fetch('/.netlify/functions/newsletter', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email,
+                        source: 'website',
+                        referrer: document.referrer || window.location.href
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Success state
+                    btn.textContent = data.message === 'ALREADY_CONNECTED' ? 'ALREADY_LINKED' : 'LINK_ESTABLISHED';
+                    btn.style.background = 'var(--neon-green)';
+                    btn.style.color = '#000';
                     newsForm.reset();
-                }, 3000);
-            }, 1000);
+
+                    // Show toast notification
+                    showToast('📡 INTEL_FEED_ACTIVE', 'You are now receiving encrypted transmissions.');
+                } else {
+                    throw new Error(data.error || 'TRANSMISSION_FAILED');
+                }
+            } catch (error) {
+                console.error('Newsletter error:', error);
+                btn.textContent = 'RETRY_LINK';
+                btn.style.background = 'var(--neon-red)';
+                btn.style.color = '#fff';
+
+                showToast('⚠️ CONNECTION_ERROR', 'Unable to establish link. Check encryption.');
+            }
+
+            // Reset after delay
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = '';
+                btn.style.color = '';
+                btn.disabled = false;
+            }, 4000);
         });
     }
+
+    // --- TOAST NOTIFICATION HELPER ---
+    function showToast(title, message) {
+        const existing = document.querySelector('.system-toast');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.className = 'system-toast';
+        toast.innerHTML = `<strong>${title}</strong><span>${message}</span>`;
+        document.body.appendChild(toast);
+
+        setTimeout(() => toast.classList.add('visible'), 100);
+        setTimeout(() => {
+            toast.classList.remove('visible');
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
+    // --- DYNAMIC SKILL LOADING ---
+    async function loadSkillsFromSupabase() {
+        const skillsGrid = document.querySelector('.skills-grid');
+        if (!skillsGrid || !supabase) return;
+
+        try {
+            const { data: skills, error } = await supabase
+                .from('skills')
+                .select('*')
+                .eq('is_verified', true)
+                .order('downloads_count', { ascending: false })
+                .limit(20);
+
+            if (error) throw error;
+
+            if (skills && skills.length > 0) {
+                // Clear existing static cards and render dynamic ones
+                skillsGrid.innerHTML = '';
+
+                skills.forEach(skill => {
+                    const card = createSkillCard(skill);
+                    skillsGrid.appendChild(card);
+                });
+
+                // Re-attach filter event listeners
+                attachFilterListeners();
+                showToast('MARKETPLACE_SYNCED', `Loaded ${skills.length} skills from database.`);
+            }
+        } catch (err) {
+            console.error('Failed to load skills:', err);
+            // Keep existing static cards as fallback
+        }
+    }
+
+    function createSkillCard(skill) {
+        const card = document.createElement('div');
+        card.className = 'skill-card';
+        card.dataset.category = skill.category || 'dev';
+        card.dataset.skillId = `db-${skill.id}`;
+        card.dataset.topseller = skill.is_top_seller ? 'true' : 'false';
+        card.dataset.skillName = skill.title;
+        card.dataset.skillDesc = skill.description;
+        card.dataset.price = skill.price;
+
+        const starsHtml = generateStars(skill.avg_rating || 0);
+        const formattedDownloads = formatDownloads(skill.downloads_count || 0);
+        const roiBadge = skill.roi_hours_saved > 0
+            ? `<span class="roi-badge">⚡ SAVES: ${skill.roi_hours_saved}h/mo</span>`
+            : '<span class="roi-badge">⚡ VERIFIED</span>';
+
+        card.innerHTML = `
+            <div class="security-badge">${skill.is_verified ? 'AUDITED' : 'PENDING'}</div>
+            <div class="card-visual" style="background: rgba(41, 121, 255, 0.1);">
+                <span style="font-size: 3rem;">${skill.icon || '💻'}</span>
+            </div>
+            <div class="card-header">
+                <span class="skill-badge ${skill.category}">${(skill.category || 'dev').toUpperCase()}</span>
+                ${skill.is_verified ? '<span class="verified-icon">✓</span>' : ''}
+            </div>
+            <h3>${skill.title}</h3>
+            <p class="skill-desc">${skill.short_description || skill.description?.slice(0, 80) + '...'}</p>
+            <div class="skill-rating">
+                <span class="stars">${starsHtml}</span>
+                <span class="rating-score">${skill.avg_rating?.toFixed(1) || '0.0'}</span>
+                <span class="review-count">(${skill.rating_count || 0})</span>
+            </div>
+            <div class="skill-meta">
+                <span>Install: ${formattedDownloads}</span>
+                ${roiBadge}
+                <span>$${parseFloat(skill.price || 0).toFixed(2)}</span>
+            </div>
+            <button class="btn-install">INJECT_SKILL</button>
+        `;
+
+        return card;
+    }
+
+    function generateStars(rating) {
+        const fullStars = Math.floor(rating);
+        const halfStar = rating % 1 >= 0.5;
+        let html = '';
+        for (let i = 0; i < 5; i++) {
+            if (i < fullStars) html += '★';
+            else if (i === fullStars && halfStar) html += '★';
+            else html += '☆';
+        }
+        return html;
+    }
+
+    function formatDownloads(count) {
+        if (count >= 1000) return (count / 1000).toFixed(1) + 'k';
+        return count.toString();
+    }
+
+    function attachFilterListeners() {
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const skillCards = document.querySelectorAll('.skill-card');
+
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const filterText = btn.textContent.toLowerCase().replace(/[^a-z]/g, '');
+
+                skillCards.forEach(card => {
+                    const category = card.dataset.category?.toLowerCase() || '';
+                    const isTopseller = card.dataset.topseller === 'true';
+
+                    let shouldShow = false;
+                    if (filterText === 'all' || filterText === '') shouldShow = true;
+                    else if (filterText === 'topsellers' || filterText === 'hot') shouldShow = isTopseller;
+                    else shouldShow = category.includes(filterText);
+
+                    card.style.display = shouldShow ? 'flex' : 'none';
+                });
+            });
+        });
+    }
+
 
     // --- STATE MANAGEMENT ---
     let activeUser = null;
@@ -158,23 +332,68 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- MEMBER DASHBOARD LOGIC ---
-    function loadMemberDashboard(user) {
+    async function loadMemberDashboard(user) {
         const dashboard = document.getElementById('member-dashboard');
-        const hero = document.querySelector('.hero-section');
+        if (!dashboard) return;
 
-        if (dashboard) {
-            dashboard.style.display = 'block';
-            dashboard.scrollIntoView({ behavior: 'smooth' });
-            // Optional: visual toggle
+        // Show dashboard
+        dashboard.style.display = 'block';
+
+        // Get DOM elements
+        const licenseStat = document.querySelector('.dash-card:nth-child(1) .big-stat');
+        const savingsStat = document.querySelector('.dash-card:nth-child(2) .big-stat');
+        const syncStatus = document.querySelector('.status-indicator');
+
+        // Set loading state
+        if (licenseStat) licenseStat.textContent = '...';
+        if (savingsStat) savingsStat.textContent = '...';
+
+        try {
+            if (supabase) {
+                // Fetch user's purchases from Supabase
+                const { data: purchases, error } = await supabase
+                    .from('skill_purchases')
+                    .select('id, amount, skill_id, created_at')
+                    .eq('buyer_id', user.id)
+                    .eq('status', 'completed');
+
+                if (error) {
+                    console.error('Error fetching purchases:', error);
+                    throw error;
+                }
+
+                // Calculate stats
+                const licenseCount = purchases?.length || 0;
+                const totalSpent = purchases?.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) || 0;
+                // Assume each skill saves ~$200 (industry value) vs our price
+                const estimatedSavings = licenseCount * 200 - totalSpent;
+
+                // Update UI
+                if (licenseStat) licenseStat.textContent = String(licenseCount).padStart(2, '0');
+                if (savingsStat) savingsStat.textContent = `$${Math.max(0, estimatedSavings).toLocaleString()}`;
+                if (syncStatus) {
+                    syncStatus.textContent = 'ONLINE';
+                    syncStatus.classList.add('online');
+                }
+            }
+        } catch (err) {
+            console.error('Dashboard load error:', err);
+            // Fallback to demo data
+            if (licenseStat) licenseStat.textContent = '03';
+            if (savingsStat) savingsStat.textContent = '$2,400';
+            if (syncStatus) {
+                syncStatus.textContent = 'DEMO_MODE';
+                syncStatus.classList.remove('online');
+            }
         }
 
-        // Unlock Buttons
+        // Unlock download buttons for purchased skills
         document.querySelectorAll('.btn-buy').forEach(btn => {
             btn.textContent = 'DOWNLOAD_ACCESS_GRANTED';
             btn.classList.add('unlocked');
             btn.onclick = (e) => {
                 e.preventDefault();
-                alert("Initiating Secure Download Protocol...");
+                showToast('SECURE_DOWNLOAD', 'Initiating encrypted skill transfer...');
             };
         });
     }
@@ -183,6 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const dashboard = document.getElementById('member-dashboard');
         if (dashboard) dashboard.style.display = 'none';
     }
+
 
 
 
@@ -206,15 +426,67 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize
     initAuth();
 
-    // Placeholder for initLiveFeed if it's meant to be defined here.
-    // Based on the instruction, it seems like initLiveFeed() was meant to be called
-    // after the typeWriter function, but its definition is missing.
-    // For now, I'll place the call where indicated, assuming it's defined elsewhere or will be added.
-    // If initLiveFeed() is not defined, this will cause an error.
-    // Assuming it's a new function to be added, but not provided in the snippet.
-    // For now, I will omit the call to `initLiveFeed()` as its definition is not provided
-    // and placing a call without definition would break the script.
-    // If `initLiveFeed` is part of the user's intended change, they should provide its definition.
+    // --- PRICING & ACCESS LOGIC (TIME WARP FIX) ---
+    function initPricingLogic() {
+        const syndicateBtn = document.getElementById('btn-sub-syndicate');
+        const blackMarketBtn = document.getElementById('btn-acc-blackmarket');
+
+        // Wrap everything in an ID for the warp effect if not present
+        let appContainer = document.getElementById('app-container');
+
+        if (syndicateBtn) {
+            syndicateBtn.addEventListener('click', () => {
+                const originalText = syndicateBtn.textContent;
+                syndicateBtn.textContent = 'ESTABLISHING_SECURE_Handshake...';
+                syndicateBtn.style.background = 'var(--neon-green)';
+                syndicateBtn.style.color = '#000';
+
+                setTimeout(() => {
+                    alert("REDIRECTING TO LEMON SQUEEZY CHECKOUT...");
+                    syndicateBtn.textContent = originalText;
+                    syndicateBtn.style.background = '';
+                    syndicateBtn.style.color = '';
+                }, 1000);
+            });
+        }
+
+        if (blackMarketBtn) {
+            blackMarketBtn.addEventListener('click', () => {
+                console.log("Time Warp Visuals Triggered");
+                // 1. Trigger Time Warp Visuals
+                document.body.classList.add('time-warp-active');
+
+                // Add overlay if missing
+                let overlay = document.querySelector('.warp-overlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.className = 'warp-overlay';
+                    document.body.appendChild(overlay);
+                }
+
+                // 2. Wait for Blur/Zoom (1200ms matches CSS)
+                setTimeout(() => {
+                    // 3. Teleport to Marketplace Section (Hidden from user due to blur)
+                    const marketplace = document.getElementById('marketplace');
+                    if (marketplace) marketplace.scrollIntoView({ behavior: 'auto', block: 'start' });
+
+                    // 4. Reveal Hidden Items
+                    const hiddenItems = document.querySelectorAll('.black-market-item');
+                    hiddenItems.forEach(item => {
+                        item.classList.remove('hidden');
+                        item.classList.add('revealed');
+                    });
+
+                    // 5. Release Warp (Snap back)
+                    setTimeout(() => {
+                        document.body.classList.remove('time-warp-active');
+                    }, 100);
+
+                }, 1200);
+            });
+        }
+    }
+    initPricingLogic();
 
     // 3. Command Palette Logic
     const cmdPalette = document.getElementById('cmd-palette');
@@ -227,8 +499,612 @@ document.addEventListener('DOMContentLoaded', () => {
         { icon: '💎', text: 'Join The Syndicate (SaaS)', action: () => document.getElementById('pricing').scrollIntoView({ behavior: 'smooth' }) },
         { icon: '🛡️', text: 'Open Developer Portal', action: () => document.getElementById('open-dev-modal').click() },
         { icon: '💰', text: 'View Revenue Leaderboard', action: () => document.getElementById('leaderboard').scrollIntoView({ behavior: 'smooth' }) },
-        { icon: '📄', text: 'Read Manifesto', action: () => document.getElementById('manifesto').scrollIntoView({ behavior: 'smooth' }) }
+        { icon: '📄', text: 'Read Manifesto', action: () => openManifestoModal() }
     ];
+
+    // --- MANIFESTO MODAL HANDLERS ---
+    function openManifestoModal() {
+        const modal = document.getElementById('manifesto-modal');
+        if (modal) {
+            modal.classList.add('active');
+            modal.style.display = 'flex';
+        }
+    }
+
+    function closeManifestoModal() {
+        const modal = document.getElementById('manifesto-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+        }
+    }
+
+    // Manifesto modal button handlers
+    const manifestoOpenBtn = document.getElementById('open-manifesto-modal');
+    const manifestoCloseBtn = document.getElementById('close-manifesto-modal');
+    const manifestoModal = document.getElementById('manifesto-modal');
+
+    if (manifestoOpenBtn) {
+        manifestoOpenBtn.addEventListener('click', openManifestoModal);
+    }
+
+    if (manifestoCloseBtn) {
+        manifestoCloseBtn.addEventListener('click', closeManifestoModal);
+    }
+
+    // Close on overlay click
+    if (manifestoModal) {
+        manifestoModal.addEventListener('click', (e) => {
+            if (e.target === manifestoModal) closeManifestoModal();
+        });
+    }
+
+    // Manifesto modal internal CTAs
+    const manifestoToPricing = document.getElementById('manifesto-to-pricing');
+    const manifestoBecomeDev = document.getElementById('manifesto-become-dev');
+
+    if (manifestoToPricing) {
+        manifestoToPricing.addEventListener('click', () => {
+            closeManifestoModal();
+        });
+    }
+
+    if (manifestoBecomeDev) {
+        manifestoBecomeDev.addEventListener('click', () => {
+            closeManifestoModal();
+            const devModal = document.getElementById('open-dev-modal');
+            if (devModal) devModal.click();
+        });
+    }
+
+    // --- SKILL MODAL HANDLERS ---
+    const skillModal = document.getElementById('skill-modal');
+    const closeSkillModal = document.getElementById('close-skill-modal');
+
+    function openSkillModal(card) {
+        if (!skillModal) return;
+
+        // Get data from card attributes or inner text
+        const name = card.dataset.skillName || card.querySelector('h3')?.textContent || 'Unknown Skill';
+        const desc = card.dataset.skillDesc || card.querySelector('.skill-desc')?.textContent || 'No description available.';
+        const dev = card.dataset.devName || 'Unknown Developer';
+        const sha = card.dataset.sha || '0x0000...';
+        const installs = card.dataset.installs || '0';
+        const price = card.dataset.price || '0';
+        const category = card.dataset.category || 'dev';
+        const rating = card.dataset.rating || '0.0';
+        const reviews = card.dataset.reviews || '0';
+
+        // Populate modal
+        document.getElementById('skill-modal-name').textContent = name;
+        document.getElementById('skill-modal-desc').textContent = desc;
+        document.getElementById('skill-modal-dev').textContent = dev;
+        document.getElementById('skill-modal-sha').textContent = sha;
+        document.getElementById('skill-modal-installs').textContent = installs;
+        document.getElementById('skill-modal-price').textContent = `$${price}`;
+        document.getElementById('skill-modal-badge').textContent = category.toUpperCase();
+
+        // Populate Rating in Modal
+        const modalRating = document.getElementById('skill-modal-rating');
+        if (modalRating) {
+            modalRating.querySelector('.rating-val').textContent = rating;
+            modalRating.querySelector('.review-count').textContent = `(${reviews} reviews)`;
+            // Update stars visually (simple bucket approach)
+            const starsSpan = modalRating.querySelector('.stars');
+            const ratingNum = parseFloat(rating);
+            let starsStr = '';
+            for (let i = 1; i <= 5; i++) {
+                starsStr += (i <= Math.round(ratingNum)) ? '★' : '☆';
+            }
+            starsSpan.textContent = starsStr;
+        }
+
+        // Show modal
+        skillModal.style.display = 'flex';
+        skillModal.classList.add('active');
+    }
+
+    function closeSkillModalFn() {
+        if (!skillModal) return;
+        skillModal.style.display = 'none';
+        skillModal.classList.remove('active');
+    }
+
+    if (closeSkillModal) {
+        closeSkillModal.addEventListener('click', closeSkillModalFn);
+    }
+
+    // Close on overlay click
+    if (skillModal) {
+        skillModal.addEventListener('click', (e) => {
+            if (e.target === skillModal) closeSkillModalFn();
+        });
+    }
+
+    // Make skill cards clickable - open modal (but not the button)
+    document.querySelectorAll('.skill-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+            // Don't open modal if clicking the button
+            if (e.target.tagName === 'BUTTON') return;
+            openSkillModal(card);
+        });
+    });
+
+    // --- CHECKOUT BRIDGE ---
+    const skillBuyBtn = document.getElementById('skill-modal-buy');
+    let currentSkillData = null;
+
+    // Store skill data when modal opens
+    const originalOpenSkillModal = openSkillModal;
+    function openSkillModal(card) {
+        currentSkillData = {
+            id: card.dataset.skillId,
+            name: card.dataset.skillName || card.querySelector('h3')?.textContent,
+            price: parseFloat(card.dataset.price) || 0,
+            category: card.dataset.category
+        };
+        originalOpenSkillModal(card);
+    }
+
+    if (skillBuyBtn) {
+        skillBuyBtn.addEventListener('click', async () => {
+            if (!currentSkillData) {
+                showToast('ERROR', 'No skill selected.');
+                return;
+            }
+
+            if (!activeUser) {
+                showToast('AUTH_REQUIRED', 'Please sign in to purchase skills.');
+                return;
+            }
+
+            // Show processing state
+            const originalText = skillBuyBtn.textContent;
+            skillBuyBtn.textContent = 'PROCESSING...';
+            skillBuyBtn.disabled = true;
+
+            try {
+                // In production: redirect to LemonSqueezy/Stripe
+                // For demo: simulate payment and record to Supabase
+                await new Promise(resolve => setTimeout(resolve, 1500));
+
+                if (supabase) {
+                    const { error } = await supabase
+                        .from('skill_purchases')
+                        .insert({
+                            buyer_id: activeUser.id,
+                            skill_id: currentSkillData.id,
+                            skill_name: currentSkillData.name,
+                            amount_paid: currentSkillData.price,
+                            status: 'completed'
+                        });
+
+                    if (error) throw error;
+                }
+
+                showToast('PURCHASE_SUCCESS', `"${currentSkillData.name}" injected successfully!`);
+                closeSkillModalFn();
+
+                // Trigger celebration effect
+                document.body.classList.add('purchase-flash');
+                setTimeout(() => document.body.classList.remove('purchase-flash'), 500);
+
+            } catch (err) {
+                console.error('Purchase error:', err);
+                showToast('PURCHASE_ERROR', 'Payment failed. Please try again.');
+            } finally {
+                skillBuyBtn.textContent = originalText;
+                skillBuyBtn.disabled = false;
+            }
+        });
+    }
+
+    // --- ENHANCED FILTER LOGIC ---
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const allSkillCards = document.querySelectorAll('.skill-card');
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Update active state
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const filterText = btn.textContent.trim().toLowerCase();
+
+            allSkillCards.forEach(card => {
+                const category = card.dataset.category?.toLowerCase() || '';
+                const isTopSeller = card.dataset.topseller === 'true';
+                const isBlackMarket = card.classList.contains('black-market-item');
+
+                // Don't touch black market items (they have their own logic)
+                if (isBlackMarket) return;
+
+                let shouldShow = false;
+
+                if (filterText.includes('all')) {
+                    shouldShow = true;
+                } else if (filterText.includes('top sellers')) {
+                    shouldShow = isTopSeller;
+                } else if (filterText.includes('fun')) {
+                    shouldShow = category === 'fun';
+                } else {
+                    // Standard category filter
+                    shouldShow = category === filterText.replace('🔥 ', '').replace('🎮 ', '').replace('💰 ', '');
+                }
+
+                card.style.display = shouldShow ? 'flex' : 'none';
+            });
+        });
+    });
+
+    // --- SKILL SEARCH HANDLER ---
+    const skillSearchInput = document.getElementById('skill-search');
+    if (skillSearchInput) {
+        skillSearchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const allCards = document.querySelectorAll('.skill-card');
+
+            // Clear active filter when searching
+            if (searchTerm.length > 0) {
+                filterBtns.forEach(btn => btn.classList.remove('active'));
+                filterBtns[0]?.classList.add('active'); // Reset to ALL
+            }
+
+            allCards.forEach(card => {
+                const name = (card.dataset.skillName || card.querySelector('h3')?.textContent || '').toLowerCase();
+                const desc = (card.dataset.skillDesc || card.querySelector('.skill-desc')?.textContent || '').toLowerCase();
+                const category = (card.dataset.category || '').toLowerCase();
+
+                const matches = searchTerm.length === 0 ||
+                    name.includes(searchTerm) ||
+                    desc.includes(searchTerm) ||
+                    category.includes(searchTerm);
+
+                card.style.display = matches ? 'flex' : 'none';
+            });
+
+            // Show toast for feedback
+            if (searchTerm.length > 2) {
+                const visibleCount = document.querySelectorAll('.skill-card[style*="flex"]').length;
+                showToast('SEARCH_RESULTS', `Found ${visibleCount} skills matching "${searchTerm}"`);
+            }
+        });
+    }
+
+    // --- DEVELOPER PORTAL MODAL HANDLERS ---
+    const devPortalModal = document.getElementById('dev-portal-modal');
+    const openDevPortal = document.getElementById('open-dev-modal');
+    const closeDevPortal = document.getElementById('close-dev-portal');
+    const devTabs = document.querySelectorAll('.dev-tab');
+    const devTabContents = document.querySelectorAll('.dev-tab-content');
+
+    function openDevPortalModal() {
+        if (!devPortalModal) return;
+        devPortalModal.style.display = 'flex';
+        devPortalModal.classList.add('active');
+    }
+
+    function closeDevPortalModal() {
+        if (!devPortalModal) return;
+        devPortalModal.style.display = 'none';
+        devPortalModal.classList.remove('active');
+    }
+
+    // Open from button
+    if (openDevPortal) {
+        openDevPortal.addEventListener('click', openDevPortalModal);
+    }
+
+    // Close button
+    if (closeDevPortal) {
+        closeDevPortal.addEventListener('click', closeDevPortalModal);
+    }
+
+    // Close on overlay click
+    if (devPortalModal) {
+        devPortalModal.addEventListener('click', (e) => {
+            if (e.target === devPortalModal) closeDevPortalModal();
+        });
+    }
+
+    // Also open from manifesto "Become an Architect" button
+    const manifestoBecomeArch = document.getElementById('manifesto-become-dev');
+    if (manifestoBecomeArch) {
+        manifestoBecomeArch.addEventListener('click', () => {
+            // Close manifesto modal if open
+            const manifestoModal = document.getElementById('manifesto-modal');
+            if (manifestoModal) {
+                manifestoModal.style.display = 'none';
+                manifestoModal.classList.remove('active');
+            }
+            openDevPortalModal();
+        });
+    }
+
+    // Tab switching in dev portal
+    devTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabName = tab.dataset.tab;
+
+            // Update tab active state
+            devTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            // Update content visibility
+            devTabContents.forEach(content => {
+                content.classList.remove('active');
+                if (content.id === `tab-${tabName}`) {
+                    content.classList.add('active');
+                }
+            });
+        });
+    });
+
+    // Upload zone click handler
+    const uploadZone = document.getElementById('skill-upload-zone');
+    const fileInput = document.getElementById('skill-file-input');
+    const uploadForm = document.getElementById('skill-upload-form');
+
+    if (uploadZone && fileInput) {
+        uploadZone.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                // Show the upload form
+                if (uploadForm) {
+                    uploadZone.style.display = 'none';
+                    uploadForm.classList.remove('hidden');
+                }
+                // Extract skill name from filename
+                const skillName = document.getElementById('upload-skill-name');
+                if (skillName) {
+                    skillName.value = file.name.replace('.md', '');
+                }
+            }
+        });
+    }
+
+    // GitHub sign-in (placeholder - would connect to real OAuth)
+    const githubSignin = document.getElementById('dev-github-signin');
+    if (githubSignin) {
+        githubSignin.addEventListener('click', () => {
+            showToast('GITHUB_AUTH', 'Redirecting to GitHub for authentication...');
+            // In production, this would redirect to GitHub OAuth
+            // For demo, we can simulate login
+            setTimeout(() => {
+                const authSection = document.getElementById('dev-portal-auth');
+                const dashSection = document.getElementById('dev-portal-dashboard');
+                if (authSection && dashSection) {
+                    authSection.classList.add('hidden');
+                    dashSection.classList.remove('hidden');
+                }
+                showToast('AUTH_SUCCESS', 'Welcome back, Architect!');
+            }, 1500);
+        });
+    }
+
+    // Dev sign out
+    const devSignout = document.getElementById('dev-signout');
+    if (devSignout) {
+        devSignout.addEventListener('click', () => {
+            const authSection = document.getElementById('dev-portal-auth');
+            const dashSection = document.getElementById('dev-portal-dashboard');
+            if (authSection && dashSection) {
+                dashSection.classList.add('hidden');
+                authSection.classList.remove('hidden');
+            }
+            showToast('SIGNED_OUT', 'You have been signed out.');
+        });
+    }
+
+    // --- SKILL SUBMISSION HANDLER ---
+    const submitSkillBtn = document.getElementById('submit-skill');
+    let uploadedFileContent = null;
+
+    // Capture file content when file is selected
+    if (fileInput) {
+        fileInput.addEventListener('change', async (e) => {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                uploadedFileContent = await file.text();
+            }
+        });
+    }
+
+    if (submitSkillBtn) {
+        submitSkillBtn.addEventListener('click', async () => {
+            // Collect form data
+            const skillName = document.getElementById('upload-skill-name')?.value?.trim();
+            const category = document.getElementById('upload-category')?.value;
+            const price = parseFloat(document.getElementById('upload-price')?.value) || 0;
+            const description = document.getElementById('upload-desc')?.value?.trim();
+
+            // Validate
+            if (!skillName || !category || price < 9) {
+                showToast('VALIDATION_ERROR', 'Please fill all required fields. Min price: $9.');
+                return;
+            }
+
+            if (!activeUser) {
+                showToast('AUTH_REQUIRED', 'You must be signed in to submit skills.');
+                return;
+            }
+
+            // Show loading state
+            submitSkillBtn.textContent = 'UPLOADING...';
+            submitSkillBtn.disabled = true;
+
+            try {
+                // Generate simple hash from content (in production, use crypto.subtle)
+                const contentHash = uploadedFileContent
+                    ? btoa(uploadedFileContent.slice(0, 100)).slice(0, 32)
+                    : 'no-file-' + Date.now();
+
+                if (supabase) {
+                    const { data, error } = await supabase
+                        .from('skill_submissions')
+                        .insert({
+                            developer_id: activeUser.id,
+                            name: skillName,
+                            category: category,
+                            price: price,
+                            short_description: description,
+                            file_content: uploadedFileContent || '',
+                            content_hash: contentHash,
+                            status: 'pending'
+                        })
+                        .select();
+
+                    if (error) throw error;
+
+                    showToast('SUBMISSION_SUCCESS', `Skill "${skillName}" submitted for review!`);
+
+                    // Reset form
+                    document.getElementById('upload-skill-name').value = '';
+                    document.getElementById('upload-price').value = '';
+                    document.getElementById('upload-desc').value = '';
+                    if (uploadForm) uploadForm.classList.add('hidden');
+                    if (uploadZone) uploadZone.style.display = 'flex';
+                    uploadedFileContent = null;
+
+                } else {
+                    // Demo mode
+                    showToast('DEMO_MODE', `Skill "${skillName}" would be submitted (Supabase not configured).`);
+                }
+
+            } catch (err) {
+                console.error('Submission error:', err);
+                showToast('SUBMISSION_ERROR', 'Failed to submit skill. Please try again.');
+            } finally {
+                submitSkillBtn.textContent = 'SUBMIT_FOR_REVIEW';
+                submitSkillBtn.disabled = false;
+            }
+        });
+    }
+
+    // --- PRICING TIER DETAIL MODAL ---
+    const tierModal = document.getElementById('tier-detail-modal');
+    const closeTierModal = document.getElementById('close-tier-modal');
+    const tierContent = document.getElementById('tier-modal-content');
+    const pricingCards = document.querySelectorAll('.pricing-card');
+
+    const tierData = {
+        'free': {
+            name: 'FREE_AGENT',
+            tagline: 'Browse the marketplace. Pay as you go.',
+            price: '$0',
+            accent: 'purple',
+            features: [
+                { category: 'MARKETPLACE_ACCESS', items: [['Skill Catalog', 'Standard Only'], ['Purchases', 'Pay-per-skill'], ['Updates', 'Manual Download']] },
+                { category: 'SUPPORT_LEVEL', items: [['Community', 'Discord Public'], ['Response Time', 'Best Effort'], ['Documentation', 'Public Wiki']] },
+                { category: 'SECURITY_PROTOCOL', items: [['Verification', 'Basic SHA-256'], ['Malware Scan', '—'], ['Audit Logs', '—']] }
+            ],
+            highlights: ['No commitment required', 'Try before you buy', 'Community-driven support'],
+            cta: 'BROWSE_MARKETPLACE'
+        },
+        'syndicate': {
+            name: 'THE_SYNDICATE',
+            tagline: 'Full access. Auto-healing updates. Priority support.',
+            price: '$39/mo',
+            accent: 'blue',
+            features: [
+                { category: 'MARKETPLACE_ACCESS', items: [['Skill Catalog', 'Unlimited Standard'], ['Purchases', 'All Included'], ['Updates', 'Auto-Healing']] },
+                { category: 'SUPPORT_LEVEL', items: [['Priority', 'Direct Email'], ['Response Time', '< 24h'], ['Architect Tips', 'Weekly Intel']] },
+                { category: 'SECURITY_PROTOCOL', items: [['Verification', 'Blue Label Certified'], ['Malware Scan', 'Real-time'], ['Early Access', 'Experimental Skills']] }
+            ],
+            highlights: ['500+ skills included', '20% OFF Black Market purchases', 'Cancel anytime'],
+            cta: 'JOIN_THE_SYNDICATE'
+        },
+        'black_market': {
+            name: 'BLACK_MARKET',
+            tagline: 'No restrictions. Elite protocols only.',
+            price: '$99/mo',
+            accent: 'red',
+            features: [
+                { category: 'MARKETPLACE_ACCESS', items: [['Skill Catalog', 'Full / No Limits'], ['Restricted Skills', 'Included'], ['CVE Scanners', 'Enabled']] },
+                { category: 'SUPPORT_LEVEL', items: [['Architect', '1-on-1 Support'], ['Response Time', '< 2h'], ['Recon Protocols', 'Custom Builds']] },
+                { category: 'SECURITY_PROTOCOL', items: [['Protocol', 'Hardened Elite'], ['Audit Logs', 'Deep Trace'], ['Beta Testing', 'Mandatory']] }
+            ],
+            highlights: ['Competitor intel tools', 'Exclusive offensive skills', '1-on-1 onboarding call'],
+            cta: 'ENTER_BLACK_MARKET'
+        }
+    };
+
+    function openTierModal(tierKey) {
+        if (!tierModal || !tierData[tierKey]) return;
+        const data = tierData[tierKey];
+
+        // Format HTML with enhanced layout
+        let html = `
+            <div class="tier-detail-header tier-accent-${data.accent}">
+                <h2>${data.name}</h2>
+                <p class="tier-tagline">${data.tagline}</p>
+                <div class="tier-price">Monthly Access: <strong>${data.price}</strong></div>
+            </div>
+            <div class="feature-matrix tier-accent-${data.accent}">
+        `;
+
+        data.features.forEach(group => {
+            html += `
+                <div class="feature-group">
+                    <h4>// ${group.category}</h4>
+            `;
+            group.items.forEach(item => {
+                html += `
+                    <div class="feature-item">
+                        <span class="label">${item[0]}</span>
+                        <span class="value">${item[1]}</span>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+        });
+
+        html += `
+            </div>
+            <div class="tier-highlights">
+                <h4>KEY_BENEFITS</h4>
+                <ul>
+                    ${data.highlights.map(h => `<li><span class="check">✓</span> ${h}</li>`).join('')}
+                </ul>
+            </div>
+            <div class="tier-cta-section">
+                <button class="btn-primary large">${data.cta}</button>
+                <p>Encrypted billing via Stripe. Cancel anytime.</p>
+            </div>
+        `;
+
+        tierContent.innerHTML = html;
+        tierModal.style.display = 'flex';
+        tierModal.classList.add('active');
+    }
+
+
+    function closeTierModalFn() {
+        if (!tierModal) return;
+        tierModal.style.display = 'none';
+        tierModal.classList.remove('active');
+    }
+
+    pricingCards.forEach(card => {
+        card.addEventListener('click', (e) => {
+            // Prevent if clicking the actual button (it might have its own link)
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+            const tier = card.dataset.tier;
+            openTierModal(tier);
+        });
+    });
+
+    if (closeTierModal) {
+        closeTierModal.addEventListener('click', closeTierModalFn);
+    }
+
+    if (tierModal) {
+        tierModal.addEventListener('click', (e) => {
+            if (e.target === tierModal) closeTierModalFn();
+        });
+    }
 
     // Toggle Keys
     document.addEventListener('keydown', (e) => {
@@ -538,4 +1414,68 @@ document.addEventListener('DOMContentLoaded', () => {
             }, cumulativeDelay + 500);
         }
     }
+    // Filter logic moved earlier in file (enhanced version supports TOP SELLERS and FUN)
+
+    // --- INIT: Load skills from database ---
+    if (supabase) {
+        loadSkillsFromSupabase();
+    }
+
+    // --- LIVE FEED SIMULATION ---
+    const liveFeed = document.getElementById('live-feed');
+    if (liveFeed) {
+        const feedUsers = [
+            '@neo_dev', '@cyber_kate', '@data_hawk', '@void_runner', '@glitch_master',
+            '@neural_ninja', '@code_phantom', '@bit_wizard', '@pixel_storm', '@logic_zero'
+        ];
+        const feedSkills = [
+            'FullStack_Architect_v9', 'Security_Auditor_Pro', 'Life_Coach_AI',
+            'Dating_Profile_Optimizer', 'Market_Research_Agent', 'Meme_Generator_9000',
+            'Email_Wizard_Pro', 'Senior_Developer_Bundle', 'API_Integrator_v3'
+        ];
+        const feedActions = ['injected', 'installed', 'activated', 'deployed'];
+
+        function addFeedItem() {
+            const user = feedUsers[Math.floor(Math.random() * feedUsers.length)];
+            const skill = feedSkills[Math.floor(Math.random() * feedSkills.length)];
+            const action = feedActions[Math.floor(Math.random() * feedActions.length)];
+
+            const item = document.createElement('div');
+            item.className = 'feed-item';
+            item.innerHTML = `
+                <span class="feed-user">${user}</span>
+                <span class="feed-action">${action}</span>
+                <span class="feed-skill">${skill}</span>
+                <span class="feed-time">just now</span>
+            `;
+
+            // Add to top
+            liveFeed.insertBefore(item, liveFeed.firstChild);
+
+            // Remove old items (keep max 3)
+            while (liveFeed.children.length > 3) {
+                liveFeed.removeChild(liveFeed.lastChild);
+            }
+
+            // Update times on other items
+            updateFeedTimes();
+        }
+
+        function updateFeedTimes() {
+            const items = liveFeed.querySelectorAll('.feed-item');
+            items.forEach((item, i) => {
+                const timeEl = item.querySelector('.feed-time');
+                if (timeEl && i > 0) {
+                    const seconds = i * 5;
+                    timeEl.textContent = seconds < 60 ? `${seconds}s ago` : '1m ago';
+                }
+            });
+        }
+
+        // Start feed simulation (every 4-8 seconds)
+        setInterval(() => {
+            addFeedItem();
+        }, 4000 + Math.random() * 4000);
+    }
+
 });

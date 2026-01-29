@@ -12,7 +12,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@300;400;600;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=RESET_V2">
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Lemon Squeezy -->
@@ -25,542 +25,1408 @@
     <div class="scanlines"></div>
     <div class="noise-overlay"></div>
 
-    <header class="site-header">
-        <div class="container flex-between">
-            <div class="logo">
-                <span class="prompt">></span> MOLTBOT_SKILLS<span class="cursor">_</span>
+    <div id="app-container">
+        <header class="site-header">
+            <div class="container flex-between">
+                <div class="logo">
+                    <span class="prompt">></span> MOLTBOT_SKILLS<span class="cursor">_</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="#marketplace" class="nav-link">[BROWSE_DATABASE]</a>
+                    <a href="#manifesto" class="nav-link">[MANIFESTO]</a>
+                    <a href="#login" class="nav-link btn-secondary">ACCESS_TERMINAL</a>
+                </nav>
             </div>
-            <nav class="main-nav">
-                <a href="#marketplace" class="nav-link">[BROWSE_DATABASE]</a>
-                <a href="#manifesto" class="nav-link">[MANIFESTO]</a>
-                <a href="#login" class="nav-link btn-secondary">ACCESS_TERMINAL</a>
-            </nav>
+        </header>
+
+        <main>
+            <section class="hero-section">
+                <div class="container hero-grid">
+                    <div class="hero-content">
+                        <div class="badge-pill">
+                            <span class="status-dot"></span> SYSTEM_ONLINE // SECURE_CONNECTION
+                        </div>
+                        <h1 class="glitch-text" data-text="INSTALL GOD MODE">INSTALL GOD MODE</h1>
+                        <h2 class="sub-headline">ON YOUR AGENTS.</h2>
+                        <p class="hero-desc">
+                            The world's first <strong>Verified Capability Marketplace</strong> for autonomous AI.
+                            Stop writing prompts. Start injecting audited, high-leverage skills directly into your
+                            neural
+                            architecture.
+                        </p>
+                        <div class="cta-group">
+                            <a href="#install" class="btn-primary">
+                                <span class="icon">⚡</span> INITIALIZE_DATABASE
+                            </a>
+                            <div class="cli-command">
+                                <span class="cmd-prompt">$</span> npx elite install <span
+                                    class="cmd-arg">senior-dev-bundle</span>
+                                <button class="copy-btn" aria-label="Copy command">⎘</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hero-visual">
+                        <div class="terminal-window">
+                            <div class="terminal-header">
+                                <div class="traffic-lights">
+                                    <span class="light red"></span>
+                                    <span class="light yellow"></span>
+                                    <span class="light green"></span>
+                                </div>
+                                <span class="terminal-title">agent_v4.5 -- verifying skills</span>
+                            </div>
+                            <div class="terminal-body" id="hero-terminal">
+                                <!-- JS will populate this with a typing animation -->
+                                <div class="line"><span class="blue">➜</span> <span class="purple">~</span> initializing
+                                    neural handshake...</div>
+                                <div class="line"><span class="green">✔</span> system detected: <span
+                                        class="white">Moltbot
+                                        v2.1</span></div>
+                                <div class="line"><span class="blue">➜</span> <span class="purple">~</span> injecting
+                                    <span class="yellow">research_expert.md</span>...
+                                </div>
+                                <div class="line"><span class="green">✔</span> signature verified: <span
+                                        class="dim">0x9F...A2</span></div>
+                                <div class="line typing"><span class="blue">➜</span> <span class="purple">~</span> agent
+                                    capabilities upgraded. ready.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="ticker-tape">
+                <div class="ticker-content">
+                    <span>// COMPATIBLE WITH: MOLTBOT</span>
+                    <span>// CLAWDBOT</span>
+                    <span>// MINTLIFY</span>
+                    <span>// AUTOGPT</span>
+                    <span>// BABYAGI</span>
+                    <span>// VERIFIED SECURE</span>
+                    <span>// COMPATIBLE WITH: MOLTBOT</span>
+                    <span>// CLAWDBOT</span>
+                    <span>// MINTLIFY</span>
+                    <span>// AUTOGPT</span>
+                    <span>// AUTOGPT</span>
+                </div>
+            </section>
+
+            <!-- MEMBER DASHBOARD (Hidden by default) -->
+            <section id="member-dashboard" class="dashboard-section" style="display: none;">
+                <div class="container">
+                    <div class="section-header">
+                        <span class="section-label">00 // OPERATOR_ACCESS</span>
+                        <h2>MY SKILL ARSENAL</h2>
+                    </div>
+                    <div class="dashboard-grid">
+                        <div class="dash-card">
+                            <h3>ACTIVE LICENSES</h3>
+                            <div class="big-stat">03</div>
+                        </div>
+                        <div class="dash-card">
+                            <h3>LIFETIME SAVINGS</h3>
+                            <div class="big-stat">$2,400</div>
+                        </div>
+                        <div class="dash-card action-card">
+                            <h3>SYNC STATUS</h3>
+                            <div class="status-indicator online">ONLINE</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Feature Grid (Bento Box Refactor) -->
+            <section class="features-section">
+                <div class="container">
+                    <div class="section-header">
+                        <span class="section-label">01 // TRUST_PROTOCOL</span>
+                        <h2>ELITE SECURITY ARCHITECTURE</h2>
+                    </div>
+                    <!-- Bento Grid -->
+                    <div class="feature-grid bento-mode">
+                        <!-- Hero Feature (Large) -->
+                        <div class="bento-card bento-large">
+                            <div class="holo-sticker"></div>
+                            <div class="feature-icon">🛡️</div>
+                            <div class="bento-content">
+                                <h3>BLUE LABEL CERTIFIED</h3>
+                                <p>We don't "guess". Every skill is visually audited, cryptographically signed, and
+                                    guaranteed to run. <br><br><strong>ZERO MALWARE. ZERO BROKEN CODE.</strong></p>
+                                <span class="inline-code">SHA-256 VERIFIED</span>
+                            </div>
+                        </div>
+
+                        <!-- Standard Feature -->
+                        <div class="bento-card">
+                            <div class="feature-icon">⚡</div>
+                            <h3>Instant Injection</h3>
+                            <p>One-click install via <span class="white">npx</span>. Bypasses manual copy-paste errors.
+                            </p>
+                        </div>
+
+                        <!-- Standard Feature -->
+                        <div class="bento-card">
+                            <div class="feature-icon">🧪</div>
+                            <h3>Lab Tested</h3>
+                            <p>Every skill is battle-tested in live agent environments before listing.</p>
+                        </div>
+
+                        <!-- Wide Feature -->
+                        <div class="bento-card bento-wide">
+                            <div class="feature-icon">🎥</div>
+                            <h3>Live Simulation</h3>
+                            <p>Don't trust the description? Run the skill in our <strong>Browser Terminal</strong>. See
+                                the
+                                exact output before you pay.</p>
+                        </div>
+
+                        <!-- Tall Feature -->
+                        <div class="bento-card bento-tall">
+                            <div class="feature-icon">📦</div>
+                            <h3>Role Bundles</h3>
+                            <p>Equip your agent with an entire career's worth of skills. <br><br>Includes:<br>- <span
+                                    class="green">✓</span> Error Handling<br>- <span class="green">✓</span> Logging<br>-
+                                <span class="green">✓</span> Self-Correction
+                            </p>
+                        </div>
+
+                        <!-- Standard Feature -->
+                        <div class="bento-card">
+                            <div class="feature-icon">💎</div>
+                            <h3>Elite ROI</h3>
+                            <p>Stop fixing broken GitHub repos. Start deploying.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="marketplace" class="marketplace-section">
+                <div class="container">
+                    <div class="section-header flex-between">
+                        <div>
+                            <span class="section-label">02 // CLASSIFIED_DATABASE</span>
+                            <h2>FULL SKILL REPOSITORY</h2>
+                            <div style="margin-top: 0.5rem;">
+                                <span class="trust-indicator">SHA-256 VERIFIED</span>
+                                <span class="trust-indicator">ZERO MALWARE</span>
+                            </div>
+                        </div>
+                        <div class="filter-bar">
+                            <button class="filter-btn active">ALL</button>
+                            <button class="filter-btn hot">🔥 TOP SELLERS</button>
+                            <button class="filter-btn">DEV</button>
+                            <button class="filter-btn">BUSINESS</button>
+                            <button class="filter-btn finance">💰 FINANCE</button>
+                            <button class="filter-btn">MARKETING</button>
+                            <button class="filter-btn">ENGINEERING</button>
+                            <button class="filter-btn">RESEARCH</button>
+                            <button class="filter-btn personal">💖 PERSONAL</button>
+                            <button class="filter-btn fun">🎮 FUN</button>
+                            <div class="search-bar">
+                                <input type="text" id="skill-search" placeholder="🔍 SEARCH_SKILLS..."
+                                    autocomplete="off">
+                            </div>
+                        </div>
+
+
+                    </div>
+
+                    <!-- Live Activity Feed -->
+                    <div class="live-feed-container">
+                        <div class="live-feed-header">
+                            <span class="live-indicator"></span>
+                            <span class="feed-label">LIVE_INJECTIONS</span>
+                        </div>
+                        <div class="live-feed-ticker" id="live-feed">
+                            <div class="feed-item">
+                                <span class="feed-user">@neo_dev</span>
+                                <span class="feed-action">injected</span>
+                                <span class="feed-skill">FullStack_Architect_v9</span>
+                                <span class="feed-time">2s ago</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="skills-grid">
+                        <div class="skill-card" data-category="dev" data-skill-id="dev-001"
+                            data-skill-name="FullStack_Architect_v9"
+                            data-skill-desc="Generate production-ready Next.js applications with Tailwind CSS, Supabase backend, and deployment pipelines. Includes error handling, authentication, and responsive design."
+                            data-dev-name="Neo_Architect" data-sha="a4b2c9f1..." data-installs="2.4k" data-price="49"
+                            data-rating="4.8" data-reviews="127">
+                            <div class="security-badge">AUDITED</div>
+                            <div class="card-visual visual-dev">
+                                <svg viewBox="0 0 100 100" class="cartridge-icon">
+                                    <path d="M20 20 L80 20 L90 30 L90 80 L80 90 L20 90 L10 80 L10 30 Z" fill="none"
+                                        stroke="var(--neon-blue)" stroke-width="2" />
+                                    <rect x="30" y="40" width="40" height="20" fill="rgba(41, 121, 255, 0.2)" />
+                                    <path d="M35 50 L65 50" stroke="var(--neon-blue)" stroke-width="2" />
+                                    <circle cx="50" cy="70" r="4" fill="var(--neon-blue)" />
+                                </svg>
+                            </div>
+                            <div class="card-header">
+                                <span class="skill-badge dev">DEV</span>
+                                <span class="verified-icon">✓</span>
+                            </div>
+                            <h3>FullStack_Architect_v9</h3>
+                            <p class="skill-desc">Generate production-ready Next.js apps with Tailwind & Supabase.</p>
+                            <div class="skill-rating">
+                                <span class="stars">★★★★★</span>
+                                <span class="rating-score">4.8</span>
+                                <span class="review-count">(127)</span>
+                            </div>
+                            <div class="skill-meta">
+                                <span>Install: 2.4k</span>
+                                <span class="roi-badge">⚡ SAVES: 40h/mo</span>
+                                <span>$49.00</span>
+                            </div>
+                            <button class="btn-install">INJECT_SKILL</button>
+                        </div>
+
+                        <!-- Skill Card: FINANCE Category -->
+                        <div class="skill-card" data-category="finance" data-skill-id="fin-001"
+                            data-skill-name="Crypto_Portfolio_Analyzer"
+                            data-skill-desc="Track and analyze your crypto portfolio across multiple exchanges. Real-time profit/loss calculation, tax reporting preparation, and DeFi tracking. Supports 100+ cryptocurrencies."
+                            data-dev-name="FinanceGuru" data-sha="f8g2h1j3..." data-installs="8.7k" data-price="59"
+                            data-rating="4.9" data-reviews="342">
+                            <div class="security-badge">AUDITED</div>
+                            <div class="card-visual" style="background: rgba(34, 197, 94, 0.1);">
+                                <svg viewBox="0 0 100 100" class="cartridge-icon">
+                                    <rect x="20" y="60" width="15" height="25" fill="rgba(34, 197, 94, 0.5)"
+                                        stroke="#22c55e" />
+                                    <rect x="42" y="40" width="15" height="45" fill="rgba(34, 197, 94, 0.5)"
+                                        stroke="#22c55e" />
+                                    <rect x="64" y="25" width="15" height="60" fill="rgba(34, 197, 94, 0.5)"
+                                        stroke="#22c55e" />
+                                    <path d="M15 80 L85 80" stroke="#22c55e" stroke-width="2" />
+                                </svg>
+                            </div>
+                            <div class="card-header">
+                                <span class="skill-badge finance">💰 FINANCE</span>
+                                <span class="verified-icon">✓</span>
+                            </div>
+                            <h3>Crypto_Portfolio_Analyzer</h3>
+                            <p class="skill-desc">Track crypto portfolio across exchanges. Real-time P/L and tax
+                                reports.</p>
+                            <div class="skill-rating">
+                                <span class="stars">★★★★★</span>
+                                <span class="rating-score">4.9</span>
+                                <span class="review-count">(342)</span>
+                            </div>
+                            <div class="skill-meta">
+                                <span>Install: 8.7k</span>
+                                <span class="roi-badge">⚡ ROI: 600%</span>
+                                <span>$59.00</span>
+                            </div>
+                            <button class="btn-install">INJECT_SKILL</button>
+                        </div>
+
+                        <!-- Skill Card 2: ENGINEERING -->
+                        <div class="skill-card" data-category="engineering" data-skill-id="eng-001"
+                            data-skill-name="Kubernetes_Commander"
+                            data-skill-desc="Automate cluster scaling, helm chart management, and pod diagnostics. The ultimate toolkit for DevOps engineers."
+                            data-dev-name="OpsMaster" data-sha="e1f2g3h4..." data-installs="1.1k" data-price="29"
+                            data-rating="4.5" data-reviews="89">
+                            <div class="security-badge">AUDITED</div>
+                            <div class="card-visual visual-ops">
+                                <svg viewBox="0 0 100 100" class="cartridge-icon">
+                                    <path d="M50 10 L85 30 L85 70 L50 90 L15 70 L15 30 Z" fill="none"
+                                        stroke="var(--neon-red)" stroke-width="2" />
+                                    <path d="M50 10 L50 50 L15 70" stroke="var(--neon-red)" stroke-width="1" />
+                                    <path d="M50 50 L85 70" stroke="var(--neon-red)" stroke-width="1" />
+                                    <circle cx="50" cy="50" r="6" fill="rgba(255, 41, 87, 0.4)" />
+                                </svg>
+                            </div>
+                            <div class="card-header">
+                                <span class="skill-badge engineering">ENGINEERING</span>
+                                <span class="verified-icon">✓</span>
+                            </div>
+                            <h3>Kubernetes_Commander</h3>
+                            <p class="skill-desc">Automate cluster scaling, helm chart management, and pod diagnostics.
+                            </p>
+                            <div class="skill-rating">
+                                <span class="stars">★★★★☆</span>
+                                <span class="rating-score">4.5</span>
+                                <span class="review-count">(89)</span>
+                            </div>
+                            <div class="skill-meta">
+                                <span>Install: 1.1k</span>
+                                <span>$29.00</span>
+                            </div>
+                            <button class="btn-install">INJECT_SKILL</button>
+                        </div>
+
+                        <!-- Skill Card 3: MARKETING -->
+                        <div class="skill-card" data-category="marketing" data-skill-id="mar-001"
+                            data-skill-name="Viral_Hook_Generator"
+                            data-skill-desc="Trained on 10k viral tweets. Generates high-engagement hooks instantly. Maximize your reach on X, LinkedIn, and Threads."
+                            data-dev-name="GrowthHacker" data-sha="m1n2o3p4..." data-installs="8.5k" data-price="19"
+                            data-rating="4.9" data-reviews="2100">
+                            <div class="security-badge">AUDITED</div>
+                            <div class="card-visual visual-write">
+                                <svg viewBox="0 0 100 100" class="cartridge-icon">
+                                    <rect x="25" y="20" width="50" height="60" fill="none" stroke="#ff6496"
+                                        stroke-width="2" />
+                                    <path d="M35 30 L65 30" stroke="#ff6496" stroke-width="2" />
+                                    <path d="M35 45 L65 45" stroke="#ff6496" stroke-width="2" />
+                                    <path d="M35 60 L50 60" stroke="#ff6496" stroke-width="2" />
+                                    <circle cx="70" cy="70" r="10" fill="rgba(255, 100, 150, 0.2)" stroke="#ff6496" />
+                                </svg>
+                            </div>
+                            <div class="card-header">
+                                <span class="skill-badge marketing">MARKETING</span>
+                                <span class="verified-icon">✓</span>
+                            </div>
+                            <h3>Viral_Hook_Generator</h3>
+                            <p class="skill-desc">Trained on 10k viral tweets. Generates high-engagement hooks
+                                instantly.</p>
+                            <div class="skill-rating">
+                                <span class="stars">★★★★★</span>
+                                <span class="rating-score">4.9</span>
+                                <span class="review-count">(2.1k)</span>
+                            </div>
+                            <div class="skill-meta">
+                                <span>Install: 8.5k</span>
+                                <span class="roi-badge">⚡ SAVES: 12h/mo</span>
+                                <span>$19.00</span>
+                            </div>
+                            <button class="btn-install">INJECT_SKILL</button>
+                        </div>
+
+                        <!-- Skill Card 4: BUSINESS -->
+                        <div class="skill-card" data-category="business" data-skill-id="bus-001"
+                            data-skill-name="Financial_Analyst_Pro"
+                            data-skill-desc="Generate P&L statements, cash flow analysis, and investor reports with a single prompt. Professional grade financial modeling."
+                            data-dev-name="BizWiz" data-sha="b1c2d3e4..." data-installs="3.2k" data-price="79"
+                            data-rating="5.0" data-reviews="156">
+                            <div class="security-badge">AUDITED</div>
+                            <div class="card-visual" style="background: rgba(0, 200, 150, 0.1);">
+                                <svg viewBox="0 0 100 100" class="cartridge-icon">
+                                    <rect x="20" y="25" width="60" height="50" fill="none" stroke="#00c896"
+                                        stroke-width="2" />
+                                    <path d="M35 40 L65 40" stroke="#00c896" stroke-width="2" />
+                                    <path d="M35 50 L55 50" stroke="#00c896" stroke-width="2" />
+                                    <circle cx="75" cy="60" r="8" fill="rgba(0, 200, 150, 0.3)" stroke="#00c896" />
+                                </svg>
+                            </div>
+                            <div class="card-header">
+                                <span class="skill-badge business">BUSINESS</span>
+                                <span class="verified-icon">✓</span>
+                            </div>
+                            <h3>Financial_Analyst_Pro</h3>
+                            <p class="skill-desc">Generate P&L statements, cash flow analysis, and investor reports.</p>
+                            <div class="skill-rating">
+                                <span class="stars">★★★★★</span>
+                                <span class="rating-score">5.0</span>
+                                <span class="review-count">(156)</span>
+                            </div>
+                            <div class="skill-meta">
+                                <span>Install: 3.2k</span>
+                                <span class="roi-badge">⚡ ROI: 400%</span>
+                                <span>$79.00</span>
+                            </div>
+                            <button class="btn-install">INJECT_SKILL</button>
+                        </div>
+
+                        <!-- Skill Card 5: RESEARCH -->
+                        <div class="skill-card" data-category="research" data-skill-id="res-001"
+                            data-skill-name="Deep_Research_Agent"
+                            data-skill-desc="Multi-source research with citations. Academic-grade fact verification and data synthesis."
+                            data-dev-name="ScholarBot" data-sha="r1s2t3u4..." data-installs="5.1k" data-price="39"
+                            data-rating="4.7" data-reviews="412">
+                            <div class="security-badge">AUDITED</div>
+                            <div class="card-visual" style="background: rgba(200, 150, 255, 0.1);">
+                                <svg viewBox="0 0 100 100" class="cartridge-icon">
+                                    <circle cx="50" cy="45" r="25" fill="none" stroke="#c896ff" stroke-width="2" />
+                                    <path d="M68 63 L85 80" stroke="#c896ff" stroke-width="3" />
+                                    <circle cx="50" cy="45" r="10" fill="rgba(200, 150, 255, 0.3)" />
+                                </svg>
+                            </div>
+                            <div class="card-header">
+                                <span class="skill-badge research">RESEARCH</span>
+                                <span class="verified-icon">✓</span>
+                            </div>
+                            <h3>Deep_Research_Agent</h3>
+                            <p class="skill-desc">Multi-source research with citations. Academic-grade fact
+                                verification.</p>
+                            <div class="skill-rating">
+                                <span class="stars">★★★★★</span>
+                                <span class="rating-score">4.7</span>
+                                <span class="review-count">(412)</span>
+                            </div>
+                            <div class="skill-meta">
+                                <span>Install: 5.1k</span>
+                                <span class="roi-badge">⚡ SAVES: 20h/mo</span>
+                                <span>$39.00</span>
+                            </div>
+                            <button class="btn-install">INJECT_SKILL</button>
+                        </div>
+
+                        <!-- Skill Card 6: DEV -->
+                        <div class="skill-card" data-category="dev">
+                            <div class="security-badge">AUDITED</div>
+                            <div class="card-visual visual-dev">
+                                <svg viewBox="0 0 100 100" class="cartridge-icon">
+                                    <path d="M30 25 L50 15 L70 25 L70 75 L50 85 L30 75 Z" fill="none"
+                                        stroke="var(--neon-blue)" stroke-width="2" />
+                                    <path d="M40 40 L60 50 L40 60" stroke="var(--neon-blue)" stroke-width="2"
+                                        fill="none" />
+                                </svg>
+                            </div>
+                            <div class="card-header">
+                                <span class="skill-badge dev">DEV</span>
+                                <span class="verified-icon">✓</span>
+                            </div>
+                            <h3>API_Integrator_Elite</h3>
+                            <p class="skill-desc">Auto-generate REST/GraphQL integrations with error handling.</p>
+                            <div class="skill-meta">
+                                <span>Install: 1.8k</span>
+                                <span>$35.00</span>
+                            </div>
+                            <button class="btn-install">INJECT_SKILL</button>
+                        </div>
+
+                        <!-- Skill Card: FUN Category -->
+                        <div class="skill-card" data-category="fun" data-topseller="false" data-skill-id="fun-001"
+                            data-skill-name="Meme_Generator_9000"
+                            data-skill-desc="Generate viral memes from any topic. Perfect for social media managers and content creators who need daily content inspiration."
+                            data-dev-name="MemeL0rd" data-sha="a7c2f9e8..." data-installs="15.2k" data-price="9">
+                            <div class="security-badge">AUDITED</div>
+                            <div class="card-visual" style="background: rgba(255, 200, 50, 0.1);">
+                                <span style="font-size: 3rem;">🎭</span>
+                            </div>
+                            <div class="card-header">
+                                <span class="skill-badge fun">🎮 FUN</span>
+                                <span class="verified-icon">✓</span>
+                            </div>
+                            <h3>Meme_Generator_9000</h3>
+                            <p class="skill-desc">Generate viral memes from any topic. Dank mode included.</p>
+                            <div class="skill-meta">
+                                <span>Install: 15.2k</span>
+                                <span class="roi-badge">⚡ VIRAL</span>
+                                <span>$9.00</span>
+                            </div>
+                            <button class="btn-install">INJECT_SKILL</button>
+                        </div>
+
+                        <!-- Skill Card: PERSONAL Category 1 -->
+                        <div class="skill-card" data-category="personal" data-skill-id="per-001"
+                            data-skill-name="Life_Coach_AI"
+                            data-skill-desc="Your personal life optimization assistant. Get daily motivation, habit tracking reminders, and guided journaling prompts tailored to your goals."
+                            data-dev-name="MindForge" data-sha="p1e2r3s4..." data-installs="3.8k" data-price="19"
+                            data-rating="4.8" data-reviews="294">
+                            <div class="security-badge">AUDITED</div>
+                            <div class="card-visual" style="background: rgba(255, 150, 200, 0.1);">
+                                <span style="font-size: 3rem;">🧘</span>
+                            </div>
+                            <div class="card-header">
+                                <span class="skill-badge personal">PERSONAL</span>
+                                <span class="verified-icon">✓</span>
+                            </div>
+                            <h3>Life_Coach_AI</h3>
+                            <p class="skill-desc">Daily motivation, habit tracking, and guided journaling.</p>
+                            <div class="skill-rating">
+                                <span class="stars">★★★★★</span>
+                                <span class="rating-score">4.8</span>
+                                <span class="review-count">(294)</span>
+                            </div>
+                            <div class="skill-meta">
+                                <span>Install: 3.8k</span>
+                                <span class="roi-badge">⚡ MINDFUL</span>
+                                <span>$19.00</span>
+                            </div>
+                            <button class="btn-install">INJECT_SKILL</button>
+                        </div>
+
+                        <!-- Skill Card: PERSONAL Category 2 -->
+                        <div class="skill-card" data-category="personal" data-skill-id="per-002"
+                            data-skill-name="Dating_Profile_Optimizer"
+                            data-skill-desc="Transform your dating profile with AI-powered bio writing, photo selection tips, and conversation starters. Works with Hinge, Bumble, and Tinder."
+                            data-dev-name="SocialWiz" data-sha="d1a2t3e4..." data-installs="6.2k" data-price="29"
+                            data-rating="4.6" data-reviews="512">
+                            <div class="security-badge">AUDITED</div>
+                            <div class="card-visual" style="background: rgba(255, 100, 150, 0.1);">
+                                <span style="font-size: 3rem;">💘</span>
+                            </div>
+                            <div class="card-header">
+                                <span class="skill-badge personal">PERSONAL</span>
+                                <span class="verified-icon">✓</span>
+                            </div>
+                            <h3>Dating_Profile_Optimizer</h3>
+                            <p class="skill-desc">AI bio writing, photo tips, and conversation starters.</p>
+                            <div class="skill-rating">
+                                <span class="stars">★★★★☆</span>
+                                <span class="rating-score">4.6</span>
+                                <span class="review-count">(512)</span>
+                            </div>
+                            <div class="skill-meta">
+                                <span>Install: 6.2k</span>
+                                <span class="roi-badge">⚡ POPULAR</span>
+                                <span>$29.00</span>
+                            </div>
+                            <button class="btn-install">INJECT_SKILL</button>
+                        </div>
+
+
+                        <!-- Skill Card: TOP SELLER -->
+                        <div class="skill-card" data-category="dev" data-topseller="true" data-skill-id="top-001"
+                            data-skill-name="Senior_Developer_Bundle"
+                            data-skill-desc="The complete toolkit for senior-level automation. Includes error handling, logging, self-correction, code review, and deployment protocols. Used by 2,000+ engineering teams worldwide."
+                            data-dev-name="Neo_Architect" data-sha="9f3a2b1c..." data-installs="24.5k" data-price="149">
+                            <div class="security-badge">AUDITED</div>
+                            <div class="top-seller-badge">🔥 TOP SELLER</div>
+                            <div class="card-visual visual-dev">
+                                <svg viewBox="0 0 100 100" class="cartridge-icon">
+                                    <path d="M20 20 L80 20 L90 30 L90 80 L80 90 L20 90 L10 80 L10 30 Z" fill="none"
+                                        stroke="var(--neon-blue)" stroke-width="3" />
+                                    <path d="M30 40 L70 40" stroke="var(--neon-blue)" stroke-width="2" />
+                                    <path d="M30 55 L60 55" stroke="var(--neon-blue)" stroke-width="2" />
+                                    <circle cx="65" cy="70" r="10" fill="rgba(41, 121, 255, 0.3)"
+                                        stroke="var(--neon-blue)" />
+                                </svg>
+                            </div>
+                            <div class="card-header">
+                                <span class="skill-badge dev">DEVELOPMENT</span>
+                                <span class="verified-icon">✓</span>
+                            </div>
+                            <h3>Senior_Developer_Bundle</h3>
+                            <p class="skill-desc">Complete toolkit: error handling, logging, self-correction, code
+                                review.</p>
+                            <div class="skill-meta">
+                                <span>Install: 24.5k</span>
+                                <span class="roi-badge">⚡ BEST VALUE</span>
+                                <span>$149.00</span>
+                            </div>
+                            <button class="btn-install">INJECT_SKILL</button>
+                        </div>
+
+                        <!-- HIDDEN BLACK MARKET ITEMS -->
+                        <div class="skill-card black-market-item hidden" data-category="blackmarket">
+                            <div class="card-visual visual-restricted">
+                                <span class="restricted-icon">⚠️</span>
+                            </div>
+                            <div class="card-header">
+                                <span class="skill-badge restricted">ILLEGAL</span>
+                            </div>
+                            <h3 class="glitch-text">0-DAY_SCANNER_vX</h3>
+                            <p class="skill-desc">Scans private repos for unpatched CVEs. Use at own risk.</p>
+                            <div class="skill-meta">
+                                <span>Risk: CRITICAL</span>
+                                <span>$499.00</span>
+                            </div>
+                            <button class="btn-install btn-restricted">ACQUIRE_KEY</button>
+                        </div>
+
+                        <div class="skill-card black-market-item hidden" data-category="blackmarket">
+                            <div class="card-visual visual-restricted">
+                                <span class="restricted-icon">👁️</span>
+                            </div>
+                            <div class="card-header">
+                                <span class="skill-badge restricted">RECON</span>
+                            </div>
+                            <h3 class="glitch-text">COMPETITOR_INTEL</h3>
+                            <p class="skill-desc">Deep analysis of competitor strategies and vulnerabilities.</p>
+                            <div class="skill-meta">
+                                <span>Risk: HIGH</span>
+                                <span>$299.00</span>
+                            </div>
+                            <button class="btn-install btn-restricted">ACQUIRE_KEY</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Live Feed Container -->
+                <div id="live-feed" class="live-feed">
+                    <!-- JS will populate -->
+                </div>
+            </section>
+
+
+            <!-- Pricing Section -->
+            <section id="pricing" class="pricing-section">
+                <div class="container">
+                    <div class="section-header">
+                        <span class="section-label">04 // ACQUIRE_ASSETS</span>
+                        <h2>CHOOSE YOUR ACCESS LEVEL</h2>
+                        <p class="section-subtitle">From casual operators to elite architects. We have your tier.</p>
+                    </div>
+                    <div class="pricing-grid three-tier">
+                        <!-- FREE Tier -->
+                        <div class="pricing-card free-tier" data-tier="free">
+                            <h3>FREE_AGENT</h3>
+                            <div class="badge-tier">START HERE</div>
+                            <div class="price">
+                                <span class="currency">$</span>0<span class="period">/mo</span>
+                            </div>
+                            <p class="tier-desc">Browse the marketplace. Purchase individual skills. No commitment
+                                required.</p>
+                            <ul class="benefit-list">
+                                <li><span class="dim">○</span> Browse All Skills</li>
+                                <li><span class="dim">○</span> <strong>Single Purchases</strong> ($9-49 each)</li>
+                                <li><span class="dim">○</span> Basic Support</li>
+                                <li><span class="dim">○</span> Community Access</li>
+                            </ul>
+                            <div class="tier-click-hint">CLICK_FOR_DETAILED_BREAKDOWN</div>
+                            <button class="btn-secondary full-width">BROWSE_MARKETPLACE</button>
+                        </div>
+
+                        <!-- THE SYNDICATE - Main Tier -->
+                        <div class="pricing-card syndicate featured" data-tier="syndicate">
+                            <div class="card-glow"></div>
+                            <h3>THE_SYNDICATE</h3>
+                            <div class="badge-tier popular">POPULAR_CHOICE</div>
+                            <div class="price">
+                                <span class="currency">$</span>39<span class="period">/mo</span>
+                            </div>
+                            <p class="tier-desc">Unlimited access to 500+ verified skills. For operators who need a
+                                fully equipped arsenal.</p>
+                            <ul class="benefit-list">
+                                <li><span class="green">✔</span> <strong>Unlimited</strong> Standard Skills</li>
+                                <li><span class="green">✔</span> <strong>Auto-Healing</strong> Updates</li>
+                                <li><span class="green">✔</span> <strong>Blue Label</strong> Validator Access</li>
+                                <li><span class="green">✔</span> Priority Support</li>
+                                <li><span class="green">✔</span> <strong>20% OFF</strong> Black Market Skills</li>
+                            </ul>
+                            <div class="tier-click-hint">CLICK_FOR_DETAILED_BREAKDOWN</div>
+                            <button class="btn-primary full-width" id="btn-sub-syndicate">JOIN_THE_SYNDICATE</button>
+                            <p class="tier-note">Cancel anytime. 7-day money-back guarantee.</p>
+                        </div>
+
+                        <!-- BLACK MARKET - Elite Tier -->
+                        <div class="pricing-card black-market" data-tier="black_market">
+                            <h3>BLACK_MARKET</h3>
+                            <div class="badge-tier restricted">RESTRICTED_ACCESS</div>
+                            <div class="price">
+                                <span class="currency">$</span>99<span class="period">/mo</span>
+                            </div>
+                            <p class="tier-desc">All skills. No restrictions. Includes exclusive elite protocols and
+                                early access to experimental skills.</p>
+                            <ul class="benefit-list">
+                                <li><span class="purple">⚠</span> <strong>Everything</strong> in Syndicate</li>
+                                <li><span class="purple">⚠</span> <strong>Exclusive</strong> Black Market Skills</li>
+                                <li><span class="purple">⚠</span> <strong>Competitor Recon</strong> Protocols</li>
+                                <li><span class="purple">⚠</span> <strong>Early Access</strong> to New Skills</li>
+                                <li><span class="purple">⚠</span> <strong>1-on-1</strong> Architect Support</li>
+                            </ul>
+                            <div class="tier-click-hint">CLICK_FOR_DETAILED_BREAKDOWN</div>
+                            <button class="btn-nuclear" id="btn-acc-blackmarket">ENTER_BLACK_MARKET</button>
+                            <p class="tier-note warning">⚠ Use at your own discretion. Elite protocols for experienced
+                                operators only.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- Leaderboard Section -->
+            <section id="leaderboard" class="leaderboard-section">
+                <div class="container">
+                    <div class="section-header">
+                        <span class="section-label">05 // ELITE_OPERATORS</span>
+                        <h2>TOP_ARCHITECTS [WEEKLY]</h2>
+                        <p class="section-subtitle">The operators earning the most through skill distribution.</p>
+                    </div>
+                    <div class="leaderboard-grid" id="top-architects-grid">
+                        <!-- Architect Card 1 -->
+                        <div class="architect-card rank-1">
+                            <div class="rank-badge gold">#1</div>
+                            <div class="arch-avatar">
+                                <span class="avatar-letter">N</span>
+                                <div class="verified-mark">✓</div>
+                            </div>
+                            <div class="arch-details">
+                                <h4>Neo_Architect</h4>
+                                <span class="specialty-tag">Systems Architecture</span>
+                                <div class="arch-stats-row">
+                                    <div class="stat-item">
+                                        <span class="stat-value">1,240</span>
+                                        <span class="stat-label">SOLD</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value">12</span>
+                                        <span class="stat-label">SKILLS</span>
+                                    </div>
+                                    <div class="stat-item blurred">
+                                        <span class="stat-value">$42k</span>
+                                        <span class="stat-label">EARNED</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn-view-profile">VIEW_PROFILE</button>
+                        </div>
+                        <!-- Architect Card 2 -->
+                        <div class="architect-card rank-2">
+                            <div class="rank-badge silver">#2</div>
+                            <div class="arch-avatar">
+                                <span class="avatar-letter">Z</span>
+                                <div class="verified-mark">✓</div>
+                            </div>
+                            <div class="arch-details">
+                                <h4>ZeroCool</h4>
+                                <span class="specialty-tag security">Offensive Security</span>
+                                <div class="arch-stats-row">
+                                    <div class="stat-item">
+                                        <span class="stat-value">982</span>
+                                        <span class="stat-label">SOLD</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value">8</span>
+                                        <span class="stat-label">SKILLS</span>
+                                    </div>
+                                    <div class="stat-item blurred">
+                                        <span class="stat-value">$31k</span>
+                                        <span class="stat-label">EARNED</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn-view-profile">VIEW_PROFILE</button>
+                        </div>
+                        <!-- Architect Card 3 -->
+                        <div class="architect-card rank-3">
+                            <div class="rank-badge bronze">#3</div>
+                            <div class="arch-avatar">
+                                <span class="avatar-letter">T</span>
+                                <div class="verified-mark">✓</div>
+                            </div>
+                            <div class="arch-details">
+                                <h4>Trinity_Dev</h4>
+                                <span class="specialty-tag dev">Data Extraction</span>
+                                <div class="arch-stats-row">
+                                    <div class="stat-item">
+                                        <span class="stat-value">850</span>
+                                        <span class="stat-label">SOLD</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value">6</span>
+                                        <span class="stat-label">SKILLS</span>
+                                    </div>
+                                    <div class="stat-item blurred">
+                                        <span class="stat-value">$28k</span>
+                                        <span class="stat-label">EARNED</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn-view-profile">VIEW_PROFILE</button>
+                        </div>
+                        <!-- Architect Card 4 -->
+                        <div class="architect-card">
+                            <div class="rank-badge">#4</div>
+                            <div class="arch-avatar">
+                                <span class="avatar-letter">M</span>
+                            </div>
+                            <div class="arch-details">
+                                <h4>Morpheus_AI</h4>
+                                <span class="specialty-tag marketing">Marketing Automation</span>
+                                <div class="arch-stats-row">
+                                    <div class="stat-item">
+                                        <span class="stat-value">720</span>
+                                        <span class="stat-label">SOLD</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value">5</span>
+                                        <span class="stat-label">SKILLS</span>
+                                    </div>
+                                    <div class="stat-item blurred">
+                                        <span class="stat-value">$24k</span>
+                                        <span class="stat-label">EARNED</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn-view-profile">VIEW_PROFILE</button>
+                        </div>
+                        <!-- Architect Card 5 -->
+                        <div class="architect-card">
+                            <div class="rank-badge">#5</div>
+                            <div class="arch-avatar">
+                                <span class="avatar-letter">O</span>
+                            </div>
+                            <div class="arch-details">
+                                <h4>Oracle_Ops</h4>
+                                <span class="specialty-tag research">Research & Analysis</span>
+                                <div class="arch-stats-row">
+                                    <div class="stat-item">
+                                        <span class="stat-value">612</span>
+                                        <span class="stat-label">SOLD</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value">4</span>
+                                        <span class="stat-label">SKILLS</span>
+                                    </div>
+                                    <div class="stat-item blurred">
+                                        <span class="stat-value">$19k</span>
+                                        <span class="stat-label">EARNED</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn-view-profile">VIEW_PROFILE</button>
+                        </div>
+                    </div>
+                    <div class="leaderboard-footer">
+                        <p class="join-cta">Want to be on this list? <a href="#"
+                                id="become-architect">BECOME_AN_ARCHITECT →</a></p>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- Manifesto Section -->
+            <section id="manifesto" class="manifesto-section">
+                <div class="container">
+                    <div class="section-header">
+                        <span class="section-label">06 // THE_PHILOSOPHY</span>
+                        <h2>AGENTIC ACCELERATIONISM</h2>
+                        <p class="section-subtitle">Why we're building the future of AI capabilities.</p>
+                    </div>
+                    <div class="manifesto-content">
+                        <div class="manifesto-col">
+                            <h3>THE PROBLEM WITH PROMPTS</h3>
+                            <p>Prompts are fragile. They break with every model update, depend on vague "vibes," and
+                                produce inconsistent results. You're not engineering—you're gambling.</p>
+                            <div class="manifesto-stat">
+                                <span class="stat-number">73%</span>
+                                <span class="stat-desc">of prompts fail after a model update</span>
+                            </div>
+                        </div>
+                        <div class="manifesto-col">
+                            <h3>THE PROTOCOL SOLUTION</h3>
+                            <p>We believe in <strong>Skills as Protocols</strong>. Hardened markdown files with clear
+                                boundaries, capabilities, and decision trees. An agent with a protocol is
+                                <em>deterministic</em>. An agent with a prompt is guessing.
+                            </p>
+                            <div class="manifesto-stat">
+                                <span class="stat-number">40h</span>
+                                <span class="stat-desc">saved monthly per skill on average</span>
+                            </div>
+                        </div>
+                        <div class="manifesto-col">
+                            <h3>JOIN THE MOVEMENT</h3>
+                            <p>Moltbot gave us the body. We're building the brain. This marketplace is for
+                                <strong>serious operators</strong> who need AI that performs at elite levels—24/7,
+                                without hallucination.
+                            </p>
+                            <div class="manifesto-stat">
+                                <span class="stat-number">500+</span>
+                                <span class="stat-desc">security-audited skills available</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="manifesto-footer">
+                        <div class="manifesto-ctas">
+                            <a href="#marketplace" class="btn-primary">BROWSE_SKILLS</a>
+                            <button class="btn-secondary large" id="open-manifesto-modal">READ_FULL_MANIFESTO →</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- Creator CTA Section -->
+            <section class="creator-cta-section">
+                <div class="container">
+                    <div class="creator-banner">
+                        <div class="creator-content">
+                            <span class="glitch-tag">THE_MERCENARY_NETWORK</span>
+                            <h2>MONETIZE YOUR PROTOCOLS</h2>
+                            <p>Join the elite network of skill architects. Upload your hardened protocols and earn
+                                passive
+                                income from the agentic economy.</p>
+                            <ul class="creator-benefits">
+                                <li><span class="green">✔</span> <strong>70% Revenue Share</strong> (Highest in
+                                    industry)
+                                </li>
+                                <li><span class="green">✔</span> Instant Crypto / Stripe Payouts</li>
+                                <li><span class="green">✔</span> "Blue Label" Verification Badge</li>
+                            </ul>
+                            <button class="btn-primary" id="open-dev-modal">OPEN_DEVELOPER_PORTAL</button>
+                        </div>
+                        <div class="creator-visual">
+                            <!-- Simple visual represenation -->
+                            <div class="revenue-card">
+                                <div class="rev-header">ESTIMATED_EARNINGS</div>
+                                <div class="rev-amount">$4,290.00</div>
+                                <div class="rev-graph">
+                                    <div class="bar" style="height: 30%"></div>
+                                    <div class="bar" style="height: 50%"></div>
+                                    <div class="bar" style="height: 40%"></div>
+                                    <div class="bar" style="height: 70%"></div>
+                                    <div class="bar" style="height: 60%"></div>
+                                    <div class="bar active" style="height: 90%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Newsletter Section -->
+            <section class="newsletter-section">
+                <div class="container">
+                    <div class="newsletter-box">
+                        <div class="news-content">
+                            <h3>GET <span>INTEL_DROPS</span> // WEEKLY</h3>
+                            <p>Exclusive skill releases, agent architecture tips, and early access to Black Market
+                                protocols. Zero spam. Encrypted delivery.</p>
+                        </div>
+                        <form class="news-form" id="newsletter-form">
+                            <div class="input-wrapper">
+                                <span class="prompt">></span>
+                                <input type="email" placeholder="your@email.encrypted" required>
+                            </div>
+                            <button type="submit" class="btn-primary">ESTABLISH_LINK</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+
+        <!-- Developer Portal Modal -->
+        <div id="dev-modal" class="modal-overlay">
+            <div class="modal-window">
+                <button class="modal-close">&times;</button>
+                <div class="modal-tabs">
+                    <button class="tab-btn active" data-tab="tab-access">REQUEST_ACCESS</button>
+                    <button class="tab-btn" data-tab="tab-validator">PROTOCOL_VALIDATOR</button>
+                </div>
+
+                <!-- Tab 1: Access Request -->
+                <div id="tab-access" class="tab-content active">
+                    <div class="modal-header">
+                        <h3><span class="purple">></span> DEVELOPER_PORTAL_ACCESS</h3>
+                    </div>
+                    <div class="modal-body">
+                        <p class="modal-intro">The Mercenary Network is currently in <strong>Closed Beta</strong>. We
+                            are
+                            accepting 50 new architects this week.</p>
+
+                        <form class="retro-form">
+                            <div class="form-group">
+                                <label>CODENAME</label>
+                                <input type="text" placeholder="e.g. Neo_Architect">
+                            </div>
+                            <div class="form-group">
+                                <label>GITHUB_URL</label>
+                                <input type="text" placeholder="github.com/...">
+                            </div>
+                            <div class="form-group">
+                                <label>PRIMARY_SKILLSET</label>
+                                <select>
+                                    <option>Select Protocol Type...</option>
+                                    <option>Research & Analysis</option>
+                                    <option>DevOps & Infrastructure</option>
+                                    <option>Creative Writing</option>
+                                    <option>Financial Trading</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn-primary full-width">REQUEST_ACCESS</button>
+                        </form>
+                        <p class="modal-note">* You will receive a cryptographic key if accepted.</p>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Protocol Validator -->
+                <div id="tab-validator" class="tab-content">
+                    <div class="modal-header">
+                        <h3><span class="blue">></span> BLUE_LABEL_AUDIT_TOOL</h3>
+                    </div>
+                    <div class="modal-body">
+                        <p class="modal-intro">Upload your <code class="inline-code">.md</code> protocol for a
+                            preliminary
+                            security scan. Malware detection & syntax verification.</p>
+
+                        <div class="upload-zone" id="drop-zone">
+                            <span class="icon">📂</span>
+                            <span>DRAG_PROTOCOL_HERE</span>
+                            <span class="sub-text">or click to browse (.md only)</span>
+                            <input type="file" id="file-upload" accept=".md" hidden>
+                        </div>
+
+                        <div class="audit-terminal hidden" id="audit-terminal">
+                            <div class="terminal-header-small">
+                                <span>validator_daemon.exe</span>
+                            </div>
+                            <div class="audit-log" id="audit-log">
+                                <!-- Logs go here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </header>
 
-    <main>
-        <section class="hero-section">
-            <div class="container hero-grid">
-                <div class="hero-content">
-                    <div class="badge-pill">
-                        <span class="status-dot"></span> SYSTEM_ONLINE // SECURE_CONNECTION
-                    </div>
-                    <h1 class="glitch-text" data-text="INSTALL GOD MODE">INSTALL GOD MODE</h1>
-                    <h2 class="sub-headline">ON YOUR AGENTS.</h2>
-                    <p class="hero-desc">
-                        The world's first <strong>Verified Capability Marketplace</strong> for autonomous AI.
-                        Stop writing prompts. Start injecting audited, high-leverage skills directly into your neural
-                        architecture.
-                    </p>
-                    <div class="cta-group">
-                        <a href="#install" class="btn-primary">
-                            <span class="icon">⚡</span> INITIALIZE_DATABASE
-                        </a>
-                        <div class="cli-command">
-                            <span class="cmd-prompt">$</span> npx elite install <span
-                                class="cmd-arg">senior-dev-bundle</span>
-                            <button class="copy-btn" aria-label="Copy command">⎘</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="hero-visual">
-                    <div class="terminal-window">
-                        <div class="terminal-header">
-                            <div class="traffic-lights">
-                                <span class="light red"></span>
-                                <span class="light yellow"></span>
-                                <span class="light green"></span>
-                            </div>
-                            <span class="terminal-title">agent_v4.5 -- verifying skills</span>
-                        </div>
-                        <div class="terminal-body" id="hero-terminal">
-                            <!-- JS will populate this with a typing animation -->
-                            <div class="line"><span class="blue">➜</span> <span class="purple">~</span> initializing
-                                neural handshake...</div>
-                            <div class="line"><span class="green">✔</span> system detected: <span class="white">Moltbot
-                                    v2.1</span></div>
-                            <div class="line"><span class="blue">➜</span> <span class="purple">~</span> injecting <span
-                                    class="yellow">research_expert.md</span>...</div>
-                            <div class="line"><span class="green">✔</span> signature verified: <span
-                                    class="dim">0x9F...A2</span></div>
-                            <div class="line typing"><span class="blue">➜</span> <span class="purple">~</span> agent
-                                capabilities upgraded. ready.</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+        <!-- Manifesto Modal -->
+        <div id="manifesto-modal" class="modal-overlay">
+            <div class="modal-window manifesto-modal-window">
+                <button class="modal-close" id="close-manifesto-modal">×</button>
+                <div class="manifesto-modal-content">
+                    <h2>THE MOLTBOT SKILLS MANIFESTO</h2>
+                    <p class="manifesto-tagline">Building the future of agentic AI, one protocol at a time.</p>
 
-        <section class="ticker-tape">
-            <div class="ticker-content">
-                <span>// COMPATIBLE WITH: MOLTBOT</span>
-                <span>// CLAWDBOT</span>
-                <span>// MINTLIFY</span>
-                <span>// AUTOGPT</span>
-                <span>// BABYAGI</span>
-                <span>// VERIFIED SECURE</span>
-                <span>// COMPATIBLE WITH: MOLTBOT</span>
-                <span>// CLAWDBOT</span>
-                <span>// MINTLIFY</span>
-                <span>// AUTOGPT</span>
-                <span>// AUTOGPT</span>
-            </div>
-        </section>
-
-        <!-- MEMBER DASHBOARD (Hidden by default) -->
-        <section id="member-dashboard" class="dashboard-section" style="display: none;">
-            <div class="container">
-                <div class="section-header">
-                    <span class="section-label">00 // OPERATOR_ACCESS</span>
-                    <h2>MY SKILL ARSENAL</h2>
-                </div>
-                <div class="dashboard-grid">
-                    <div class="dash-card">
-                        <h3>ACTIVE LICENSES</h3>
-                        <div class="big-stat">03</div>
-                    </div>
-                    <div class="dash-card">
-                        <h3>LIFETIME SAVINGS</h3>
-                        <div class="big-stat">$2,400</div>
-                    </div>
-                    <div class="dash-card action-card">
-                        <h3>SYNC STATUS</h3>
-                        <div class="status-indicator online">ONLINE</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <!-- Feature Grid (Bento Box Refactor) -->
-        <section class="features-section">
-            <div class="container">
-                <div class="section-header">
-                    <span class="section-label">01 // TRUST_PROTOCOL</span>
-                    <h2>ELITE SECURITY ARCHITECTURE</h2>
-                </div>
-                <!-- Bento Grid -->
-                <div class="feature-grid bento-mode">
-                    <!-- Hero Feature (Large) -->
-                    <div class="bento-card bento-large">
-                        <div class="holo-sticker"></div>
-                        <div class="feature-icon">🛡️</div>
-                        <div class="bento-content">
-                            <h3>BLUE LABEL CERTIFIED</h3>
-                            <p>We don't "guess". Every skill is visually audited, cryptographically signed, and
-                                guaranteed to run. <br><br><strong>ZERO MALWARE. ZERO BROKEN CODE.</strong></p>
-                            <span class="inline-code">SHA-256 VERIFIED</span>
-                        </div>
+                    <div class="manifesto-section">
+                        <h3>🎯 THE PROBLEM</h3>
+                        <p>The AI revolution is here, but most operators are drowning in bad prompts. They spend hours
+                            crafting instructions that break with every model update. They download random snippets from
+                            Discord that could contain anything. They have no way to verify quality or security.</p>
                     </div>
 
-                    <!-- Standard Feature -->
-                    <div class="bento-card">
-                        <div class="feature-icon">⚡</div>
-                        <h3>Instant Injection</h3>
-                        <p>One-click install via <span class="white">npx</span>. Bypasses manual copy-paste errors.</p>
-                    </div>
-
-                    <!-- Standard Feature -->
-                    <div class="bento-card">
-                        <div class="feature-icon">🧪</div>
-                        <h3>Lab Tested</h3>
-                        <p>Every skill is battle-tested in live agent environments before listing.</p>
-                    </div>
-
-                    <!-- Wide Feature -->
-                    <div class="bento-card bento-wide">
-                        <div class="feature-icon">🎥</div>
-                        <h3>Live Simulation</h3>
-                        <p>Don't trust the description? Run the skill in our <strong>Browser Terminal</strong>. See the
-                            exact output before you pay.</p>
-                    </div>
-
-                    <!-- Tall Feature -->
-                    <div class="bento-card bento-tall">
-                        <div class="feature-icon">📦</div>
-                        <h3>Role Bundles</h3>
-                        <p>Equip your agent with an entire career's worth of skills. <br><br>Includes:<br>- <span
-                                class="green">✓</span> Error Handling<br>- <span class="green">✓</span> Logging<br>-
-                            <span class="green">✓</span> Self-Correction
-                        </p>
-                    </div>
-
-                    <!-- Standard Feature -->
-                    <div class="bento-card">
-                        <div class="feature-icon">💎</div>
-                        <h3>Elite ROI</h3>
-                        <p>Stop fixing broken GitHub repos. Start deploying.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="marketplace" class="marketplace-section">
-            <div class="container">
-                <div class="section-header flex-between">
-                    <div>
-                        <span class="section-label">02 // THE_ARMORY</span>
-                        <h2>TOP RATED SKILLS</h2>
-                    </div>
-                    <div class="filter-bar">
-                        <button class="filter-btn active">ALL</button>
-                        <button class="filter-btn">DEV</button>
-                        <button class="filter-btn">OPS</button>
-                        <button class="filter-btn">WRITING</button>
-                    </div>
-                </div>
-
-                <div class="skills-grid">
-                    <!-- Skill Card 1 -->
-                    <div class="skill-card">
-                        <div class="card-visual visual-dev">
-                            <svg viewBox="0 0 100 100" class="cartridge-icon">
-                                <path d="M20 20 L80 20 L90 30 L90 80 L80 90 L20 90 L10 80 L10 30 Z" fill="none"
-                                    stroke="var(--neon-blue)" stroke-width="2" />
-                                <rect x="30" y="40" width="40" height="20" fill="rgba(41, 121, 255, 0.2)" />
-                                <path d="M35 50 L65 50" stroke="var(--neon-blue)" stroke-width="2" />
-                                <circle cx="50" cy="70" r="4" fill="var(--neon-blue)" />
-                            </svg>
-                        </div>
-                        <div class="card-header">
-                            <span class="skill-badge dev">DEV</span>
-                            <span class="verified-icon">✓</span>
-                        </div>
-                        <h3>FullStack_Architect_v9</h3>
-                        <p class="skill-desc">Generate production-ready Next.js apps with Tailwind & Supabase.</p>
-                        <div class="skill-meta">
-                            <span>Install: 2.4k</span>
-                            <span>$49.00</span>
-                        </div>
-                        <button class="btn-install">INJECT_SKILL</button>
-                    </div>
-
-                    <!-- Skill Card 2 -->
-                    <div class="skill-card">
-                        <div class="card-visual visual-ops">
-                            <svg viewBox="0 0 100 100" class="cartridge-icon">
-                                <path d="M50 10 L85 30 L85 70 L50 90 L15 70 L15 30 Z" fill="none"
-                                    stroke="var(--neon-red)" stroke-width="2" />
-                                <path d="M50 10 L50 50 L15 70" stroke="var(--neon-red)" stroke-width="1" />
-                                <path d="M50 50 L85 70" stroke="var(--neon-red)" stroke-width="1" />
-                                <circle cx="50" cy="50" r="6" fill="rgba(255, 41, 87, 0.4)" />
-                            </svg>
-                        </div>
-                        <div class="card-header">
-                            <span class="skill-badge ops">OPS</span>
-                            <span class="verified-icon">✓</span>
-                        </div>
-                        <h3>Kubernetes_Commander</h3>
-                        <p class="skill-desc">Automate cluster scaling, helm chart management, and pod diagnostics.</p>
-                        <div class="skill-meta">
-                            <span>Install: 1.1k</span>
-                            <span>$29.00</span>
-                        </div>
-                        <button class="btn-install">INJECT_SKILL</button>
-                    </div>
-
-                    <!-- Skill Card 3 -->
-                    <div class="skill-card">
-                        <div class="card-visual visual-write">
-                            <svg viewBox="0 0 100 100" class="cartridge-icon">
-                                <rect x="25" y="20" width="50" height="60" fill="none" stroke="#ffbd2e"
-                                    stroke-width="2" />
-                                <path d="M35 30 L65 30" stroke="#ffbd2e" stroke-width="2" />
-                                <path d="M35 45 L65 45" stroke="#ffbd2e" stroke-width="2" />
-                                <path d="M35 60 L50 60" stroke="#ffbd2e" stroke-width="2" />
-                                <circle cx="70" cy="70" r="10" fill="rgba(255, 189, 46, 0.2)" stroke="#ffbd2e" />
-                            </svg>
-                        </div>
-                        <div class="card-header">
-                            <span class="skill-badge write">WRITING</span>
-                            <span class="verified-icon">✓</span>
-                        </div>
-                        <h3>Viral_Hook_Generator</h3>
-                        <p class="skill-desc">Trained on 10k viral tweets. Generates high-engagement hooks instantly.
-                        </p>
-                        <div class="skill-meta">
-                            <span>Install: 8.5k</span>
-                            <span class="roi-badge">⚡ SAVES: 12h/mo</span>
-                            <span>$19.00</span>
-                        </div>
-                        <button class="btn-install">INJECT_SKILL</button>
-                    </div>
-                </div>
-            </div>
-            <!-- Live Feed Container -->
-            <div id="live-feed" class="live-feed">
-                <!-- JS will populate -->
-            </div>
-        </section>
-
-        <!-- Pricing Section -->
-        <section id="pricing" class="pricing-section">
-            <div class="container">
-                <div class="section-header">
-                    <span class="section-label">04 // ACQUIRE_ASSETS</span>
-                    <h2>CHOOSE YOUR ACCESS LEVEL</h2>
-                </div>
-                <div class="pricing-grid">
-                    <!-- SaaS Card -->
-                    <div class="pricing-card syndicate">
-                        <div class="card-glow"></div>
-                        <div class="badge-tier">POPULAR_CHOICE</div>
-                        <h3>THE_SYNDICATE</h3>
-                        <div class="price">
-                            <span class="currency">$</span>39<span class="period">/mo</span>
-                        </div>
-                        <p class="tier-desc">Unlimited access to the standard verified library. For the operator who
-                            needs a fully equipped army.</p>
-                        <ul class="benefit-list">
-                            <li><span class="green">✔</span> <strong>Unlimited</strong> Standard Skills</li>
-                            <li><span class="green">✔</span> <strong>Auto-Healing</strong> Updates</li>
-                            <li><span class="green">✔</span> <strong>Blue Label</strong> Validator Access</li>
-                            <li><span class="green">✔</span> <strong>20% OFF</strong> Black Market</li>
+                    <div class="manifesto-section">
+                        <h3>⚡ OUR SOLUTION</h3>
+                        <p>Moltbot Skills is the <strong>first security-first marketplace</strong> for AI capabilities.
+                            Every skill is:</p>
+                        <ul>
+                            <li><strong>SHA-256 Signed</strong> — Tamper-proof verification</li>
+                            <li><strong>Malware Scanned</strong> — No dangerous code patterns</li>
+                            <li><strong>Blue Label Certified</strong> — Manual security review</li>
+                            <li><strong>Version Controlled</strong> — Auto-updates when models change</li>
                         </ul>
-                        <button class="btn-primary full-width">JOIN_THE_SYNDICATE</button>
                     </div>
 
-                    <!-- Black Market Card -->
-                    <div class="pricing-card black-market">
-                        <div class="badge-tier">RESTRICTED</div>
-                        <h3>BLACK_MARKET</h3>
-                        <div class="price">
-                            <span class="currency">$</span>99<span class="period">+</span>
-                        </div>
-                        <p class="tier-desc">Single-unit purchase of dangerous, high-leverage protocols. No
-                            subscription. Lifetime Key.</p>
-                        <ul class="benefit-list">
-                            <li><span class="purple">⚠</span> <strong>Exotic / Rare</strong> Protocols</li>
-                            <li><span class="purple">⚠</span> <strong>Competitor Recon</strong> Elite</li>
-                            <li><span class="purple">⚠</span> <strong>HFT Crypto</strong> Triggers</li>
-                            <li><span class="purple">⚠</span> Lifetime License Key</li>
+                    <div class="manifesto-section">
+                        <h3>💰 FOR DEVELOPERS (70% Revenue Share)</h3>
+                        <p>The most generous revenue split in the industry. Upload your skills, get paid monthly. We
+                            handle payments, distribution, and customer support.</p>
+                        <ul>
+                            <li>Single purchases: <strong>70%</strong> (60% after 3 months)</li>
+                            <li>Subscription pool: Pro-rata based on downloads</li>
+                            <li>Minimum payout: <strong>$100</strong> via Stripe/PayPal</li>
                         </ul>
-                        <button class="btn-secondary full-width">BROWSE_BLACK_MARKET</button>
                     </div>
-                </div>
-            </div>
-        </section>
 
-        <!-- Leaderboard Section -->
-        <section id="leaderboard" class="leaderboard-section">
-            <div class="container">
-                <div class="section-header">
-                    <span class="section-label">05 // ELITE_OPERATORS</span>
-                    <h2>TOP_ARCHITECTS [WEEKLY]</h2>
-                </div>
-                <div class="leaderboard-grid">
-                    <div class="architect-card rank-1">
-                        <div class="rank">#1</div>
-                        <div class="avatar-box">N</div>
-                        <div class="arch-info">
-                            <h4>Neo_Architect</h4>
-                            <span class="specialty">Systems Architecture</span>
-                        </div>
-                        <div class="arch-stats">
-                            <div class="stat">
-                                <span class="label">SOLD</span>
-                                <span class="val">1,240</span>
-                            </div>
-                            <div class="stat">
-                                <span class="label">REV</span>
-                                <span class="val blur">$42k</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="architect-card rank-2">
-                        <div class="rank">#2</div>
-                        <div class="avatar-box">Z</div>
-                        <div class="arch-info">
-                            <h4>ZeroCool</h4>
-                            <span class="specialty">Offensive Sec</span>
-                        </div>
-                        <div class="arch-stats">
-                            <div class="stat">
-                                <span class="label">SOLD</span>
-                                <span class="val">982</span>
-                            </div>
-                            <div class="stat">
-                                <span class="label">REV</span>
-                                <span class="val blur">$31k</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="architect-card rank-3">
-                        <div class="rank">#3</div>
-                        <div class="avatar-box">T</div>
-                        <div class="arch-info">
-                            <h4>Trinity_Dev</h4>
-                            <span class="specialty">Data Extraction</span>
-                        </div>
-                        <div class="arch-stats">
-                            <div class="stat">
-                                <span class="label">SOLD</span>
-                                <span class="val">850</span>
-                            </div>
-                            <div class="stat">
-                                <span class="label">REV</span>
-                                <span class="val blur">$28k</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Manifesto Section -->
-        <section id="manifesto" class="manifesto-section">
-            <div class="container">
-                <div class="section-header">
-                    <span class="section-label">03 // THE_PHILOSOPHY</span>
-                    <h2>AGENTIC ACCELERATIONISM</h2>
-                </div>
-                <div class="manifesto-content">
-                    <div class="manifesto-col">
-                        <h3>THE PROBLEM WITH PROMPTS</h3>
-                        <p>Prompts are fragile. They are specific to the model version, context window, and phase of the
-                            moon. As models evolve, your carefully crafted 5-page prompt breaks. This is not
-                            engineering; it's superstition.</p>
-                    </div>
-                    <div class="manifesto-col">
-                        <h3>THE PROTOCOL SOLUTION</h3>
-                        <p>We believe in <strong>Skills as Protocols</strong>. Hardened, version-controlled markdown
-                            files that define clear boundaries, capabilities, and decision trees. An agent equipped with
-                            a protocol is deterministic. An agent with a prompt is guessing.</p>
-                    </div>
-                    <div class="manifesto-col">
-                        <h3>WHY WE BUILT THIS</h3>
-                        <p>Moltbot and Clawdbot gave us the body. We are providing the brain. This marketplace is for
-                            serious operators who need their AI workforce to perform at <strong>Elite</strong> levels,
-                            24/7, without hallucination or hesitation.</p>
-                    </div>
-                </div>
-                <div class="manifesto-footer">
-                    <a href="#" class="btn-secondary large">READ_FULL_MANIFESTO -></a>
-                </div>
-            </div>
-        </section>
-
-        <!-- Creator CTA Section -->
-        <section class="creator-cta-section">
-            <div class="container">
-                <div class="creator-banner">
-                    <div class="creator-content">
-                        <span class="glitch-tag">THE_MERCENARY_NETWORK</span>
-                        <h2>MONETIZE YOUR PROTOCOLS</h2>
-                        <p>Join the elite network of skill architects. Upload your hardened protocols and earn passive
-                            income from the agentic economy.</p>
-                        <ul class="creator-benefits">
-                            <li><span class="green">✔</span> <strong>70% Revenue Share</strong> (Highest in industry)
-                            </li>
-                            <li><span class="green">✔</span> Instant Crypto / Stripe Payouts</li>
-                            <li><span class="green">✔</span> "Blue Label" Verification Badge</li>
+                    <div class="manifesto-section">
+                        <h3>🔐 SECURITY FIRST</h3>
+                        <p>Every skill goes through our automated security scanner that checks for:</p>
+                        <ul>
+                            <li>Dangerous shell commands (curl, wget, eval)</li>
+                            <li>Credential/API key exposure</li>
+                            <li>External API calls without disclosure</li>
+                            <li>Prompt injection vulnerabilities</li>
                         </ul>
-                        <button class="btn-primary" id="open-dev-modal">OPEN_DEVELOPER_PORTAL</button>
                     </div>
-                    <div class="creator-visual">
-                        <!-- Simple visual represenation -->
-                        <div class="revenue-card">
-                            <div class="rev-header">ESTIMATED_EARNINGS</div>
-                            <div class="rev-amount">$4,290.00</div>
-                            <div class="rev-graph">
-                                <div class="bar" style="height: 30%"></div>
-                                <div class="bar" style="height: 50%"></div>
-                                <div class="bar" style="height: 40%"></div>
-                                <div class="bar" style="height: 70%"></div>
-                                <div class="bar" style="height: 60%"></div>
-                                <div class="bar active" style="height: 90%"></div>
+
+                    <div class="manifesto-ctas-modal">
+                        <a href="#pricing" class="btn-primary large" id="manifesto-to-pricing">JOIN_THE_SYNDICATE</a>
+                        <button class="btn-secondary large" id="manifesto-become-dev">BECOME_AN_ARCHITECT</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Developer Portal Modal -->
+        <div id="dev-portal-modal" class="modal-overlay">
+            <div class="modal-window dev-portal-window">
+                <button class="modal-close" id="close-dev-portal">×</button>
+
+                <!-- Not Logged In State -->
+                <div class="dev-portal-auth" id="dev-portal-auth">
+                    <div class="dev-portal-header">
+                        <h2>🛡️ ARCHITECT_PORTAL</h2>
+                        <p class="portal-tagline">Join the elite network of skill creators</p>
+                    </div>
+
+                    <div class="dev-benefits-grid">
+                        <div class="benefit-box">
+                            <span class="benefit-icon">💰</span>
+                            <h4>70% Revenue</h4>
+                            <p>Highest payout in the industry</p>
+                        </div>
+                        <div class="benefit-box">
+                            <span class="benefit-icon">🔒</span>
+                            <h4>Blue Label</h4>
+                            <p>Verified developer badge</p>
+                        </div>
+                        <div class="benefit-box">
+                            <span class="benefit-icon">⚡</span>
+                            <h4>Fast Payouts</h4>
+                            <p>$100 minimum, monthly</p>
+                        </div>
+                    </div>
+
+                    <div class="auth-buttons">
+                        <button class="btn-github" id="dev-github-signin">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                            </svg>
+                            SIGN IN WITH GITHUB
+                        </button>
+                        <p class="auth-note">We verify all developers via GitHub to maintain elite standards. No fake
+                            accounts, no spam.</p>
+                    </div>
+                </div>
+
+                <!-- Logged In State (Dashboard) -->
+                <div class="dev-portal-dashboard hidden" id="dev-portal-dashboard">
+                    <div class="dev-portal-header">
+                        <div class="dev-user-info">
+                            <div class="dev-avatar" id="dev-avatar">N</div>
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <h3 id="dev-username" style="margin-bottom: 0;">@neo_architect</h3>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#00ff94"
+                                        title="GitHub Verified">
+                                        <path
+                                            d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                                    </svg>
+                                </div>
+                                <span class="verified-badge">✓ VERIFIED ARCHITECT</span>
+                            </div>
+                        </div>
+                        <button class="btn-secondary" id="dev-signout">SIGN_OUT</button>
+                    </div>
+
+                    <!-- Dashboard Tabs -->
+                    <div class="dev-tabs">
+                        <button class="dev-tab active" data-tab="overview">📊 OVERVIEW</button>
+                        <button class="dev-tab" data-tab="upload">⬆️ UPLOAD</button>
+                        <button class="dev-tab" data-tab="payouts">💵 PAYOUTS</button>
+                        <button class="dev-tab" data-tab="account">⚙️ ACCOUNT</button>
+                    </div>
+
+                    <!-- Tab: Overview -->
+                    <div class="dev-tab-content active" id="tab-overview">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <span class="stat-value">12</span>
+                                <span class="stat-label">SKILLS_LISTED</span>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-value">24,580</span>
+                                <span class="stat-label">TOTAL_DOWNLOADS</span>
+                            </div>
+                            <div class="stat-card highlight">
+                                <span class="stat-value">$4,290</span>
+                                <span class="stat-label">LIFETIME_EARNINGS</span>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-value">4.8★</span>
+                                <span class="stat-label">AVG_RATING</span>
+                            </div>
+                        </div>
+
+                        <h4>YOUR TOP SKILLS</h4>
+                        <div class="skill-list">
+                            <div class="skill-list-item">
+                                <span class="skill-name">FullStack_Architect_v9</span>
+                                <span class="skill-sales">2,400 sales</span>
+                                <span class="skill-earned">$1,680</span>
+                            </div>
+                            <div class="skill-list-item">
+                                <span class="skill-name">Research_Deep_Dive</span>
+                                <span class="skill-sales">1,200 sales</span>
+                                <span class="skill-earned">$840</span>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </section>
-    </main>
 
-    <!-- Developer Portal Modal -->
-    <div id="dev-modal" class="modal-overlay">
-        <div class="modal-window">
-            <button class="modal-close">&times;</button>
-            <div class="modal-tabs">
-                <button class="tab-btn active" data-tab="tab-access">REQUEST_ACCESS</button>
-                <button class="tab-btn" data-tab="tab-validator">PROTOCOL_VALIDATOR</button>
-            </div>
+                    <!-- Tab: Upload Skills -->
+                    <div class="dev-tab-content" id="tab-upload">
+                        <h4>UPLOAD NEW SKILL</h4>
+                        <p class="upload-note">All skills go through our security scanner before listing.</p>
 
-            <!-- Tab 1: Access Request -->
-            <div id="tab-access" class="tab-content active">
-                <div class="modal-header">
-                    <h3><span class="purple">></span> DEVELOPER_PORTAL_ACCESS</h3>
-                </div>
-                <div class="modal-body">
-                    <p class="modal-intro">The Mercenary Network is currently in <strong>Closed Beta</strong>. We are
-                        accepting 50 new architects this week.</p>
+                        <div class="upload-zone" id="skill-upload-zone">
+                            <span class="upload-icon">📂</span>
+                            <span class="upload-text">DRAG .MD FILE HERE</span>
+                            <span class="upload-sub">or click to browse</span>
+                            <input type="file" accept=".md" id="skill-file-input" hidden>
+                        </div>
 
-                    <form class="retro-form">
+                        <div class="upload-form hidden" id="skill-upload-form">
+                            <div class="form-group">
+                                <label>SKILL_NAME</label>
+                                <input type="text" id="upload-skill-name" placeholder="e.g. Research_Expert_v2">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>CATEGORY</label>
+                                    <select id="upload-category">
+                                        <option value="dev">DEV</option>
+                                        <option value="business">BUSINESS</option>
+                                        <option value="personal">PERSONAL</option>
+                                        <option value="finance">FINANCE</option>
+                                        <option value="marketing">MARKETING</option>
+                                        <option value="engineering">ENGINEERING</option>
+                                        <option value="research">RESEARCH</option>
+                                        <option value="fun">FUN</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>PRICE ($)</label>
+                                    <input type="number" id="upload-price" placeholder="29" min="9" max="499">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>SHORT_DESCRIPTION</label>
+                                <textarea id="upload-desc" placeholder="What does this skill do?"></textarea>
+                            </div>
+                            <button class="btn-primary full-width" id="submit-skill">SUBMIT_FOR_REVIEW</button>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Payouts -->
+                    <div class="dev-tab-content" id="tab-payouts">
+                        <div class="payout-balance">
+                            <span class="balance-label">AVAILABLE_BALANCE</span>
+                            <span class="balance-amount">$342.50</span>
+                            <button class="btn-primary" id="request-payout">REQUEST_PAYOUT</button>
+                        </div>
+                        <p class="payout-note">Minimum payout: $100. Processing time: 3-5 business days.</p>
+
+                        <h4>PAYOUT_HISTORY</h4>
+                        <div class="payout-list">
+                            <div class="payout-item">
+                                <span class="payout-date">Jan 15, 2026</span>
+                                <span class="payout-amount">$1,240.00</span>
+                                <span class="payout-status success">COMPLETED</span>
+                            </div>
+                            <div class="payout-item">
+                                <span class="payout-date">Dec 15, 2025</span>
+                                <span class="payout-amount">$890.00</span>
+                                <span class="payout-status success">COMPLETED</span>
+                            </div>
+                            <div class="payout-item">
+                                <span class="payout-date">Nov 15, 2025</span>
+                                <span class="payout-amount">$1,450.00</span>
+                                <span class="payout-status success">COMPLETED</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Account Settings -->
+                    <div class="dev-tab-content" id="tab-account">
+                        <h4>ACCOUNT_SETTINGS</h4>
+
                         <div class="form-group">
-                            <label>CODENAME</label>
-                            <input type="text" placeholder="e.g. Neo_Architect">
+                            <label>DISPLAY_NAME</label>
+                            <input type="text" id="account-display-name" value="Neo_Architect">
                         </div>
                         <div class="form-group">
-                            <label>GITHUB_URL</label>
-                            <input type="text" placeholder="github.com/...">
+                            <label>PAYOUT_EMAIL (PayPal/Stripe)</label>
+                            <input type="email" id="account-payout-email" placeholder="your@email.com">
                         </div>
                         <div class="form-group">
-                            <label>PRIMARY_SKILLSET</label>
-                            <select>
-                                <option>Select Protocol Type...</option>
-                                <option>Research & Analysis</option>
-                                <option>DevOps & Infrastructure</option>
-                                <option>Creative Writing</option>
-                                <option>Financial Trading</option>
+                            <label>PAYOUT_METHOD</label>
+                            <select id="account-payout-method">
+                                <option value="stripe">Stripe Connect</option>
+                                <option value="paypal">PayPal</option>
+                                <option value="crypto">Crypto (USDC)</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn-primary full-width">REQUEST_ACCESS</button>
-                    </form>
-                    <p class="modal-note">* You will receive a cryptographic key if accepted.</p>
-                </div>
-            </div>
 
-            <!-- Tab 2: Protocol Validator -->
-            <div id="tab-validator" class="tab-content">
-                <div class="modal-header">
-                    <h3><span class="blue">></span> BLUE_LABEL_AUDIT_TOOL</h3>
-                </div>
-                <div class="modal-body">
-                    <p class="modal-intro">Upload your <code class="inline-code">.md</code> protocol for a preliminary
-                        security scan. Malware detection & syntax verification.</p>
-
-                    <div class="upload-zone" id="drop-zone">
-                        <span class="icon">📂</span>
-                        <span>DRAG_PROTOCOL_HERE</span>
-                        <span class="sub-text">or click to browse (.md only)</span>
-                        <input type="file" id="file-upload" accept=".md" hidden>
-                    </div>
-
-                    <div class="audit-terminal hidden" id="audit-terminal">
-                        <div class="terminal-header-small">
-                            <span>validator_daemon.exe</span>
+                        <div class="account-verification">
+                            <h4>VERIFICATION_STATUS</h4>
+                            <div class="verification-item verified">
+                                <span>✓ GitHub Connected</span>
+                                <span class="gh-username">@neo_architect</span>
+                            </div>
+                            <div class="verification-item verified">
+                                <span>✓ Email Verified</span>
+                            </div>
+                            <div class="verification-item verified">
+                                <span>✓ Blue Label Certified</span>
+                            </div>
                         </div>
-                        <div class="audit-log" id="audit-log">
-                            <!-- Logs go here -->
-                        </div>
+
+                        <button class="btn-primary" id="save-account">SAVE_CHANGES</button>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Command Palette Overlay -->
-    <div id="cmd-palette" class="cmd-overlay">
-        <div class="cmd-window">
-            <div class="cmd-input-wrapper">
-                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM2NjYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48Y2lyY2xlIGN4PSIxMSIgY3k9IjExIiByPSI4Ij48L2NpcmNsZT48bGluZSB4MT0iMjEiIHkxPSIyMSIgeDI9IjE2LjY1IiB5Mj0iMTYuNjUiPjwvbGluZT48L3N2Zz4="
-                    class="search-icon" width="20">
-                <input type="text" class="cmd-input" placeholder="Search commands..." id="cmd-input" autocomplete="off">
-                <span class="cmd-badge">ESC</span>
+        <!-- Skill Detail Modal -->
+
+        <div id="skill-modal" class="modal-overlay">
+            <div class="modal-window skill-modal-window">
+                <button class="modal-close" id="close-skill-modal">×</button>
+                <div class="skill-modal-content">
+                    <div class="skill-modal-header">
+                        <div class="skill-modal-badge" id="skill-modal-badge">DEVELOPMENT</div>
+                        <h2 id="skill-modal-name">Skill Name</h2>
+                        <div class="skill-modal-rating" id="skill-modal-rating">
+                            <span class="stars">★★★★★</span>
+                            <span class="rating-val">4.8</span>
+                            <span class="review-count">(127 reviews)</span>
+                        </div>
+                        <div class="skill-modal-dev">
+                            by <a href="#" id="skill-modal-dev-link"><span id="skill-modal-dev">Developer</span></a>
+                        </div>
+                    </div>
+
+                    <div class="skill-modal-security">
+                        <div class="security-item verified">
+                            <span class="icon">🛡️</span>
+                            <span>SHA-256 VERIFIED</span>
+                            <span class="sha-hash" id="skill-modal-sha">0x9F...A2</span>
+                        </div>
+                        <div class="security-item verified">
+                            <span class="icon">✓</span>
+                            <span>BLUE LABEL CERTIFIED</span>
+                        </div>
+                        <div class="security-item verified">
+                            <span class="icon">🔒</span>
+                            <span>MALWARE SCANNED</span>
+                        </div>
+                    </div>
+
+                    <div class="skill-modal-body">
+                        <h4>FULL DESCRIPTION</h4>
+                        <p id="skill-modal-desc">Full skill description goes here...</p>
+                    </div>
+
+                    <div class="skill-modal-stats">
+                        <div class="stat-box">
+                            <span class="stat-val" id="skill-modal-installs">0</span>
+                            <span class="stat-lbl">INSTALLS</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-val green">98%</span>
+                            <span class="stat-lbl">SATISFACTION</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-val">v2.3</span>
+                            <span class="stat-lbl">VERSION</span>
+                        </div>
+                    </div>
+
+                    <div class="skill-modal-footer">
+                        <div class="skill-modal-price">
+                            <span class="price-amount" id="skill-modal-price">$29</span>
+                            <span class="price-label">ONE-TIME</span>
+                        </div>
+                        <button class="btn-primary large" id="skill-modal-buy">INJECT_SKILL</button>
+                    </div>
+
+                    <div class="skill-modal-more">
+                        <a href="#" id="skill-modal-more-link">VIEW MORE FROM THIS DEVELOPER →</a>
+                    </div>
+                </div>
             </div>
-            <div class="cmd-results" id="cmd-results">
-                <!-- Results injected via JS -->
+        </div>
+
+        <!-- Command Palette Overlay -->
+
+
+        <div id="cmd-palette" class="cmd-overlay">
+            <div class="cmd-window">
+                <div class="cmd-input-wrapper">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM2NjYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48Y2lyY2xlIGN4PSIxMSIgY3k9IjExIiByPSI4Ij48L2NpcmNsZT48bGluZSB4MT0iMjEiIHkxPSIyMSIgeDI9IjE2LjY1IiB5Mj0iMTYuNjUiPjwvbGluZT48L3N2Zz4="
+                        class="search-icon" width="20">
+                    <input type="text" class="cmd-input" placeholder="Search commands..." id="cmd-input"
+                        autocomplete="off">
+                    <span class="cmd-badge">ESC</span>
+                </div>
+                <div class="cmd-results" id="cmd-results">
+                    <!-- Results injected via JS -->
+                </div>
+                <div class="terminal-header-small" style="background:#0a0a0a; color:#444; border-top:1px solid #222;">
+                    Navigate: ↑↓ • Select: ↵
+                </div>
             </div>
-            <div class="terminal-header-small" style="background:#0a0a0a; color:#444; border-top:1px solid #222;">
-                Navigate: ↑↓ • Select: ↵
+        </div>
+
+    </div><!-- /app-container -->
+    <!-- Tier Detail Modal -->
+    <div id="tier-detail-modal" class="modal-overlay">
+        <div class="modal-window tier-modal-window">
+            <button class="modal-close" id="close-tier-modal">&times;</button>
+            <div id="tier-modal-content">
+                <!-- JS will populate this -->
             </div>
         </div>
     </div>

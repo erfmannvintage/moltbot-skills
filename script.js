@@ -195,8 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     skillsGrid.appendChild(card);
                 });
 
-                // Re-attach filter event listeners
-                attachFilterListeners();
+                // Re-attach filter logic if needed (handled by global querySelectorAll in latest version)
                 showToast('MARKETPLACE_SYNCED', `Loaded ${skills.length} skills from database.`);
             }
         } catch (err) {
@@ -560,6 +559,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- SKILL MODAL HANDLERS ---
     const skillModal = document.getElementById('skill-modal');
     const closeSkillModal = document.getElementById('close-skill-modal');
+    let currentSkillData = null;
 
     function openSkillModal(card) {
         if (!skillModal) return;
@@ -589,20 +589,56 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modalRating) {
             modalRating.querySelector('.rating-val').textContent = rating;
             modalRating.querySelector('.review-count').textContent = `(${reviews} reviews)`;
-            // Update stars visually (simple bucket approach)
+
+            // Render interactive stars
             const starsSpan = modalRating.querySelector('.stars');
             const ratingNum = parseFloat(rating);
             let starsStr = '';
             for (let i = 1; i <= 5; i++) {
-                starsStr += (i <= Math.round(ratingNum)) ? '★' : '☆';
+                const isFull = i <= Math.round(ratingNum);
+                starsStr += `<span class="star-clickable ${isFull ? 'active' : ''}" data-value="${i}">${isFull ? '★' : '☆'}</span>`;
             }
-            starsSpan.textContent = starsStr;
+            starsSpan.innerHTML = starsStr;
+
+            // Add click listeners to stars
+            starsSpan.querySelectorAll('.star-clickable').forEach(star => {
+                star.addEventListener('click', (e) => {
+                    const val = parseInt(e.target.dataset.value);
+                    updateModalStars(val);
+                    showToast('RATING_SUBMITTED', `Visual rating set to ${val}/5 stars.`);
+                });
+            });
         }
 
         // Show modal
         skillModal.style.display = 'flex';
         skillModal.classList.add('active');
+
+        // Store skill data for checkout
+        currentSkillData = {
+            id: card.dataset.skillId,
+            name: card.dataset.skillName || card.querySelector('h3')?.textContent,
+            price: parseFloat(card.dataset.price) || 0,
+            category: card.dataset.category
+        };
     }
+
+    function updateModalStars(val) {
+        const starsSpan = document.querySelector('#skill-modal-rating .stars');
+        if (!starsSpan) return;
+        const stars = starsSpan.querySelectorAll('.star-clickable');
+        stars.forEach((s, idx) => {
+            if (idx < val) {
+                s.textContent = '★';
+                s.classList.add('active');
+            } else {
+                s.textContent = '☆';
+                s.classList.remove('active');
+            }
+        });
+    }
+
+
 
     function closeSkillModalFn() {
         if (!skillModal) return;
@@ -621,30 +657,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Make skill cards clickable - open modal (but not the button)
-    document.querySelectorAll('.skill-card').forEach(card => {
-        card.addEventListener('click', (e) => {
+    // Event Delegation for skill cards
+    const skillsGrid = document.querySelector('.skills-grid');
+    if (skillsGrid) {
+        skillsGrid.addEventListener('click', (e) => {
+            const card = e.target.closest('.skill-card');
+            if (!card) return;
+
             // Don't open modal if clicking the button
-            if (e.target.tagName === 'BUTTON') return;
+            if (e.target.tagName === 'BUTTON' || e.target.classList.contains('btn-install')) return;
+
             openSkillModal(card);
         });
-    });
+    }
 
     // --- CHECKOUT BRIDGE ---
     const skillBuyBtn = document.getElementById('skill-modal-buy');
-    let currentSkillData = null;
-
-    // Store skill data when modal opens
-    const originalOpenSkillModal = openSkillModal;
-    function openSkillModal(card) {
-        currentSkillData = {
-            id: card.dataset.skillId,
-            name: card.dataset.skillName || card.querySelector('h3')?.textContent,
-            price: parseFloat(card.dataset.price) || 0,
-            category: card.dataset.category
-        };
-        originalOpenSkillModal(card);
-    }
 
     if (skillBuyBtn) {
         skillBuyBtn.addEventListener('click', async () => {
@@ -709,27 +737,22 @@ document.addEventListener('DOMContentLoaded', () => {
             filterBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
-            const filterText = btn.textContent.trim().toLowerCase();
+            const filterCat = btn.dataset.category || 'all';
 
             allSkillCards.forEach(card => {
                 const category = card.dataset.category?.toLowerCase() || '';
-                const isTopSeller = card.dataset.topseller === 'true';
+                const isTopSeller = card.dataset.topseller === 'true' || card.querySelector('.top-seller-badge');
                 const isBlackMarket = card.classList.contains('black-market-item');
 
-                // Don't touch black market items (they have their own logic)
                 if (isBlackMarket) return;
 
                 let shouldShow = false;
-
-                if (filterText.includes('all')) {
+                if (filterCat === 'all') {
                     shouldShow = true;
-                } else if (filterText.includes('top sellers')) {
+                } else if (filterCat === 'top-seller') {
                     shouldShow = isTopSeller;
-                } else if (filterText.includes('fun')) {
-                    shouldShow = category === 'fun';
                 } else {
-                    // Standard category filter
-                    shouldShow = category === filterText.replace('🔥 ', '').replace('🎮 ', '').replace('💰 ', '');
+                    shouldShow = (category === filterCat);
                 }
 
                 card.style.display = shouldShow ? 'flex' : 'none';
@@ -1478,4 +1501,65 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 4000 + Math.random() * 4000);
     }
 
+    // --- FEATURE MODAL HANDLERS ---
+    const featureModal = document.getElementById('feature-modal');
+    const closeFeatureModal = document.getElementById('close-feature-modal');
+    const bentoCards = document.querySelectorAll('.bento-card');
+
+    function openFeatureModal(card) {
+        if (!featureModal) return;
+        const title = card.dataset.featureTitle;
+        const desc = card.dataset.featureDesc;
+        const iconElement = card.querySelector('.feature-icon');
+        const icon = iconElement ? iconElement.textContent : '🛡️';
+
+        document.getElementById('feature-modal-title').textContent = title;
+        document.getElementById('feature-modal-body').textContent = desc;
+        document.getElementById('feature-modal-icon').textContent = icon;
+
+        featureModal.style.display = 'flex';
+        featureModal.classList.add('active');
+    }
+
+    function closeFeatureModalFn() {
+        if (!featureModal) return;
+        featureModal.style.display = 'none';
+        featureModal.classList.remove('active');
+    }
+
+    bentoCards.forEach(card => {
+        card.addEventListener('click', () => openFeatureModal(card));
+    });
+
+    if (closeFeatureModal) {
+        closeFeatureModal.addEventListener('click', closeFeatureModalFn);
+    }
+
+    // Reuse the same close button selector if needed
+    const altClose = document.getElementById('close-feature-modal');
+    if (altClose) altClose.onclick = closeFeatureModalFn;
+
+    if (featureModal) {
+        featureModal.addEventListener('click', (e) => {
+            if (e.target === featureModal) closeFeatureModalFn();
+        });
+    }
+
+    // --- LOGIN SIMULATION ---
+    const loginLink = document.querySelector('a[href="#login"]');
+    if (loginLink) {
+        loginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showToast('TERMINAL_ACCESS', 'Initializing secure handshake... [DEMO_MODE]');
+            setTimeout(() => {
+                showToast('ACCESS_GRANTED', 'Welcome, Operator. [DASHBOARD_ACTIVATED]');
+                const dashboard = document.getElementById('member-dashboard');
+                if (dashboard) {
+                    dashboard.style.display = 'block';
+                    dashboard.scrollIntoView({ behavior: 'smooth' });
+                    if (typeof loadMemberDashboard === 'function') loadMemberDashboard();
+                }
+            }, 1000);
+        });
+    }
 });

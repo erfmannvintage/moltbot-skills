@@ -33,7 +33,9 @@
                 </div>
                 <nav class="main-nav">
                     <a href="#marketplace" class="nav-link">[BROWSE_DATABASE]</a>
-                    <a href="#manifesto" class="nav-link">[MANIFESTO]</a>
+                    <a href="#features" class="nav-link">[FEATURES]</a>
+                    <a href="#member-dashboard" class="nav-link dashboard-link">[DASHBOARD]</a>
+                    <a href="#pricing" class="nav-link">[PRICING]</a>
                     <a href="#login" class="nav-link btn-secondary">ACCESS_TERMINAL</a>
                 </nav>
             </div>
@@ -55,14 +57,9 @@
                             architecture.
                         </p>
                         <div class="cta-group">
-                            <a href="#install" class="btn-primary">
-                                <span class="icon">⚡</span> INITIALIZE_DATABASE
+                            <a href="#marketplace" class="btn-primary">
+                                <span class="icon">🛒</span> BROWSE_REPOSITORY
                             </a>
-                            <div class="cli-command">
-                                <span class="cmd-prompt">$</span> npx elite install <span
-                                    class="cmd-arg">senior-dev-bundle</span>
-                                <button class="copy-btn" aria-label="Copy command">⎘</button>
-                            </div>
                         </div>
                     </div>
                     <div class="hero-visual">
@@ -135,7 +132,7 @@
                 </div>
             </section>
             <!-- Feature Grid (Bento Box Refactor) -->
-            <section class="features-section">
+            <section id="features" class="features-section">
                 <div class="container">
                     <div class="section-header">
                         <span class="section-label">01 // TRUST_PROTOCOL</span>
@@ -144,7 +141,8 @@
                     <!-- Bento Grid -->
                     <div class="feature-grid bento-mode">
                         <!-- Hero Feature (Large) -->
-                        <div class="bento-card bento-large">
+                        <div class="bento-card bento-large" data-feature-title="BLUE LABEL CERTIFIED"
+                            data-feature-desc="Our proprietary certification process involves a line-by-line manual audit of every skill. We verify that the logic is sound, the dependencies are secure, and the code is optimized for autonomous execution. Once certified, skills receive a cryptographic Blue Label signature that acts as a secure handshake with your agent's kernel.">
                             <div class="holo-sticker"></div>
                             <div class="feature-icon">🛡️</div>
                             <div class="bento-content">
@@ -156,7 +154,8 @@
                         </div>
 
                         <!-- Standard Feature -->
-                        <div class="bento-card">
+                        <div class="bento-card" data-feature-title="Instant Injection"
+                            data-feature-desc="Deployment takes seconds, not hours. By using npx elite install, the skill is directly injected into your agent's runtime environment. No more manual copy-pasting, environment variable conflicts, or broken paths. It's plug-and-play at the neural level.">
                             <div class="feature-icon">⚡</div>
                             <h3>Instant Injection</h3>
                             <p>One-click install via <span class="white">npx</span>. Bypasses manual copy-paste errors.
@@ -164,14 +163,16 @@
                         </div>
 
                         <!-- Standard Feature -->
-                        <div class="bento-card">
+                        <div class="bento-card" data-feature-title="Lab Tested"
+                            data-feature-desc="Every capability is stress-tested in our simulated agent sandbox. We run thousands of cycles to ensure edge cases are handled and there are no memory leaks or logic loops that could stall your agent. If it's in the repo, it's battle-ready.">
                             <div class="feature-icon">🧪</div>
                             <h3>Lab Tested</h3>
                             <p>Every skill is battle-tested in live agent environments before listing.</p>
                         </div>
 
                         <!-- Wide Feature -->
-                        <div class="bento-card bento-wide">
+                        <div class="bento-card bento-wide" data-feature-title="Live Simulation"
+                            data-feature-desc="Transparency is key. Our Browser Terminal allows you to 'dry run' any skill before acquisition. See exactly how the agent parses the logic, what outputs it produces, and how it handles external API calls. Verifiable performance, upfront.">
                             <div class="feature-icon">🎥</div>
                             <h3>Live Simulation</h3>
                             <p>Don't trust the description? Run the skill in our <strong>Browser Terminal</strong>. See
@@ -180,7 +181,8 @@
                         </div>
 
                         <!-- Tall Feature -->
-                        <div class="bento-card bento-tall">
+                        <div class="bento-card bento-tall" data-feature-title="Role Bundles"
+                            data-feature-desc="Transform your base agent into a specialist. Our bundles equip agents with a suite of synergistic skills—like Error Handling, Logging, and Self-Correction—allowing them to operate autonomously for weeks without human intervention.">
                             <div class="feature-icon">📦</div>
                             <h3>Role Bundles</h3>
                             <p>Equip your agent with an entire career's worth of skills. <br><br>Includes:<br>- <span
@@ -190,7 +192,8 @@
                         </div>
 
                         <!-- Standard Feature -->
-                        <div class="bento-card">
+                        <div class="bento-card" data-feature-title="Elite ROI"
+                            data-feature-desc="Stop wasting developer hours on repetitive agent configurations. Our skills provide immediate ROI by automating the overhead of agency. Every injection is a permanent upgrade that pays for itself in days.">
                             <div class="feature-icon">💎</div>
                             <h3>Elite ROI</h3>
                             <p>Stop fixing broken GitHub repos. Start deploying.</p>
@@ -211,16 +214,16 @@
                             </div>
                         </div>
                         <div class="filter-bar">
-                            <button class="filter-btn active">ALL</button>
-                            <button class="filter-btn hot">🔥 TOP SELLERS</button>
-                            <button class="filter-btn">DEV</button>
-                            <button class="filter-btn">BUSINESS</button>
-                            <button class="filter-btn finance">💰 FINANCE</button>
-                            <button class="filter-btn">MARKETING</button>
-                            <button class="filter-btn">ENGINEERING</button>
-                            <button class="filter-btn">RESEARCH</button>
-                            <button class="filter-btn personal">💖 PERSONAL</button>
-                            <button class="filter-btn fun">🎮 FUN</button>
+                            <button class="filter-btn active" data-category="all">ALL</button>
+                            <button class="filter-btn hot" data-category="top-seller">🔥 TOP SELLERS</button>
+                            <button class="filter-btn" data-category="dev">DEV</button>
+                            <button class="filter-btn" data-category="business">BUSINESS</button>
+                            <button class="filter-btn finance" data-category="finance">💰 FINANCE</button>
+                            <button class="filter-btn" data-category="marketing">MARKETING</button>
+                            <button class="filter-btn" data-category="engineering">ENGINEERING</button>
+                            <button class="filter-btn" data-category="research">RESEARCH</button>
+                            <button class="filter-btn personal" data-category="personal">💖 PERSONAL</button>
+                            <button class="filter-btn fun" data-category="fun">🎮 FUN</button>
                             <div class="search-bar">
                                 <input type="text" id="skill-search" placeholder="🔍 SEARCH_SKILLS..."
                                     autocomplete="off">
@@ -632,14 +635,11 @@
                         </div>
                     </div>
                 </div>
-                <!-- Live Feed Container -->
-                <div id="live-feed" class="live-feed">
-                    <!-- JS will populate -->
-                </div>
+
             </section>
 
 
-            <!-- Pricing Section -->
+            <!-- PRICING SECTION -->
             <section id="pricing" class="pricing-section">
                 <div class="container">
                     <div class="section-header">
@@ -1427,6 +1427,25 @@
             <button class="modal-close" id="close-tier-modal">&times;</button>
             <div id="tier-modal-content">
                 <!-- JS will populate this -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Feedback Overlay -->
+    <div id="toast-container"></div>
+
+    <!-- Feature Detail Modal -->
+    <div id="feature-modal" class="modal-overlay">
+        <div class="modal-window feature-modal-window">
+            <button class="modal-close" id="close-feature-modal">&times;</button>
+            <div id="feature-modal-content">
+                <div class="feature-detail-header">
+                    <div class="feature-detail-icon" id="feature-modal-icon">🛡️</div>
+                    <h2 id="feature-modal-title">FEATURE_DETAIL</h2>
+                </div>
+                <div class="feature-detail-body" id="feature-modal-body">
+                    <!-- Populated by JS -->
+                </div>
             </div>
         </div>
     </div>

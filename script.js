@@ -1556,6 +1556,56 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- FOOTER SEARCH SYNC ---
+    const footerSearchInput = document.getElementById('footer-skill-search');
+    if (footerSearchInput) {
+        footerSearchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const allCards = document.querySelectorAll('.skills-grid .skill-card');
+
+            allCards.forEach(card => {
+                if (card.classList.contains('black-market-item')) return;
+
+                const name = (card.dataset.skillName || card.querySelector('h3')?.textContent || '').toLowerCase();
+                const desc = (card.dataset.skillDesc || card.querySelector('.skill-desc')?.textContent || '').toLowerCase();
+                const category = (card.dataset.category || '').toLowerCase();
+
+                const matches = searchTerm.length === 0 ||
+                    name.includes(searchTerm) ||
+                    desc.includes(searchTerm) ||
+                    category.includes(searchTerm);
+
+                card.style.display = matches ? 'flex' : 'none';
+            });
+
+            if (searchTerm.length > 2) {
+                const visibleCount = Array.from(allCards).filter(c => c.style.display !== 'none').length;
+                showToast('SEARCH_RESULTS', `Found ${visibleCount} skills for "${searchTerm}"`);
+            }
+        });
+    }
+
+    // --- PRICING TIER BUTTON HANDLERS ---
+    // Browse Marketplace (Free Tier)
+    const browseMarketplaceBtn = document.querySelector('.pricing-card.free-tier .btn-secondary');
+    if (browseMarketplaceBtn) {
+        browseMarketplaceBtn.addEventListener('click', () => {
+            document.getElementById('marketplace')?.scrollIntoView({ behavior: 'smooth' });
+        });
+    }
+
+    // Join Syndicate
+    const joinSyndicateBtn = document.getElementById('btn-sub-syndicate');
+    if (joinSyndicateBtn) {
+        joinSyndicateBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            showToast('SYNDICATE_ACCESS', 'Processing subscription request... [DEMO_MODE]');
+            setTimeout(() => {
+                showToast('ACCESS_GRANTED', 'Welcome to THE_SYNDICATE. Full arsenal unlocked.');
+            }, 1500);
+        });
+    }
+
     // --- DASHBOARD NAVIGATION FIX ---
     const dashboardLink = document.querySelector('.dashboard-link');
     const dashboardSection = document.getElementById('member-dashboard');
@@ -1593,20 +1643,86 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- LOGIN SIMULATION ---
+    // --- STAR RATING INTERACTION ---
+    const starElement = document.querySelector('.skill-modal-rating .stars');
+    if (starElement) {
+        starElement.style.cursor = 'pointer';
+        starElement.title = 'Rate this skill';
+
+        starElement.addEventListener('click', (e) => {
+            // Visual feedback simulation
+            const originalText = starElement.textContent;
+            starElement.textContent = '★★★★★';
+            starElement.style.color = '#ffd700'; // Gold color
+
+            showToast('RATING_SUBMITTED', 'Thank you. Your feedback updates the Trust Protocol.');
+
+            // Revert visual after delay if needed, or keep it to show interaction
+            setTimeout(() => {
+                starElement.style.color = ''; // Reset color
+            }, 2000);
+        });
+    }
+
+    // --- NAVIGATION SCROLL FIX ---
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            const href = link.getAttribute('href');
+            if (href.startsWith('#') && href !== '#login') {
+                e.preventDefault();
+                const targetId = href.substring(1);
+                const targetSection = document.getElementById(targetId);
+
+                if (targetSection) {
+                    // Show dashboard if hidden
+                    if (targetId === 'member-dashboard' && targetSection.style.display === 'none') {
+                        targetSection.style.display = 'block';
+                    }
+
+                    const headerOffset = 80; // Height of fixed header
+                    const elementPosition = targetSection.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+        });
+    });
+
+    // --- LOGIN SIMULATION (REFINED) ---
     const loginLink = document.querySelector('a[href="#login"]');
     if (loginLink) {
         loginLink.addEventListener('click', (e) => {
             e.preventDefault();
-            showToast('TERMINAL_ACCESS', 'Initializing secure handshake... [DEMO_MODE]');
-            setTimeout(() => {
-                showToast('ACCESS_GRANTED', 'Welcome, Operator. [DASHBOARD_ACTIVATED]');
-                if (dashboardSection) {
+            // User requested to remove or refine the bottom notice
+            // showToast('TERMINAL_ACCESS', 'Initializing secure handshake... [DEMO_MODE]'); 
+
+            // Instead of toast, just scroll to dashboard after a delay or effect
+            const dashboardSection = document.getElementById('member-dashboard');
+            if (dashboardSection) {
+                if (dashboardSection.style.display === 'none') {
                     dashboardSection.style.display = 'block';
-                    dashboardSection.scrollIntoView({ behavior: 'smooth' });
-                    if (typeof loadMemberDashboard === 'function') loadMemberDashboard();
+                    showToast('ACCESS_GRANTED', 'Terminal Active. Welcome, Operator.');
+                } else {
+                    showToast('SYSTEM_MESSAGE', 'Terminal already active.');
                 }
-            }, 1000);
+
+                setTimeout(() => {
+                    const headerOffset = 80;
+                    const elementPosition = dashboardSection.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+
+                    if (typeof loadMemberDashboard === 'function') loadMemberDashboard();
+                }, 500);
+            }
         });
     }
 });

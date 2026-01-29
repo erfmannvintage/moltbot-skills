@@ -4019,6 +4019,8 @@ body.time-warp-active .warp-overlay {
 .marketplace-footer {
     display: flex;
     justify-content: center;
+    align-items: center;
+    gap: 2rem;
     padding: 3rem 0;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     margin-top: 2rem;
@@ -4040,4 +4042,32 @@ body.time-warp-active .warp-overlay {
     background: rgba(41, 121, 255, 0.1);
     box-shadow: 0 0 20px rgba(41, 121, 255, 0.2);
     transform: translateY(-2px);
+}
+
+/* Footer Search Input */
+.footer-search {
+    flex: 1;
+    max-width: 400px;
+}
+
+.footer-search input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid #333;
+    color: white;
+    padding: 1rem 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.footer-search input:focus {
+    outline: none;
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 15px rgba(41, 121, 255, 0.2);
+}
+
+.footer-search input::placeholder {
+    color: #555;
 }

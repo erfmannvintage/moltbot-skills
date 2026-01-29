@@ -1,0 +1,14 @@
+{
+  "name": "moltbot-skills",
+  "version": "1.0.0",
+  "description": "Moltbot Skills Marketplace",
+  "type": "module",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "@netlify/functions": "^2.4.0"
+  },
+  "scripts": {
+    "dev": "npx serve .",
+    "build": "echo 'No build needed'"
+  }
+}

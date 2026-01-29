@@ -1545,6 +1545,54 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- MARKETPLACE SCALING (LOAD MORE) ---
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', () => {
+            showToast('EXPANDING_REPOSITORY', 'Syncing additional capabilities... [DEMO_LIMIT_REACHED]');
+            loadMoreBtn.textContent = 'ALL_CAPABILITIES_LOADED';
+            loadMoreBtn.disabled = true;
+            loadMoreBtn.style.opacity = '0.5';
+        });
+    }
+
+    // --- DASHBOARD NAVIGATION FIX ---
+    const dashboardLink = document.querySelector('.dashboard-link');
+    const dashboardSection = document.getElementById('member-dashboard');
+
+    if (dashboardLink && dashboardSection) {
+        dashboardLink.addEventListener('click', (e) => {
+            if (dashboardSection.style.display === 'none') {
+                dashboardSection.style.display = 'block';
+            }
+            dashboardSection.scrollIntoView({ behavior: 'smooth' });
+        });
+    }
+
+    // --- BLACK MARKET REDIRECTION ---
+    const blackMarketBtn = document.getElementById('btn-acc-blackmarket');
+    if (blackMarketBtn) {
+        blackMarketBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            showToast('SECURE_HANDSHAKE', 'Redirecting to restricted repository Layer...');
+            setTimeout(() => {
+                window.location.href = 'black-market.html';
+            }, 1000);
+        });
+    }
+
+    // --- TIER MODAL BUTTON FIXES ---
+    document.addEventListener('click', (e) => {
+        if (e.target.matches('.tier-cta-section .btn-secondary')) {
+            closeTierModalFn();
+            document.getElementById('marketplace')?.scrollIntoView({ behavior: 'smooth' });
+        }
+        if (e.target.matches('.tier-cta-section .btn-primary')) {
+            showToast('LICENSE_MGMT', 'Syndicate license activated for Demo Mode.');
+            closeTierModalFn();
+        }
+    });
+
     // --- LOGIN SIMULATION ---
     const loginLink = document.querySelector('a[href="#login"]');
     if (loginLink) {
@@ -1553,10 +1601,9 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast('TERMINAL_ACCESS', 'Initializing secure handshake... [DEMO_MODE]');
             setTimeout(() => {
                 showToast('ACCESS_GRANTED', 'Welcome, Operator. [DASHBOARD_ACTIVATED]');
-                const dashboard = document.getElementById('member-dashboard');
-                if (dashboard) {
-                    dashboard.style.display = 'block';
-                    dashboard.scrollIntoView({ behavior: 'smooth' });
+                if (dashboardSection) {
+                    dashboardSection.style.display = 'block';
+                    dashboardSection.scrollIntoView({ behavior: 'smooth' });
                     if (typeof loadMemberDashboard === 'function') loadMemberDashboard();
                 }
             }, 1000);

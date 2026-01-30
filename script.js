@@ -2255,6 +2255,16 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.style.overflow = 'hidden'; // Prevent scrolling
         });
 
+        // specific handler for the footer link
+        const becomeArchitectBtn = document.getElementById('become-architect');
+        if (becomeArchitectBtn) {
+            becomeArchitectBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                devModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+        }
+
         closeModalBtn.addEventListener('click', () => {
             devModal.classList.remove('active');
             document.body.style.overflow = '';

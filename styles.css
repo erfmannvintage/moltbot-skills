@@ -2354,7 +2354,8 @@ body.time-warp-active .warp-overlay {
 }
 
 .btn-nuclear::after {
-    content: 'âš ';
+    content: '';
+    /* Icon removed to fix encoding glitch */
     position: absolute;
     left: 1.5rem;
     top: 50%;

@@ -2604,7 +2604,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const browseMarketplaceBtn = document.querySelector('.pricing-card.free-tier .btn-secondary');
     if (browseMarketplaceBtn) {
         browseMarketplaceBtn.addEventListener('click', () => {
-            document.getElementById('marketplace')?.scrollIntoView({ behavior: 'smooth' });
+            if (activeUser) {
+                document.getElementById('marketplace')?.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                showToast('IDENTITY_REQUIRED', 'Create a free account to access the repository.');
+                // Switch to "Sign Up" tab if possible or just open modal
+                if (typeof openAuthModal === 'function') {
+                    openAuthModal();
+                    // Optional: Toggle to Signup tab? 
+                    // const signupTab = document.querySelector('.tab-btn[data-tab="signup"]');
+                    // if(signupTab) signupTab.click(); 
+                }
+            }
         });
     }
 

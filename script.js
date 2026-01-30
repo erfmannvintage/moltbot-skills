@@ -2475,6 +2475,101 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- DYNAMIC SKILL REPOSITORY ---
+    async function loadSkillRepository() {
+        const grid = document.querySelector('.skills-grid');
+        // Only run on main marketplace, not Black Market (which has valid hardcoded items for now)
+        // But wait, Black Market uses .skills-grid too.
+        // We should check if we are on index.html vs black-market.html
+        // black-market.html has specific black market items we might WANT to fetch dynamic later, but for now user pushed "Black Market View Refactor" which hardcoded them.
+        // index.html has the main marketplace.
+        // Let's check for a specific marker or ID.
+        const isBlackMarketPage = document.getElementById('black-market-repo');
+        if (isBlackMarketPage) return; // Don't overwrite Black Market page
+
+        if (!grid || !supabase) return;
+
+        // Optional: Show loading state
+        // grid.innerHTML = '<div class="loading-spinner">LOADING_REPOSITORY...</div>';
+
+        const { data: skills, error } = await supabase
+            .from('skills')
+            .select('*')
+            .eq('is_blackmarket_only', false) // Only show standard skills on main page
+            .order('is_top_seller', { ascending: false })
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching skills:', error);
+            // Don't show toast on every load if it fails silently, just log
+            return;
+        }
+
+        if (skills && skills.length > 0) {
+            // Filter out existing hardcoded ones? 
+            // Better to clear grid if we have real data
+            grid.innerHTML = '';
+
+            skills.forEach(skill => {
+                const card = createSkillCard(skill);
+                grid.appendChild(card);
+            });
+        }
+    }
+
+    function createSkillCard(skill) {
+        const card = document.createElement('div');
+        card.className = 'skill-card';
+        card.dataset.category = skill.category;
+        card.dataset.skillId = skill.id;
+        card.dataset.skillName = skill.title;
+        card.dataset.skillDesc = skill.short_description || skill.description;
+        card.dataset.price = skill.price;
+        card.dataset.rating = skill.avg_rating || 0;
+        card.dataset.reviews = skill.rating_count || 0;
+        // Top Seller attribute for filtering
+        if (skill.is_top_seller) card.dataset.topseller = "true";
+
+        // Handle visual badge logic based on category
+        let visualClass = 'visual-dev';
+        if (skill.category === 'business') visualClass = 'visual-biz';
+        if (skill.category === 'marketing') visualClass = 'visual-write';
+        if (skill.category === 'finance') visualClass = 'visual-biz'; // Re-use or custom
+
+        const isTopSeller = skill.is_top_seller ? '<div class="top-seller-badge">🔥 TOP SELLER</div>' : '';
+        const verifiedIcon = skill.is_verified ? '<span class="verified-icon">✓</span>' : '';
+
+        card.innerHTML = `
+            <div class="security-badge">AUDITED</div>
+            ${isTopSeller}
+            <div class="card-visual ${visualClass}" style="background:rgba(0,0,0,0.5)">
+               <div class="cartridge-icon-placeholder" style="font-size:2rem; text-align:center; padding-top:1.5rem;">${skill.icon || '💻'}</div>
+            </div>
+            <div class="card-header">
+                <span class="skill-badge ${skill.category}">${skill.category.toUpperCase()}</span>
+                ${verifiedIcon}
+            </div>
+            <h3>${skill.title}</h3>
+            <p class="skill-desc">${(skill.short_description || skill.description || '').substring(0, 80)}...</p>
+            <div class="skill-rating">
+                <span class="stars">★★★★★</span>
+                <span class="rating-score">${skill.avg_rating || '5.0'}</span>
+                <span class="review-count">(${skill.rating_count || 0})</span>
+            </div>
+            <div class="skill-meta">
+                <span>Installs: ${skill.downloads_count || 0}</span>
+                <span>$${skill.price}</span>
+            </div>
+            <button class="btn-install">INJECT_SKILL</button>
+        `;
+
+        return card;
+    }
+
+    // Trigger Load
+    setTimeout(loadSkillRepository, 100); // Slight delay to ensure auth check doesn't block
+
+
     // --- FOOTER SEARCH SYNC ---
     const footerSearchInput = document.getElementById('footer-skill-search');
     if (footerSearchInput) {

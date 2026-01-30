@@ -701,23 +701,238 @@
                         <!-- BLACK MARKET - Elite Tier -->
                         <div class="pricing-card black-market" data-tier="black_market">
                             <h3>BLACK_MARKET</h3>
-                            <div class="badge-tier restricted">RESTRICTED_ACCESS</div>
+                            <div class="badge-tier restricted">LIFETIME_ACCESS</div>
                             <div class="price">
-                                <span class="currency">$</span>99<span class="period">/mo</span>
+                                <span class="currency">£</span>79<span class="period">one-time</span>
                             </div>
-                            <p class="tier-desc">All skills. No restrictions. Includes exclusive elite protocols and
-                                early access to experimental skills.</p>
+                            <p class="tier-desc">All skills. Forever. Includes exclusive elite protocols, lifetime
+                                updates, and VIP architect support.</p>
                             <ul class="benefit-list">
                                 <li><span class="purple">⚠</span> <strong>Everything</strong> in Syndicate</li>
                                 <li><span class="purple">⚠</span> <strong>Exclusive</strong> Black Market Skills</li>
-                                <li><span class="purple">⚠</span> <strong>Competitor Recon</strong> Protocols</li>
+                                <li><span class="purple">⚠</span> <strong>Lifetime</strong> Updates Forever</li>
                                 <li><span class="purple">⚠</span> <strong>Early Access</strong> to New Skills</li>
-                                <li><span class="purple">⚠</span> <strong>1-on-1</strong> Architect Support</li>
+                                <li><span class="purple">⚠</span> <strong>VIP</strong> Architect Support</li>
                             </ul>
                             <div class="tier-click-hint">CLICK_FOR_DETAILED_BREAKDOWN</div>
-                            <button class="btn-nuclear" id="btn-acc-blackmarket">ENTER_BLACK_MARKET</button>
-                            <p class="tier-note warning">⚠ Use at your own discretion. Elite protocols for experienced
-                                operators only.</p>
+                            <button class="btn-nuclear" id="btn-acc-blackmarket">UNLOCK_BLACK_MARKET</button>
+                            <p class="tier-note warning">⚠ One-time payment. Lifetime access. No recurring fees.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- MEMBER DASHBOARD (Hidden until login) -->
+            <section id="member-dashboard" class="dashboard-section" style="display: none;">
+                <div class="container">
+                    <div class="section-header">
+                        <span class="section-label">// YOUR_COMMAND_CENTER</span>
+                        <h2>OPERATOR_DASHBOARD</h2>
+                    </div>
+
+                    <!-- Dashboard Header with Profile -->
+                    <div class="dashboard-header glass-panel">
+                        <div class="user-profile-section">
+                            <div class="user-avatar" id="user-avatar">
+                                <span class="avatar-letter">?</span>
+                                <div class="tier-indicator" id="tier-indicator" data-tier="free"></div>
+                            </div>
+                            <div class="user-info">
+                                <h3 id="user-display-name">OPERATOR_UNKNOWN</h3>
+                                <span class="user-email" id="user-email">Loading...</span>
+                                <div class="user-badges">
+                                    <span class="badge tier-badge" id="user-tier-badge">FREE_AGENT</span>
+                                    <span class="badge account-badge" id="user-account-badge">CUSTOMER</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dashboard-actions">
+                            <button class="btn-secondary" id="btn-toggle-developer">
+                                <span class="icon">🔧</span> SWITCH_TO_ARCHITECT
+                            </button>
+                            <button class="btn-outline" id="btn-logout">
+                                <span class="icon">🚪</span> DISCONNECT
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Dashboard Tabs -->
+                    <div class="dashboard-tabs">
+                        <button class="tab-btn active" data-tab="library">📚 MY_LIBRARY</button>
+                        <button class="tab-btn" data-tab="architect">💰 ARCHITECT_PANEL</button>
+                        <button class="tab-btn" data-tab="account">⚙️ ACCOUNT</button>
+                    </div>
+
+                    <!-- TAB: My Library (Customer View) -->
+                    <div class="dashboard-tab-content active" id="tab-library">
+                        <div class="library-stats glass-panel">
+                            <div class="stat-card">
+                                <div class="stat-value" id="stat-skills-installed">0</div>
+                                <div class="stat-label">SKILLS_INSTALLED</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="stat-downloads-used">0</div>
+                                <div class="stat-label">DOWNLOADS_USED</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="stat-subscription-status">FREE</div>
+                                <div class="stat-label">TIER_STATUS</div>
+                            </div>
+                        </div>
+
+                        <div class="library-section">
+                            <div class="section-subheader">
+                                <h4>🗃️ INSTALLED_SKILLS</h4>
+                                <button class="btn-sm" id="btn-browse-more">+ BROWSE_MORE</button>
+                            </div>
+                            <div class="skill-library-grid" id="skill-library-grid">
+                                <!-- Skills will be populated by JS -->
+                                <div class="empty-library-state">
+                                    <div class="empty-icon">📭</div>
+                                    <h4>NO_SKILLS_INSTALLED</h4>
+                                    <p>Browse the marketplace to add skills to your library.</p>
+                                    <a href="#marketplace" class="btn-primary">BROWSE_MARKETPLACE</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Subscription Upgrade CTA -->
+                        <div class="upgrade-cta glass-panel" id="upgrade-cta">
+                            <div class="upgrade-content">
+                                <span class="upgrade-icon">🚀</span>
+                                <div class="upgrade-text">
+                                    <h4>UPGRADE_YOUR_ACCESS</h4>
+                                    <p>Unlock unlimited skills and exclusive Black Market protocols.</p>
+                                </div>
+                            </div>
+                            <div class="upgrade-actions">
+                                <button class="btn-primary" id="btn-upgrade-syndicate">JOIN_SYNDICATE — £19/mo</button>
+                                <button class="btn-nuclear" id="btn-upgrade-blackmarket">UNLOCK_BLACK_MARKET —
+                                    £79</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB: Architect Panel (Developer View) -->
+                    <div class="dashboard-tab-content" id="tab-architect">
+                        <div class="architect-stats glass-panel">
+                            <div class="stat-card revenue">
+                                <div class="stat-value" id="stat-total-revenue">£0.00</div>
+                                <div class="stat-label">TOTAL_EARNINGS</div>
+                                <div class="stat-trend positive">+0% this month</div>
+                            </div>
+                            <div class="stat-card pending">
+                                <div class="stat-value" id="stat-pending-payout">£0.00</div>
+                                <div class="stat-label">PENDING_PAYOUT</div>
+                                <button class="btn-sm" id="btn-request-payout" disabled>REQUEST</button>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="stat-total-downloads">0</div>
+                                <div class="stat-label">TOTAL_DOWNLOADS</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="stat-skills-submitted">0</div>
+                                <div class="stat-label">SKILLS_PUBLISHED</div>
+                            </div>
+                        </div>
+
+                        <div class="architect-section">
+                            <div class="section-subheader">
+                                <h4>📦 YOUR_SUBMISSIONS</h4>
+                                <button class="btn-primary" id="btn-submit-skill">+ SUBMIT_NEW_SKILL</button>
+                            </div>
+                            <div class="submissions-table glass-panel">
+                                <table id="submissions-table">
+                                    <thead>
+                                        <tr>
+                                            <th>SKILL_NAME</th>
+                                            <th>CATEGORY</th>
+                                            <th>PRICE</th>
+                                            <th>STATUS</th>
+                                            <th>DOWNLOADS</th>
+                                            <th>REVENUE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="submissions-tbody">
+                                        <!-- Populated by JS -->
+                                        <tr class="empty-row">
+                                            <td colspan="6">
+                                                <div class="empty-state">
+                                                    <span class="empty-icon">📝</span>
+                                                    <p>No skills submitted yet. Start building and earning!</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Revenue Breakdown -->
+                        <div class="revenue-breakdown glass-panel">
+                            <h4>💰 REVENUE_BREAKDOWN</h4>
+                            <div class="revenue-info">
+                                <div class="revenue-row">
+                                    <span>Your Share (70%)</span>
+                                    <span id="revenue-your-share">£0.00</span>
+                                </div>
+                                <div class="revenue-row dim">
+                                    <span>Platform Fee (30%)</span>
+                                    <span id="revenue-platform-fee">£0.00</span>
+                                </div>
+                                <hr>
+                                <div class="revenue-row total">
+                                    <span>Available for Payout</span>
+                                    <span id="revenue-available">£0.00</span>
+                                </div>
+                            </div>
+                            <p class="payout-note">Minimum payout: £100. Payouts processed monthly via Stripe or PayPal.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- TAB: Account Settings -->
+                    <div class="dashboard-tab-content" id="tab-account">
+                        <div class="account-settings glass-panel">
+                            <h4>🔐 ACCOUNT_SETTINGS</h4>
+                            <div class="settings-form">
+                                <div class="form-group">
+                                    <label>DISPLAY_NAME</label>
+                                    <input type="text" id="input-display-name" placeholder="Your display name">
+                                </div>
+                                <div class="form-group">
+                                    <label>BIO</label>
+                                    <textarea id="input-bio" placeholder="Tell us about yourself..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>WEBSITE_URL</label>
+                                    <input type="url" id="input-website" placeholder="https://yoursite.com">
+                                </div>
+                                <button class="btn-primary" id="btn-save-profile">SAVE_CHANGES</button>
+                            </div>
+                        </div>
+
+                        <div class="subscription-management glass-panel">
+                            <h4>📊 SUBSCRIPTION_MANAGEMENT</h4>
+                            <div class="current-plan" id="current-plan-info">
+                                <div class="plan-details">
+                                    <span class="plan-name" id="plan-name">FREE_AGENT</span>
+                                    <span class="plan-price" id="plan-price">£0/mo</span>
+                                </div>
+                                <div class="plan-status active" id="plan-status">ACTIVE</div>
+                            </div>
+                            <div class="subscription-actions">
+                                <button class="btn-secondary" id="btn-manage-subscription">MANAGE_SUBSCRIPTION</button>
+                                <button class="btn-outline danger" id="btn-cancel-subscription"
+                                    style="display:none;">CANCEL_SUBSCRIPTION</button>
+                            </div>
+                        </div>
+
+                        <div class="danger-zone glass-panel">
+                            <h4>⚠️ DANGER_ZONE</h4>
+                            <p>These actions are irreversible. Proceed with caution.</p>
+                            <button class="btn-outline danger" id="btn-delete-account">DELETE_ACCOUNT</button>
                         </div>
                     </div>
                 </div>
@@ -919,7 +1134,7 @@
                     <div class="manifesto-footer">
                         <div class="manifesto-ctas">
                             <a href="#marketplace" class="btn-primary">BROWSE_SKILLS</a>
-                            <button class="btn-secondary large" id="open-manifesto-modal">READ_FULL_MANIFESTO →</button>
+                            <button class="btn-primary large" id="open-manifesto-modal">READ_FULL_MANIFESTO →</button>
                         </div>
                     </div>
                 </div>
@@ -1069,44 +1284,149 @@
                     <p class="manifesto-tagline">Building the future of agentic AI, one protocol at a time.</p>
 
                     <div class="manifesto-section">
-                        <h3>🎯 THE PROBLEM</h3>
-                        <p>The AI revolution is here, but most operators are drowning in bad prompts. They spend hours
-                            crafting instructions that break with every model update. They download random snippets from
-                            Discord that could contain anything. They have no way to verify quality or security.</p>
+                        <h3>🎯 THE PROBLEM: PROMPT ENGINEERING IS DEAD</h3>
+                        <p>The AI revolution is here, but most operators are drowning in fragility. They spend hours
+                            crafting "magic words" that break with every model update. They download random snippets
+                            from
+                            Discord that could contain anything—malware, data exfiltration, prompt injections. You
+                            aren't engineering; you're gambling with your infrastructure.</p>
+                        <p><strong>The hard truth:</strong> 73% of prompts fail after a major model update. 42% of
+                            "free" prompts
+                            from online sources contain security vulnerabilities. Zero oversight. Zero accountability.
+                        </p>
                     </div>
 
                     <div class="manifesto-section">
-                        <h3>⚡ OUR SOLUTION</h3>
+                        <h3>⚡ OUR SOLUTION: STANDARDIZED PROTOCOLS</h3>
                         <p>Moltbot Skills is the <strong>first security-first marketplace</strong> for AI capabilities.
-                            Every skill is:</p>
+                            We treat skills as <strong>software artifacts</strong>, not text files. Every skill
+                            undergoes
+                            a rigorous multi-stage verification process before it ever reaches the marketplace.</p>
+                        <p><strong>Our 4-Layer Security Stack:</strong></p>
                         <ul>
-                            <li><strong>SHA-256 Signed</strong> — Tamper-proof verification</li>
-                            <li><strong>Malware Scanned</strong> — No dangerous code patterns</li>
-                            <li><strong>Blue Label Certified</strong> — Manual security review</li>
-                            <li><strong>Version Controlled</strong> — Auto-updates when models change</li>
+                            <li><strong>SHA-256 Cryptographic Signing</strong> — Every skill has an immutable hash. If a
+                                single character changes, the signature breaks. You always know you're running the exact
+                                code that was audited.</li>
+                            <li><strong>Automated Malware Scanning</strong> — Our scanner checks for 500+ dangerous
+                                patterns: shell commands (curl, wget, eval), credential harvesting, unauthorized API
+                                calls, and obfuscated code.</li>
+                            <li><strong>Blue Label Manual Review</strong> — Human security engineers review every skill
+                                before certification. We check logic flow, edge cases, and potential abuse vectors.</li>
+                            <li><strong>Version Control & Auto-Healing</strong> — When models update, we test and patch
+                                skills automatically. Syndicate members get updates pushed silently—no broken workflows.
+                            </li>
                         </ul>
                     </div>
 
                     <div class="manifesto-section">
-                        <h3>💰 FOR DEVELOPERS (70% Revenue Share)</h3>
-                        <p>The most generous revenue split in the industry. Upload your skills, get paid monthly. We
-                            handle payments, distribution, and customer support.</p>
+                        <h3>🛡️ TRUST INFRASTRUCTURE</h3>
+                        <p>We've built the trust layer that AI agents desperately need:</p>
                         <ul>
-                            <li>Single purchases: <strong>70%</strong> (60% after 3 months)</li>
-                            <li>Subscription pool: Pro-rata based on downloads</li>
-                            <li>Minimum payout: <strong>$100</strong> via Stripe/PayPal</li>
+                            <li><strong>Developer Identity Verification</strong> — Every architect is verified via
+                                GitHub OAuth. Real identities, real accountability. No anonymous uploads.</li>
+                            <li><strong>Public Audit Logs</strong> — Every skill displays its full audit history: when
+                                it was scanned, what was checked, and who approved it.</li>
+                            <li><strong>Reputation System</strong> — Developers build reputation through successful
+                                deployments, user ratings, and zero security incidents. Bad actors get permanently
+                                banned.</li>
+                            <li><strong>Rollback Protection</strong> — If a skill update causes issues, you can
+                                instantly roll back to any previous verified version.</li>
+                            <li><strong>Isolated Execution Sandbox</strong> — Skills run in isolated contexts. They
+                                cannot access your system files, network, or other skills without explicit permission.
+                            </li>
                         </ul>
                     </div>
 
                     <div class="manifesto-section">
-                        <h3>🔐 SECURITY FIRST</h3>
-                        <p>Every skill goes through our automated security scanner that checks for:</p>
+                        <h3>🔐 WHAT WE SCAN FOR</h3>
+                        <p>Our automated security scanner checks every skill against these threat vectors:</p>
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                            <div>
+                                <p style="color: #ff4757; margin-bottom: 0.5rem;"><strong>❌ BLOCKED PATTERNS</strong>
+                                </p>
+                                <ul style="font-size: 0.85rem;">
+                                    <li>Shell execution (curl, wget, bash, eval)</li>
+                                    <li>File system access outside sandbox</li>
+                                    <li>Hardcoded API keys or credentials</li>
+                                    <li>Obfuscated or encoded payloads</li>
+                                    <li>External URL fetching without disclosure</li>
+                                    <li>Prompt injection markers</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p style="color: #00ff94; margin-bottom: 0.5rem;"><strong>✓ REQUIRED STANDARDS</strong>
+                                </p>
+                                <ul style="font-size: 0.85rem;">
+                                    <li>Clear capability declarations</li>
+                                    <li>Explicit permission boundaries</li>
+                                    <li>Error handling and graceful failures</li>
+                                    <li>Documentation and usage examples</li>
+                                    <li>Semantic versioning compliance</li>
+                                    <li>Model compatibility declarations</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="manifesto-section">
+                        <h3>💰 FOR DEVELOPERS: THE ARCHITECT PROGRAM</h3>
+                        <p>We offer the <strong>most generous revenue split in the industry</strong> because great
+                            security engineers deserve great compensation.</p>
                         <ul>
-                            <li>Dangerous shell commands (curl, wget, eval)</li>
-                            <li>Credential/API key exposure</li>
-                            <li>External API calls without disclosure</li>
-                            <li>Prompt injection vulnerabilities</li>
+                            <li><strong>70% Revenue Share</strong> — You keep 70% of every sale (60% after 3 months for
+                                long-tail skills)</li>
+                            <li><strong>Subscription Pool Access</strong> — Syndicate subscribers generate monthly
+                                recurring revenue, distributed pro-rata by download count</li>
+                            <li><strong>Fast Payouts</strong> — Minimum $100 threshold, paid monthly via Stripe, PayPal,
+                                or USDC crypto</li>
+                            <li><strong>Blue Label Badge</strong> — Verified developers get a trust badge displayed on
+                                all their skills</li>
+                            <li><strong>Analytics Dashboard</strong> — Real-time insights into downloads, revenue,
+                                ratings, and user feedback</li>
+                            <li><strong>Priority Support</strong> — Direct access to our security team for skill reviews
+                                and optimization</li>
                         </ul>
+                        <p style="margin-top: 1rem;"><strong>Our top architects earn $4,000-$15,000/month</strong> from
+                            skills they built once and maintain occasionally.</p>
+                    </div>
+
+                    <div class="manifesto-section">
+                        <h3>📊 BY THE NUMBERS</h3>
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem; margin-top: 1rem; text-align: center;">
+                            <div>
+                                <div style="font-size: 2.5rem; font-weight: 700; color: #00ff94;">500+</div>
+                                <div style="font-size: 0.8rem; color: #666; text-transform: uppercase;">Audited Skills
+                                </div>
+                            </div>
+                            <div>
+                                <div style="font-size: 2.5rem; font-weight: 700; color: #2979ff;">50,000+</div>
+                                <div style="font-size: 0.8rem; color: #666; text-transform: uppercase;">Monthly Installs
+                                </div>
+                            </div>
+                            <div>
+                                <div style="font-size: 2.5rem; font-weight: 700; color: #bb29eb;">0</div>
+                                <div style="font-size: 0.8rem; color: #666; text-transform: uppercase;">Security
+                                    Incidents</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 2.5rem; font-weight: 700; color: #fff;">4.8★</div>
+                                <div style="font-size: 0.8rem; color: #666; text-transform: uppercase;">Avg. Rating
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="manifesto-section">
+                        <h3>🚀 THE ENDGAME</h3>
+                        <p>We are not just selling prompts. We are building the <strong>modular operating system for the
+                                AGI era</strong>.</p>
+                        <p>Every skill you install is a neuron in the global brain. Every protocol you write extends
+                            humanity's collective intelligence.
+                            We believe AI agents should be <strong>composable, verifiable, and trustworthy</strong>—and
+                            we're building the infrastructure to make that reality.</p>
+                        <p><strong>Stop writing fragile prompts. Start assembling battle-tested protocols.</strong></p>
                     </div>
 
                     <div class="manifesto-ctas-modal">
@@ -1454,6 +1774,183 @@
                 </div>
                 <div class="feature-detail-body" id="feature-modal-body">
                     <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skill Submission Modal (Developer Only) -->
+    <div id="skill-submit-modal" class="modal-overlay">
+        <div class="modal-window skill-submit-modal-window">
+            <button class="modal-close" id="close-skill-submit-modal">&times;</button>
+            <div class="skill-submit-content">
+                <div class="skill-submit-header">
+                    <span class="section-label">// ARCHITECT_ZONE</span>
+                    <h2>SUBMIT_NEW_SKILL</h2>
+                    <p class="submit-note">All skills are reviewed before going live. Approved skills earn 70% revenue.
+                    </p>
+                </div>
+
+                <form id="skill-submit-form" class="skill-submit-form">
+                    <!-- File Upload Zone -->
+                    <div class="upload-zone" id="skill-upload-zone">
+                        <span class="upload-icon">📂</span>
+                        <span class="upload-text">DRAG .MD FILE HERE</span>
+                        <span class="upload-sub">or click to browse</span>
+                        <input type="file" accept=".md" id="skill-file-input" hidden>
+                        <div class="file-preview hidden" id="file-preview">
+                            <span class="file-icon">📄</span>
+                            <span class="file-name" id="file-name"></span>
+                            <button type="button" class="file-remove" id="file-remove">&times;</button>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>SKILL_NAME *</label>
+                            <input type="text" id="submit-skill-name" placeholder="e.g. Research_Expert_v2" required>
+                        </div>
+                        <div class="form-group">
+                            <label>CATEGORY *</label>
+                            <select id="submit-category" required>
+                                <option value="">Select category...</option>
+                                <option value="dev">DEV</option>
+                                <option value="business">BUSINESS</option>
+                                <option value="personal">PERSONAL</option>
+                                <option value="engineering">ENGINEERING</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>TIER_REQUIREMENT *</label>
+                            <select id="submit-tier" required>
+                                <option value="free">FREE_AGENT (Free to all)</option>
+                                <option value="syndicate">SYNDICATE (Paid subscribers)</option>
+                                <option value="blackmarket">BLACK_MARKET (Lifetime members)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>PRICE (£) *</label>
+                            <input type="number" id="submit-price" placeholder="0.00" min="0" step="0.01" required>
+                            <span class="form-hint">Set to 0 for free skills</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>SHORT_DESCRIPTION *</label>
+                        <textarea id="submit-description" placeholder="Brief description of what this skill does..."
+                            required maxlength="200"></textarea>
+                        <span class="char-count"><span id="desc-char-count">0</span>/200</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>TAGS (comma-separated)</label>
+                        <input type="text" id="submit-tags" placeholder="automation, research, api">
+                    </div>
+
+                    <div class="submit-actions">
+                        <button type="button" class="btn-secondary" id="cancel-skill-submit">CANCEL</button>
+                        <button type="submit" class="btn-primary" id="submit-skill-btn">
+                            <span class="btn-text">SUBMIT_FOR_REVIEW</span>
+                            <span class="btn-loading hidden">UPLOADING...</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="submit-guidelines">
+                    <h4>📋 SUBMISSION_GUIDELINES</h4>
+                    <ul>
+                        <li>Skills must be in valid Markdown (.md) format</li>
+                        <li>Include clear instructions and use cases</li>
+                        <li>No malicious code or external dependencies</li>
+                        <li>Review typically takes 24-48 hours</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOMER SIGN-IN MODAL -->
+    <div id="auth-modal" class="modal-overlay">
+        <div class="modal-window auth-modal-window">
+            <button class="modal-close" id="close-auth-modal">&times;</button>
+            <div class="auth-modal-content">
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <span class="prompt">></span> MOLTBOT_SKILLS<span class="cursor">_</span>
+                    </div>
+                    <span class="section-label">// SECURE_ACCESS</span>
+                    <h2 id="auth-modal-title">ACCESS_TERMINAL</h2>
+                    <p class="auth-subtitle">Enter the neural network. Access your skills.</p>
+                </div>
+
+                <!-- Auth Tabs -->
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="signin">SIGN_IN</button>
+                    <button class="auth-tab" data-tab="signup">SIGN_UP</button>
+                </div>
+
+                <!-- Social Auth Options -->
+                <div class="auth-social">
+                    <button class="social-auth-btn github" id="auth-github">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path
+                                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                        </svg>
+                        <span>Continue with GitHub</span>
+                    </button>
+                    <button class="social-auth-btn google" id="auth-google">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="#4285F4"
+                                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                            <path fill="#34A853"
+                                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                            <path fill="#FBBC05"
+                                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                            <path fill="#EA4335"
+                                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                        </svg>
+                        <span>Continue with Google</span>
+                    </button>
+                </div>
+
+                <div class="auth-divider">
+                    <span>or use email</span>
+                </div>
+
+                <!-- Email Auth Form -->
+                <form id="auth-email-form" class="auth-form">
+                    <div class="form-group">
+                        <label>EMAIL_ADDRESS</label>
+                        <input type="email" id="auth-email" placeholder="operator@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>PASSWORD</label>
+                        <input type="password" id="auth-password" placeholder="••••••••" required minlength="8">
+                    </div>
+                    <div class="form-group signup-only" style="display: none;">
+                        <label>CONFIRM_PASSWORD</label>
+                        <input type="password" id="auth-password-confirm" placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn-primary full-width" id="auth-submit-btn">
+                        <span class="btn-text">AUTHENTICATE</span>
+                        <span class="btn-loading" style="display: none;">CONNECTING...</span>
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    <a href="#" id="forgot-password-link">Forgot password?</a>
+                    <p class="auth-terms">
+                        By signing in, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy
+                            Policy</a>.
+                    </p>
+                </div>
+
+                <div class="auth-security-badge">
+                    <span class="security-icon">🔐</span>
+                    <span>256-bit encrypted • SOC 2 compliant</span>
                 </div>
             </div>
         </div>

@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADMIN_CONSOLE // MOLTBOT_SKILLS</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Admin-specific styles */
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .admin-logo {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            color: var(--neon-green);
+        }
+
+        .admin-logo .admin-badge {
+            background: #ff3366;
+            color: #fff;
+            font-size: 0.65rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            margin-left: 0.75rem;
+            vertical-align: middle;
+        }
+
+        .admin-nav {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .admin-nav a {
+            color: #888;
+            text-decoration: none;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+        }
+
+        .admin-nav a:hover,
+        .admin-nav a.active {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .admin-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .admin-stat-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid #333;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+        }
+
+        .admin-stat-card h4 {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .admin-stat-value.success {
+            color: #0f0;
+        }
+
+        .admin-stat-value.warning {
+            color: #ff9900;
+        }
+
+        .admin-stat-value.danger {
+            color: #ff3366;
+        }
+
+        .admin-stat-value.info {
+            color: #00d4ff;
+        }
+
+        .admin-stat-change {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 0.5rem;
+        }
+
+        .admin-section {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid #333;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .admin-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .admin-section h3 {
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            color: var(--neon-green);
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .admin-table th,
+        .admin-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #222;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+        }
+
+        .admin-table th {
+            color: #888;
+            font-weight: 400;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+        }
+
+        .admin-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .status-passed {
+            background: rgba(0, 255, 0, 0.1);
+            color: #0f0;
+        }
+
+        .status-flagged {
+            background: rgba(255, 153, 0, 0.1);
+            color: #ff9900;
+        }
+
+        .status-rejected {
+            background: rgba(255, 51, 102, 0.1);
+            color: #ff3366;
+        }
+
+        .status-pending {
+            background: rgba(0, 212, 255, 0.1);
+            color: #00d4ff;
+        }
+
+        .risk-score {
+            font-weight: 700;
+        }
+
+        .risk-low {
+            color: #0f0;
+        }
+
+        .risk-medium {
+            color: #ff9900;
+        }
+
+        .risk-high {
+            color: #ff3366;
+        }
+
+        .action-btn {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.7rem;
+            font-family: var(--font-mono);
+            border: 1px solid #333;
+            background: transparent;
+            color: #888;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 0.5rem;
+        }
+
+        .action-btn:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+
+        .action-btn.approve:hover {
+            border-color: #0f0;
+            color: #0f0;
+        }
+
+        .action-btn.reject:hover {
+            border-color: #ff3366;
+            color: #ff3366;
+        }
+
+        .system-health {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .health-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .health-icon {
+            font-size: 1.5rem;
+        }
+
+        .health-info h5 {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: #fff;
+            margin-bottom: 0.25rem;
+        }
+
+        .health-info span {
+            font-size: 0.75rem;
+            color: #888;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        .access-denied {
+            text-align: center;
+            padding: 4rem;
+        }
+
+        .access-denied h2 {
+            color: #ff3366;
+            font-family: var(--font-mono);
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .access-denied p {
+            color: #888;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .admin-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .system-health {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .admin-stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .admin-table {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="matrix-bg"></canvas>
+    <div class="scanlines"></div>
+    <div class="noise-overlay"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div style="text-align: center;">
+            <div class="glitch-text" data-text="AUTHENTICATING...">AUTHENTICATING...</div>
+            <p style="color: #888; margin-top: 1rem;">Verifying admin credentials...</p>
+        </div>
+    </div>
+
+    <!-- Access Denied (shown if not admin) -->
+    <div id="access-denied" class="access-denied" style="display: none;">
+        <h2>🚫 ACCESS_DENIED</h2>
+        <p>You do not have permission to access the admin console.</p>
+        <a href="index.html" class="btn-primary">RETURN_TO_MAIN</a>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="admin-dashboard" class="admin-container" style="display: none;">
+        <header class="admin-header">
+            <div class="admin-logo">
+                <span class="prompt">></span> MOLTBOT_ADMIN<span class="cursor">_</span>
+                <span class="admin-badge">RESTRICTED</span>
+            </div>
+            <nav class="admin-nav">
+                <a href="index.html">[MAIN_SITE]</a>
+                <a href="#" class="active">[DASHBOARD]</a>
+                <a href="#" id="admin-logout">[LOGOUT]</a>
+            </nav>
+        </header>
+
+        <!-- Stats Grid -->
+        <div class="admin-stats-grid">
+            <div class="admin-stat-card">
+                <h4>TOTAL_USERS</h4>
+                <div class="admin-stat-value info" id="stat-users">--</div>
+                <div class="admin-stat-change">All registered accounts</div>
+            </div>
+            <div class="admin-stat-card">
+                <h4>PENDING_SUBMISSIONS</h4>
+                <div class="admin-stat-value warning" id="stat-pending">--</div>
+                <div class="admin-stat-change">Awaiting review</div>
+            </div>
+            <div class="admin-stat-card">
+                <h4>FLAGGED_SECURITY</h4>
+                <div class="admin-stat-value danger" id="stat-flagged">--</div>
+                <div class="admin-stat-change">Needs manual security review</div>
+            </div>
+            <div class="admin-stat-card">
+                <h4>APPROVED_SKILLS</h4>
+                <div class="admin-stat-value success" id="stat-approved">--</div>
+                <div class="admin-stat-change">Published to marketplace</div>
+            </div>
+        </div>
+
+        <!-- Flagged Submissions Section -->
+        <section class="admin-section">
+            <div class="admin-section-header">
+                <h3>⚠️ FLAGGED_SUBMISSIONS // SECURITY_REVIEW_REQUIRED</h3>
+                <button class="btn-secondary" id="refresh-flagged">REFRESH</button>
+            </div>
+            <table class="admin-table" id="flagged-table">
+                <thead>
+                    <tr>
+                        <th>Skill Name</th>
+                        <th>Developer</th>
+                        <th>Risk Score</th>
+                        <th>Threats</th>
+                        <th>Submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="flagged-tbody">
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #888;">Loading flagged submissions...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Pending Submissions Section -->
+        <section class="admin-section">
+            <div class="admin-section-header">
+                <h3>📋 PENDING_SUBMISSIONS</h3>
+            </div>
+            <table class="admin-table" id="pending-table">
+                <thead>
+                    <tr>
+                        <th>Skill Name</th>
+                        <th>Category</th>
+                        <th>Developer</th>
+                        <th>Price</th>
+                        <th>Submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="pending-tbody">
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #888;">Loading pending submissions...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- System Health Section -->
+        <section class="admin-section">
+            <div class="admin-section-header">
+                <h3>💚 SYSTEM_HEALTH</h3>
+            </div>
+            <div class="system-health">
+                <div class="health-item">
+                    <span class="health-icon">🔐</span>
+                    <div class="health-info">
+                        <h5>Security Scanner</h5>
+                        <span id="health-scanner">Checking...</span>
+                    </div>
+                </div>
+                <div class="health-item">
+                    <span class="health-icon">🗄️</span>
+                    <div class="health-info">
+                        <h5>Supabase</h5>
+                        <span id="health-supabase">Checking...</span>
+                    </div>
+                </div>
+                <div class="health-item">
+                    <span class="health-icon">💳</span>
+                    <div class="health-info">
+                        <h5>Payment Gateway</h5>
+                        <span id="health-payments">Checking...</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://your-project.supabase.co';
+        const SUPABASE_ANON_KEY = 'your-anon-key';
+
+        // Replace with actual values - these should come from environment
+        let supabase;
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (e) {
+            console.warn('Supabase not configured');
+        }
+
+        let currentUser = null;
+        let userProfile = null;
+
+        // Check admin access
+        async function checkAdminAccess() {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const accessDenied = document.getElementById('access-denied');
+            const adminDashboard = document.getElementById('admin-dashboard');
+
+            if (!supabase) {
+                loadingOverlay.classList.add('hidden');
+                accessDenied.style.display = 'block';
+                return false;
+            }
+
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser();
+
+                if (error || !user) {
+                    loadingOverlay.classList.add('hidden');
+                    accessDenied.style.display = 'block';
+                    return false;
+                }
+
+                currentUser = user;
+
+                // Check if user is admin
+                const { data: profile, error: profileError } = await supabase
+                    .from('user_profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profileError || !profile || profile.account_type !== 'admin') {
+                    loadingOverlay.classList.add('hidden');
+                    accessDenied.style.display = 'block';
+                    return false;
+                }
+
+                userProfile = profile;
+                loadingOverlay.classList.add('hidden');
+                adminDashboard.style.display = 'block';
+                return true;
+            } catch (err) {
+                console.error('Admin check error:', err);
+                loadingOverlay.classList.add('hidden');
+                accessDenied.style.display = 'block';
+                return false;
+            }
+        }
+
+        // Load dashboard stats
+        async function loadStats() {
+            if (!supabase) return;
+
+            try {
+                // Total users
+                const { count: userCount } = await supabase
+                    .from('user_profiles')
+                    .select('*', { count: 'exact', head: true });
+                document.getElementById('stat-users').textContent = userCount || 0;
+
+                // Pending submissions
+                const { count: pendingCount } = await supabase
+                    .from('skill_submissions')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'pending');
+                document.getElementById('stat-pending').textContent = pendingCount || 0;
+
+                // Flagged submissions
+                const { count: flaggedCount } = await supabase
+                    .from('skill_submissions')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'flagged');
+                document.getElementById('stat-flagged').textContent = flaggedCount || 0;
+
+                // Approved skills
+                const { count: approvedCount } = await supabase
+                    .from('skills')
+                    .select('*', { count: 'exact', head: true });
+                document.getElementById('stat-approved').textContent = approvedCount || 0;
+            } catch (err) {
+                console.error('Stats load error:', err);
+            }
+        }
+
+        // Load flagged submissions
+        async function loadFlaggedSubmissions() {
+            if (!supabase) return;
+
+            const tbody = document.getElementById('flagged-tbody');
+
+            try {
+                const { data, error } = await supabase
+                    .from('skill_submissions')
+                    .select('*')
+                    .eq('status', 'flagged')
+                    .order('submitted_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #0f0;">✓ No flagged submissions</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.map(sub => {
+                    const riskScore = sub.security_scan?.risk_score || 0;
+                    const riskClass = riskScore >= 50 ? 'risk-high' : riskScore >= 30 ? 'risk-medium' : 'risk-low';
+                    const threats = sub.security_scan?.threats_count || 0;
+                    const submitted = new Date(sub.submitted_at).toLocaleDateString();
+
+                    return `
+                        <tr>
+                            <td>${sub.name}</td>
+                            <td>${sub.developer_id?.slice(0, 8) || 'Unknown'}...</td>
+                            <td class="risk-score ${riskClass}">${riskScore}/100</td>
+                            <td>${threats} detected</td>
+                            <td>${submitted}</td>
+                            <td>
+                                <button class="action-btn" onclick="viewSubmission('${sub.id}')">VIEW</button>
+                                <button class="action-btn approve" onclick="approveSubmission('${sub.id}')">APPROVE</button>
+                                <button class="action-btn reject" onclick="rejectSubmission('${sub.id}')">REJECT</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error('Flagged load error:', err);
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ff3366;">Error loading flagged submissions</td></tr>';
+            }
+        }
+
+        // Load pending submissions
+        async function loadPendingSubmissions() {
+            if (!supabase) return;
+
+            const tbody = document.getElementById('pending-tbody');
+
+            try {
+                const { data, error } = await supabase
+                    .from('skill_submissions')
+                    .select('*')
+                    .eq('status', 'pending')
+                    .order('submitted_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #888;">No pending submissions</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.map(sub => {
+                    const submitted = new Date(sub.submitted_at).toLocaleDateString();
+                    return `
+                        <tr>
+                            <td>${sub.name}</td>
+                            <td>${sub.category}</td>
+                            <td>${sub.developer_id?.slice(0, 8) || 'Unknown'}...</td>
+                            <td>£${sub.price || 0}</td>
+                            <td>${submitted}</td>
+                            <td>
+                                <button class="action-btn" onclick="viewSubmission('${sub.id}')">VIEW</button>
+                                <button class="action-btn approve" onclick="approveSubmission('${sub.id}')">APPROVE</button>
+                                <button class="action-btn reject" onclick="rejectSubmission('${sub.id}')">REJECT</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error('Pending load error:', err);
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ff3366;">Error loading pending submissions</td></tr>';
+            }
+        }
+
+        // Check system health
+        async function checkSystemHealth() {
+            // Scanner check
+            const scannerEl = document.getElementById('health-scanner');
+            try {
+                const res = await fetch('/.netlify/functions/integrations_v2/skill-scanner', { method: 'OPTIONS' });
+                scannerEl.textContent = res.ok ? '✓ Online' : '⚠ Degraded';
+                scannerEl.style.color = res.ok ? '#0f0' : '#ff9900';
+            } catch (e) {
+                scannerEl.textContent = '✗ Offline';
+                scannerEl.style.color = '#ff3366';
+            }
+
+            // Supabase check
+            const supabaseEl = document.getElementById('health-supabase');
+            if (supabase) {
+                supabaseEl.textContent = '✓ Connected';
+                supabaseEl.style.color = '#0f0';
+            } else {
+                supabaseEl.textContent = '✗ Not configured';
+                supabaseEl.style.color = '#ff3366';
+            }
+
+            // Payments check (placeholder)
+            const paymentsEl = document.getElementById('health-payments');
+            paymentsEl.textContent = '✓ LemonSqueezy Active';
+            paymentsEl.style.color = '#0f0';
+        }
+
+        // View submission details
+        function viewSubmission(id) {
+            alert('View submission: ' + id + '\n\nFull modal viewer coming soon.');
+        }
+
+        // Approve submission
+        async function approveSubmission(id) {
+            if (!confirm('Approve this skill and publish to marketplace?')) return;
+
+            try {
+                const { error } = await supabase
+                    .from('skill_submissions')
+                    .update({ status: 'approved', reviewed_at: new Date().toISOString() })
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                alert('Skill approved!');
+                loadStats();
+                loadFlaggedSubmissions();
+                loadPendingSubmissions();
+            } catch (err) {
+                alert('Error approving: ' + err.message);
+            }
+        }
+
+        // Reject submission
+        async function rejectSubmission(id) {
+            const reason = prompt('Enter rejection reason:');
+            if (!reason) return;
+
+            try {
+                const { error } = await supabase
+                    .from('skill_submissions')
+                    .update({
+                        status: 'rejected',
+                        reviewed_at: new Date().toISOString(),
+                        reviewer_notes: reason
+                    })
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                alert('Skill rejected.');
+                loadStats();
+                loadFlaggedSubmissions();
+                loadPendingSubmissions();
+            } catch (err) {
+                alert('Error rejecting: ' + err.message);
+            }
+        }
+
+        // Logout
+        document.getElementById('admin-logout')?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            if (supabase) {
+                await supabase.auth.signOut();
+            }
+            window.location.href = 'index.html';
+        });
+
+        // Refresh button
+        document.getElementById('refresh-flagged')?.addEventListener('click', () => {
+            loadFlaggedSubmissions();
+            loadPendingSubmissions();
+            loadStats();
+        });
+
+        // Initialize
+        (async () => {
+            const hasAccess = await checkAdminAccess();
+            if (hasAccess) {
+                loadStats();
+                loadFlaggedSubmissions();
+                loadPendingSubmissions();
+                checkSystemHealth();
+            }
+        })();
+    </script>
+</body>
+
+</html>

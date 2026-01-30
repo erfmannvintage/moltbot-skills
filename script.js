@@ -154,21 +154,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- TOAST NOTIFICATION HELPER ---
-    function showToast(title, message) {
-        const existing = document.querySelector('.system-toast');
-        if (existing) existing.remove();
+    // --- ENHANCED TOAST NOTIFICATION HELPER ---
+    function showToast(title, message, type = 'success', duration = 4000) {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const icons = {
+            success: '✓',
+            error: '✕',
+            warning: '⚠',
+            info: 'ℹ'
+        };
 
         const toast = document.createElement('div');
-        toast.className = 'system-toast';
-        toast.innerHTML = `<strong>${title}</strong><span>${message}</span>`;
-        document.body.appendChild(toast);
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `
+            <span class="toast-icon">${icons[type] || '✓'}</span>
+            <div class="toast-content">
+                <div class="toast-title">${title}</div>
+                <div class="toast-message">${message}</div>
+            </div>
+            <div class="toast-progress" style="animation-duration: ${duration}ms"></div>
+        `;
 
-        setTimeout(() => toast.classList.add('visible'), 100);
-        setTimeout(() => {
-            toast.classList.remove('visible');
+        // Click to dismiss
+        toast.addEventListener('click', () => {
+            toast.classList.add('toast-exiting');
             setTimeout(() => toast.remove(), 300);
-        }, 4000);
+        });
+
+        container.appendChild(toast);
+
+        // Auto dismiss
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.classList.add('toast-exiting');
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, duration);
     }
 
     // --- DYNAMIC SKILL LOADING ---
@@ -330,7 +353,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- MEMBER DASHBOARD LOGIC ---
+    // --- MEMBER DASHBOARD LOGIC (ELITE VERSION) ---
+
+    // LemonSqueezy Product IDs (configure these in LemonSqueezy dashboard)
+    const LEMON_PRODUCTS = {
+        syndicate: 'YOUR_SYNDICATE_PRODUCT_ID', // Replace with actual LemonSqueezy product ID
+        blackmarket: 'YOUR_BLACKMARKET_PRODUCT_ID' // Replace with actual LemonSqueezy product ID
+    };
+
     async function loadMemberDashboard(user) {
         const dashboard = document.getElementById('member-dashboard');
         if (!dashboard) return;
@@ -338,69 +368,944 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show dashboard
         dashboard.style.display = 'block';
 
-        // Get DOM elements
-        const licenseStat = document.querySelector('.dash-card:nth-child(1) .big-stat');
-        const savingsStat = document.querySelector('.dash-card:nth-child(2) .big-stat');
-        const syncStatus = document.querySelector('.status-indicator');
+        // Populate user info
+        populateUserProfile(user);
 
-        // Set loading state
-        if (licenseStat) licenseStat.textContent = '...';
-        if (savingsStat) savingsStat.textContent = '...';
+        // Initialize tab switching
+        initDashboardTabs();
+
+        // Load user data
+        await loadUserProfile(user);
+        await loadSkillLibrary(user);
+        await loadDeveloperStats(user);
+
+        // Wire up dashboard buttons
+        initDashboardActions(user);
+
+        // Scroll to dashboard if logged in via redirect
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('access_token') || window.location.hash.includes('access_token')) {
+            dashboard.scrollIntoView({ behavior: 'smooth' });
+            showToast('🔐 ACCESS_GRANTED', 'Welcome back, operator. Your dashboard is ready.');
+        }
+    }
+
+    function populateUserProfile(user) {
+        const displayName = document.getElementById('user-display-name');
+        const email = document.getElementById('user-email');
+        const avatar = document.getElementById('user-avatar');
+
+        const name = user.user_metadata?.full_name ||
+            user.user_metadata?.user_name ||
+            user.email?.split('@')[0] ||
+            'OPERATOR';
+
+        if (displayName) displayName.textContent = name.toUpperCase();
+        if (email) email.textContent = user.email || 'CLASSIFIED';
+
+        // Set avatar letter
+        if (avatar) {
+            const letterSpan = avatar.querySelector('.avatar-letter');
+            if (letterSpan) letterSpan.textContent = name.charAt(0).toUpperCase();
+
+            // If user has avatar URL, use it
+            if (user.user_metadata?.avatar_url) {
+                avatar.style.backgroundImage = `url(${user.user_metadata.avatar_url})`;
+                avatar.style.backgroundSize = 'cover';
+                if (letterSpan) letterSpan.style.display = 'none';
+            }
+        }
+    }
+
+    function initDashboardTabs() {
+        const tabBtns = document.querySelectorAll('.dashboard-tabs .tab-btn');
+        const tabContents = document.querySelectorAll('.dashboard-tab-content');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetTab = btn.dataset.tab;
+
+                // Remove active from all
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+
+                // Add active to clicked
+                btn.classList.add('active');
+                const targetContent = document.getElementById(`tab-${targetTab}`);
+                if (targetContent) targetContent.classList.add('active');
+            });
+        });
+    }
+
+    async function loadUserProfile(user) {
+        if (!supabase) return;
 
         try {
-            if (supabase) {
-                // Fetch user's purchases from Supabase
-                const { data: purchases, error } = await supabase
-                    .from('skill_purchases')
-                    .select('id, amount, skill_id, created_at')
-                    .eq('buyer_id', user.id)
-                    .eq('status', 'completed');
+            const { data: profile, error } = await supabase
+                .from('user_profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single();
 
-                if (error) {
-                    console.error('Error fetching purchases:', error);
-                    throw error;
-                }
+            if (error && error.code !== 'PGRST116') {
+                console.error('Error loading profile:', error);
+                return;
+            }
 
-                // Calculate stats
-                const licenseCount = purchases?.length || 0;
-                const totalSpent = purchases?.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) || 0;
-                // Assume each skill saves ~$200 (industry value) vs our price
-                const estimatedSavings = licenseCount * 200 - totalSpent;
+            // If no profile exists, create one
+            if (!profile) {
+                await createUserProfile(user);
+                return;
+            }
 
-                // Update UI
-                if (licenseStat) licenseStat.textContent = String(licenseCount).padStart(2, '0');
-                if (savingsStat) savingsStat.textContent = `$${Math.max(0, estimatedSavings).toLocaleString()}`;
-                if (syncStatus) {
-                    syncStatus.textContent = 'ONLINE';
-                    syncStatus.classList.add('online');
-                }
+            // Update UI with profile data
+            updateProfileUI(profile);
+
+        } catch (err) {
+            console.error('Profile load error:', err);
+        }
+    }
+
+    async function createUserProfile(user) {
+        if (!supabase) return;
+
+        const profileData = {
+            id: user.id,
+            email: user.email,
+            display_name: user.user_metadata?.full_name || user.user_metadata?.user_name || user.email?.split('@')[0],
+            avatar_url: user.user_metadata?.avatar_url || null,
+            github_username: user.user_metadata?.user_name || null,
+            account_type: 'customer',
+            subscription_tier: 'free'
+        };
+
+        try {
+            const { error } = await supabase
+                .from('user_profiles')
+                .insert([profileData]);
+
+            if (error) {
+                console.error('Error creating profile:', error);
             }
         } catch (err) {
-            console.error('Dashboard load error:', err);
-            // Fallback to demo data
-            if (licenseStat) licenseStat.textContent = '03';
-            if (savingsStat) savingsStat.textContent = '$2,400';
-            if (syncStatus) {
-                syncStatus.textContent = 'DEMO_MODE';
-                syncStatus.classList.remove('online');
+            console.error('Profile creation error:', err);
+        }
+    }
+
+    function updateProfileUI(profile) {
+        // Update tier badge
+        const tierBadge = document.getElementById('user-tier-badge');
+        const tierIndicator = document.getElementById('tier-indicator');
+        const accountBadge = document.getElementById('user-account-badge');
+
+        const tierNames = {
+            'free': 'FREE_AGENT',
+            'syndicate': 'SYNDICATE',
+            'blackmarket': 'BLACK_MARKET'
+        };
+
+        if (tierBadge) {
+            tierBadge.textContent = tierNames[profile.subscription_tier] || 'FREE_AGENT';
+            tierBadge.className = `badge tier-badge ${profile.subscription_tier}`;
+        }
+
+        if (tierIndicator) {
+            tierIndicator.dataset.tier = profile.subscription_tier;
+        }
+
+        if (accountBadge) {
+            accountBadge.textContent = profile.account_type?.toUpperCase() || 'CUSTOMER';
+            if (profile.account_type === 'developer') {
+                accountBadge.classList.add('developer');
             }
         }
 
-        // Unlock download buttons for purchased skills
-        document.querySelectorAll('.btn-buy').forEach(btn => {
-            btn.textContent = 'DOWNLOAD_ACCESS_GRANTED';
-            btn.classList.add('unlocked');
-            btn.onclick = (e) => {
-                e.preventDefault();
-                showToast('SECURE_DOWNLOAD', 'Initiating encrypted skill transfer...');
-            };
-        });
+        // Update plan info
+        const planName = document.getElementById('plan-name');
+        const planPrice = document.getElementById('plan-price');
+
+        const tierPrices = {
+            'free': '£0/mo',
+            'syndicate': '£19/mo',
+            'blackmarket': '£79 (lifetime)'
+        };
+
+        if (planName) planName.textContent = tierNames[profile.subscription_tier] || 'FREE_AGENT';
+        if (planPrice) planPrice.textContent = tierPrices[profile.subscription_tier] || '£0/mo';
+
+        // Hide upgrade CTA if already subscribed
+        const upgradeCta = document.getElementById('upgrade-cta');
+        if (upgradeCta && profile.subscription_tier !== 'free') {
+            upgradeCta.style.display = 'none';
+        }
+
+        // Populate settings form
+        const inputName = document.getElementById('input-display-name');
+        const inputBio = document.getElementById('input-bio');
+        const inputWebsite = document.getElementById('input-website');
+
+        if (inputName) inputName.value = profile.display_name || '';
+        if (inputBio) inputBio.value = profile.bio || '';
+        if (inputWebsite) inputWebsite.value = profile.website_url || '';
+
+        // Update developer toggle button text
+        const toggleBtn = document.getElementById('btn-toggle-developer');
+        if (toggleBtn) {
+            if (profile.account_type === 'developer') {
+                toggleBtn.innerHTML = '<span class="icon">👤</span> SWITCH_TO_CUSTOMER';
+            } else {
+                toggleBtn.innerHTML = '<span class="icon">🔧</span> BECOME_ARCHITECT';
+            }
+        }
     }
+
+    async function loadSkillLibrary(user) {
+        if (!supabase) return;
+
+        try {
+            const { data: library, error } = await supabase
+                .from('user_skill_library')
+                .select('*')
+                .eq('user_id', user.id)
+                .eq('is_active', true);
+
+            if (error) {
+                console.error('Error loading library:', error);
+                return;
+            }
+
+            // Update stats
+            const skillsInstalled = document.getElementById('stat-skills-installed');
+            if (skillsInstalled) skillsInstalled.textContent = library?.length || 0;
+
+            // Render skill grid
+            renderSkillLibrary(library || []);
+
+        } catch (err) {
+            console.error('Library load error:', err);
+        }
+    }
+
+    function renderSkillLibrary(skills) {
+        const grid = document.getElementById('skill-library-grid');
+        if (!grid) return;
+
+        if (skills.length === 0) {
+            // Show empty state
+            grid.innerHTML = `
+                <div class="empty-library-state">
+                    <div class="empty-icon">📭</div>
+                    <h4>NO_SKILLS_INSTALLED</h4>
+                    <p>Browse the marketplace to add skills to your library.</p>
+                    <a href="#marketplace" class="btn-primary">BROWSE_MARKETPLACE</a>
+                </div>
+            `;
+            return;
+        }
+
+        // Render skill cards
+        grid.innerHTML = skills.map(skill => `
+            <div class="library-skill-card" data-skill-id="${skill.skill_id}">
+                <div class="skill-icon">💻</div>
+                <h5>${skill.skill_name || 'UNKNOWN_SKILL'}</h5>
+                <p>Installed ${new Date(skill.installed_at).toLocaleDateString()}</p>
+                <div class="skill-actions">
+                    <button class="btn-sm" onclick="downloadSkill('${skill.skill_id}')">DOWNLOAD</button>
+                    <button class="btn-sm" onclick="viewSkillDocs('${skill.skill_id}')">DOCS</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function loadDeveloperStats(user) {
+        if (!supabase) return;
+
+        try {
+            // Get profile for earnings data
+            const { data: profile } = await supabase
+                .from('user_profiles')
+                .select('total_earnings, pending_payout, lifetime_downloads')
+                .eq('id', user.id)
+                .single();
+
+            // Get submissions count
+            const { data: submissions } = await supabase
+                .from('skill_submissions')
+                .select('id, name, category, price, status')
+                .eq('developer_id', user.id);
+
+            // Update stats
+            const totalRevenue = document.getElementById('stat-total-revenue');
+            const pendingPayout = document.getElementById('stat-pending-payout');
+            const totalDownloads = document.getElementById('stat-total-downloads');
+            const skillsSubmitted = document.getElementById('stat-skills-submitted');
+            const revenueYourShare = document.getElementById('revenue-your-share');
+            const revenuePlatformFee = document.getElementById('revenue-platform-fee');
+            const revenueAvailable = document.getElementById('revenue-available');
+
+            if (totalRevenue) totalRevenue.textContent = `£${(profile?.total_earnings || 0).toFixed(2)}`;
+            if (pendingPayout) pendingPayout.textContent = `£${(profile?.pending_payout || 0).toFixed(2)}`;
+            if (totalDownloads) totalDownloads.textContent = profile?.lifetime_downloads || 0;
+            if (skillsSubmitted) skillsSubmitted.textContent = submissions?.filter(s => s.status === 'approved').length || 0;
+
+            // Revenue breakdown
+            const earnings = profile?.total_earnings || 0;
+            if (revenueYourShare) revenueYourShare.textContent = `£${(earnings * 0.7).toFixed(2)}`;
+            if (revenuePlatformFee) revenuePlatformFee.textContent = `£${(earnings * 0.3).toFixed(2)}`;
+            if (revenueAvailable) revenueAvailable.textContent = `£${(profile?.pending_payout || 0).toFixed(2)}`;
+
+            // Enable payout button if threshold met
+            const payoutBtn = document.getElementById('btn-request-payout');
+            if (payoutBtn && (profile?.pending_payout || 0) >= 100) {
+                payoutBtn.disabled = false;
+            }
+
+            // Render submissions table
+            renderSubmissionsTable(submissions || []);
+
+        } catch (err) {
+            console.error('Developer stats error:', err);
+        }
+    }
+
+    function renderSubmissionsTable(submissions) {
+        const tbody = document.getElementById('submissions-tbody');
+        if (!tbody) return;
+
+        if (submissions.length === 0) {
+            tbody.innerHTML = `
+                <tr class="empty-row">
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <span class="empty-icon">📝</span>
+                            <p>No skills submitted yet. Start building and earning!</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = submissions.map(sub => `
+            <tr>
+                <td>${sub.name}</td>
+                <td>${sub.category}</td>
+                <td>£${sub.price}</td>
+                <td><span class="status-badge ${sub.status}">${sub.status.toUpperCase()}</span></td>
+                <td>0</td>
+                <td>£0.00</td>
+            </tr>
+        `).join('');
+    }
+
+    function initDashboardActions(user) {
+        // Logout button
+        const logoutBtn = document.getElementById('btn-logout');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async () => {
+                if (supabase) {
+                    await supabase.auth.signOut();
+                    window.location.reload();
+                }
+            });
+        }
+
+        // Toggle developer mode
+        const toggleDevBtn = document.getElementById('btn-toggle-developer');
+        if (toggleDevBtn) {
+            toggleDevBtn.addEventListener('click', async () => {
+                await toggleAccountType(user);
+            });
+        }
+
+        // Save profile
+        const saveProfileBtn = document.getElementById('btn-save-profile');
+        if (saveProfileBtn) {
+            saveProfileBtn.addEventListener('click', async () => {
+                await saveUserProfile(user);
+            });
+        }
+
+        // Submit skill button - opens skill submission modal
+        const submitSkillBtn = document.getElementById('btn-submit-skill');
+        if (submitSkillBtn) {
+            submitSkillBtn.addEventListener('click', () => {
+                openSkillSubmissionModal();
+            });
+        }
+
+        // Browse more button
+        const browseMoreBtn = document.getElementById('btn-browse-more');
+        if (browseMoreBtn) {
+            browseMoreBtn.addEventListener('click', () => {
+                const marketplace = document.getElementById('marketplace');
+                if (marketplace) marketplace.scrollIntoView({ behavior: 'smooth' });
+            });
+        }
+
+        // Upgrade buttons (LemonSqueezy integration)
+        const upgradeSyndicateBtn = document.getElementById('btn-upgrade-syndicate');
+        const upgradeBlackmarketBtn = document.getElementById('btn-upgrade-blackmarket');
+
+        if (upgradeSyndicateBtn) {
+            upgradeSyndicateBtn.addEventListener('click', () => {
+                initLemonSqueezyCheckout('syndicate', user);
+            });
+        }
+
+        if (upgradeBlackmarketBtn) {
+            upgradeBlackmarketBtn.addEventListener('click', () => {
+                initLemonSqueezyCheckout('blackmarket', user);
+            });
+        }
+
+        // Request payout
+        const payoutBtn = document.getElementById('btn-request-payout');
+        if (payoutBtn) {
+            payoutBtn.addEventListener('click', async () => {
+                await requestPayout(user);
+            });
+        }
+    }
+
+    async function toggleAccountType(user) {
+        if (!supabase) return;
+
+        try {
+            const { data: profile } = await supabase
+                .from('user_profiles')
+                .select('account_type')
+                .eq('id', user.id)
+                .single();
+
+            const newType = profile?.account_type === 'developer' ? 'customer' : 'developer';
+
+            const { error } = await supabase
+                .from('user_profiles')
+                .update({ account_type: newType, updated_at: new Date().toISOString() })
+                .eq('id', user.id);
+
+            if (error) throw error;
+
+            showToast('🔄 ACCOUNT_UPDATED', `Switched to ${newType.toUpperCase()} mode.`);
+
+            // Reload dashboard
+            await loadUserProfile(user);
+
+            // Show/hide architect tab
+            const architectTab = document.querySelector('[data-tab="architect"]');
+            if (architectTab) {
+                architectTab.style.display = newType === 'developer' ? 'block' : 'none';
+            }
+
+        } catch (err) {
+            console.error('Toggle account error:', err);
+            showToast('⚠️ ERROR', 'Failed to update account type.');
+        }
+    }
+
+    async function saveUserProfile(user) {
+        if (!supabase) return;
+
+        const displayName = document.getElementById('input-display-name')?.value;
+        const bio = document.getElementById('input-bio')?.value;
+        const website = document.getElementById('input-website')?.value;
+
+        try {
+            const { error } = await supabase
+                .from('user_profiles')
+                .update({
+                    display_name: displayName,
+                    bio: bio,
+                    website_url: website,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', user.id);
+
+            if (error) throw error;
+
+            showToast('✅ PROFILE_SAVED', 'Your changes have been saved.');
+
+            // Update display name in header
+            const userDisplayName = document.getElementById('user-display-name');
+            if (userDisplayName && displayName) {
+                userDisplayName.textContent = displayName.toUpperCase();
+            }
+
+        } catch (err) {
+            console.error('Save profile error:', err);
+            showToast('⚠️ ERROR', 'Failed to save profile.');
+        }
+    }
+
+    function initLemonSqueezyCheckout(tier, user) {
+        // LemonSqueezy overlay checkout
+        if (typeof window.createLemonSqueezy === 'function') {
+            window.createLemonSqueezy();
+        }
+
+        const productId = LEMON_PRODUCTS[tier];
+
+        if (!productId || productId.startsWith('YOUR_')) {
+            // Fallback: Show placeholder message
+            showToast('🍋 CHECKOUT_READY', `Redirecting to ${tier.toUpperCase()} checkout...`);
+
+            // For now, show alert since product IDs aren't configured
+            setTimeout(() => {
+                alert(`LEMON SQUEEZY CHECKOUT\n\nProduct: ${tier.toUpperCase()}\nEmail: ${user.email}\n\nConfigure LEMON_PRODUCTS in script.js with your actual LemonSqueezy product IDs.`);
+            }, 500);
+            return;
+        }
+
+        // Use LemonSqueezy overlay
+        if (window.LemonSqueezy) {
+            window.LemonSqueezy.Url.Open(`https://moltbot.lemonsqueezy.com/checkout/buy/${productId}?checkout[email]=${encodeURIComponent(user.email)}&checkout[custom][user_id]=${user.id}`);
+        } else {
+            // Fallback to redirect
+            window.location.href = `https://moltbot.lemonsqueezy.com/checkout/buy/${productId}?checkout[email]=${encodeURIComponent(user.email)}&checkout[custom][user_id]=${user.id}`;
+        }
+    }
+
+    async function requestPayout(user) {
+        if (!supabase) return;
+
+        try {
+            const { data: profile } = await supabase
+                .from('user_profiles')
+                .select('pending_payout')
+                .eq('id', user.id)
+                .single();
+
+            if ((profile?.pending_payout || 0) < 100) {
+                showToast('⚠️ MINIMUM_NOT_MET', 'Minimum payout is £100.');
+                return;
+            }
+
+            // Create payout request
+            const { error } = await supabase
+                .from('developer_payouts')
+                .insert([{
+                    developer_id: user.id,
+                    amount: profile.pending_payout,
+                    status: 'pending'
+                }]);
+
+            if (error) throw error;
+
+            showToast('💰 PAYOUT_REQUESTED', 'Your payout request has been submitted.');
+
+        } catch (err) {
+            console.error('Payout request error:', err);
+            showToast('⚠️ ERROR', 'Failed to request payout.');
+        }
+    }
+
+    // Global functions for skill actions
+    window.downloadSkill = function (skillId) {
+        showToast('📥 DOWNLOADING', 'Initiating secure skill transfer...');
+        // Implement actual download logic
+    };
+
+    window.viewSkillDocs = function (skillId) {
+        showToast('📖 LOADING_DOCS', 'Opening skill documentation...');
+        // Implement docs view logic
+    };
 
     function hideMemberDashboard() {
         const dashboard = document.getElementById('member-dashboard');
         if (dashboard) dashboard.style.display = 'none';
     }
+
+    // ===========================================
+    // SKILL SUBMISSION MODAL LOGIC
+    // ===========================================
+    let pendingSkillFile = null;
+
+    function openSkillSubmissionModal() {
+        const modal = document.getElementById('skill-submit-modal');
+        if (modal) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            initSkillSubmissionForm();
+        }
+    }
+
+    function closeSkillSubmissionModal() {
+        const modal = document.getElementById('skill-submit-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+            resetSkillSubmissionForm();
+        }
+    }
+
+    function resetSkillSubmissionForm() {
+        const form = document.getElementById('skill-submit-form');
+        if (form) form.reset();
+
+        pendingSkillFile = null;
+
+        const uploadZone = document.getElementById('skill-upload-zone');
+        const filePreview = document.getElementById('file-preview');
+
+        if (uploadZone) uploadZone.classList.remove('has-file');
+        if (filePreview) filePreview.classList.add('hidden');
+
+        const charCount = document.getElementById('desc-char-count');
+        if (charCount) charCount.textContent = '0';
+    }
+
+    function initSkillSubmissionForm() {
+        // Skip if already initialized
+        if (window.skillSubmissionFormInitialized) return;
+        window.skillSubmissionFormInitialized = true;
+
+        const modal = document.getElementById('skill-submit-modal');
+        const closeBtn = document.getElementById('close-skill-submit-modal');
+        const cancelBtn = document.getElementById('cancel-skill-submit');
+        const uploadZone = document.getElementById('skill-upload-zone');
+        const fileInput = document.getElementById('skill-file-input');
+        const filePreview = document.getElementById('file-preview');
+        const fileName = document.getElementById('file-name');
+        const fileRemove = document.getElementById('file-remove');
+        const descTextarea = document.getElementById('submit-description');
+        const charCount = document.getElementById('desc-char-count');
+        const form = document.getElementById('skill-submit-form');
+
+        // Close modal handlers
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeSkillSubmissionModal);
+        }
+
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', closeSkillSubmissionModal);
+        }
+
+        // Close on overlay click
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeSkillSubmissionModal();
+            });
+        }
+
+        // File upload handlers
+        if (uploadZone && fileInput) {
+            // Click to upload
+            uploadZone.addEventListener('click', () => {
+                if (!uploadZone.classList.contains('has-file')) {
+                    fileInput.click();
+                }
+            });
+
+            // Drag and drop
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('drag-over');
+            });
+
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('drag-over');
+            });
+
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('drag-over');
+
+                const file = e.dataTransfer.files[0];
+                if (file && file.name.endsWith('.md')) {
+                    handleFileSelection(file);
+                } else {
+                    showToast('INVALID_FILE', 'Please upload a .md (Markdown) file', 'error');
+                }
+            });
+
+            // File input change
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) handleFileSelection(file);
+            });
+        }
+
+        // Remove file handler
+        if (fileRemove) {
+            fileRemove.addEventListener('click', (e) => {
+                e.stopPropagation();
+                pendingSkillFile = null;
+                uploadZone.classList.remove('has-file');
+                filePreview.classList.add('hidden');
+                fileInput.value = '';
+            });
+        }
+
+        // Character count for description
+        if (descTextarea && charCount) {
+            descTextarea.addEventListener('input', () => {
+                charCount.textContent = descTextarea.value.length;
+            });
+        }
+
+        // Form submission
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await handleSkillSubmission();
+            });
+        }
+    }
+
+    function handleFileSelection(file) {
+        const uploadZone = document.getElementById('skill-upload-zone');
+        const filePreview = document.getElementById('file-preview');
+        const fileNameEl = document.getElementById('file-name');
+
+        pendingSkillFile = file;
+
+        if (uploadZone) uploadZone.classList.add('has-file');
+        if (filePreview) filePreview.classList.remove('hidden');
+        if (fileNameEl) fileNameEl.textContent = file.name;
+
+        showToast('FILE_UPLOADED', `${file.name} ready for submission`, 'success');
+    }
+
+    async function handleSkillSubmission() {
+        if (!supabase || !activeUser) {
+            showToast('ERROR', 'You must be logged in to submit a skill', 'error');
+            return;
+        }
+
+        // Get form values
+        const name = document.getElementById('submit-skill-name')?.value.trim();
+        const category = document.getElementById('submit-category')?.value;
+        const tier = document.getElementById('submit-tier')?.value;
+        const price = parseFloat(document.getElementById('submit-price')?.value) || 0;
+        const description = document.getElementById('submit-description')?.value.trim();
+        const tags = document.getElementById('submit-tags')?.value.trim();
+
+        // Validation
+        if (!name || !category || !description) {
+            showToast('VALIDATION_ERROR', 'Please fill in all required fields', 'warning');
+            return;
+        }
+
+        if (!pendingSkillFile) {
+            showToast('VALIDATION_ERROR', 'Please upload a .md file', 'warning');
+            return;
+        }
+
+        const submitBtn = document.getElementById('submit-skill-btn');
+        if (submitBtn) submitBtn.classList.add('loading');
+
+        try {
+            // Read file content
+            const fileContent = await pendingSkillFile.text();
+
+            // ==========================================
+            // ELITE SECURITY SCAN - PRE-SUBMISSION
+            // ==========================================
+            showToast('🔐 SCANNING', 'Running elite security analysis...', 'info', 3000);
+
+            let scanResult;
+            try {
+                const scanResponse = await fetch('/.netlify/functions/integrations_v2/skill-scanner', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: fileContent,
+                        fileName: pendingSkillFile.name
+                    })
+                });
+
+                scanResult = await scanResponse.json();
+            } catch (scanErr) {
+                console.warn('Security scanner unavailable, using fallback validation');
+                // Fallback: basic client-side checks
+                scanResult = performClientSideScan(fileContent);
+            }
+
+            // Handle scan results
+            if (scanResult.status === 'REJECTED') {
+                const threatList = scanResult.threats
+                    .filter(t => t.severity === 'CRITICAL' || t.severity === 'HIGH')
+                    .slice(0, 3)
+                    .map(t => t.category)
+                    .join(', ');
+
+                showToast('🚫 REJECTED', `Security threats detected: ${threatList}`, 'error', 8000);
+                console.error('[SECURITY] Skill rejected:', scanResult);
+                return;
+            }
+
+            if (scanResult.status === 'FLAGGED') {
+                showToast('⚠️ FLAGGED', `Skill contains ${scanResult.threats.length} suspicious patterns. Submitted for manual review.`, 'warning', 6000);
+            } else {
+                showToast('✓ SCAN_COMPLETE', `Security check passed (Risk: ${scanResult.riskScore}/100)`, 'success', 3000);
+            }
+
+            // Generate unique identifiers
+            const timestamp = Date.now();
+            const safeFileName = name.toLowerCase().replace(/[^a-z0-9_]/g, '_');
+            const storagePath = `submissions/${activeUser.id}/${safeFileName}_${timestamp}.md`;
+
+            // Upload to Supabase Storage (if bucket exists)
+            let fileUrl = null;
+            try {
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('skills')
+                    .upload(storagePath, pendingSkillFile, {
+                        contentType: 'text/markdown',
+                        upsert: false
+                    });
+
+                if (!uploadError && uploadData) {
+                    const { data: urlData } = supabase.storage
+                        .from('skills')
+                        .getPublicUrl(storagePath);
+                    fileUrl = urlData?.publicUrl;
+                }
+            } catch (storageErr) {
+                console.log('Storage not configured, saving content directly');
+            }
+
+            // Determine status based on security scan
+            const submissionStatus = scanResult.status === 'FLAGGED' ? 'flagged' : 'pending';
+
+            // Insert skill submission record WITH security metadata
+            const { data, error } = await supabase
+                .from('skill_submissions')
+                .insert([{
+                    developer_id: activeUser.id,
+                    name: name,
+                    slug: safeFileName + '_' + timestamp,
+                    category: category,
+                    tier_required: tier,
+                    price: price,
+                    description: description,
+                    tags: tags ? tags.split(',').map(t => t.trim()) : [],
+                    content: fileContent,
+                    file_url: fileUrl,
+                    status: submissionStatus,
+                    submitted_at: new Date().toISOString(),
+                    // Security scan metadata
+                    security_scan: {
+                        status: scanResult.status,
+                        risk_score: scanResult.riskScore,
+                        threats_count: scanResult.threats?.length || 0,
+                        threats: scanResult.threats?.slice(0, 10) || [],
+                        warnings: scanResult.warnings || [],
+                        scanned_at: new Date().toISOString()
+                    }
+                }])
+                .select();
+
+            if (error) {
+                console.error('Submission error:', error);
+                showToast('SUBMISSION_FAILED', error.message || 'Failed to submit skill', 'error');
+                return;
+            }
+
+            const successMsg = submissionStatus === 'flagged'
+                ? 'Skill submitted for manual security review'
+                : 'Your skill has been submitted for review!';
+
+            showToast('SKILL_SUBMITTED', successMsg, 'success');
+            closeSkillSubmissionModal();
+
+            // Refresh developer stats
+            await loadDeveloperStats(activeUser);
+
+        } catch (err) {
+            console.error('Submission error:', err);
+            showToast('ERROR', 'An unexpected error occurred', 'error');
+        } finally {
+            if (submitBtn) submitBtn.classList.remove('loading');
+        }
+    }
+
+    // Fallback client-side security scan (when server unavailable)
+    function performClientSideScan(content) {
+        const threats = [];
+        const warnings = [];
+
+        // Critical patterns that should block submission
+        const criticalPatterns = [
+            { pattern: /rm\s+-rf\s+[\/~]/gi, category: 'SHELL_INJECTION' },
+            { pattern: /curl\s+.*\|\s*sh/gi, category: 'SHELL_INJECTION' },
+            { pattern: /eval\s*\(/gi, category: 'CODE_INJECTION' },
+            { pattern: /<script[\s>]/gi, category: 'XSS_ATTACK' },
+            { pattern: /process\.env\./gi, category: 'ENV_ACCESS' },
+            { pattern: /child_process/gi, category: 'SYSTEM_ACCESS' },
+            { pattern: /meterpreter/gi, category: 'BACKDOOR' },
+            { pattern: /reverse.*shell/gi, category: 'BACKDOOR' },
+        ];
+
+        // Warning patterns
+        const warningPatterns = [
+            { pattern: /password\s*[:=]/gi, category: 'CREDENTIAL_PATTERN' },
+            { pattern: /api[_-]?key\s*[:=]/gi, category: 'API_KEY_PATTERN' },
+            { pattern: /fetch\s*\(/gi, category: 'NETWORK_REQUEST' },
+            { pattern: /XMLHttpRequest/gi, category: 'NETWORK_REQUEST' },
+        ];
+
+        for (const { pattern, category } of criticalPatterns) {
+            if (pattern.test(content)) {
+                threats.push({
+                    category,
+                    severity: 'CRITICAL',
+                    pattern: 'Pattern matched',
+                    location: 'Content',
+                    description: `Critical security pattern detected: ${category}`
+                });
+            }
+        }
+
+        for (const { pattern, category } of warningPatterns) {
+            if (pattern.test(content)) {
+                threats.push({
+                    category,
+                    severity: 'MEDIUM',
+                    pattern: 'Pattern matched',
+                    location: 'Content',
+                    description: `Suspicious pattern detected: ${category}`
+                });
+            }
+        }
+
+        // File size check
+        if (content.length > 500 * 1024) {
+            threats.push({
+                category: 'FILE_TOO_LARGE',
+                severity: 'HIGH',
+                pattern: `${(content.length / 1024).toFixed(2)}KB`,
+                location: 'File',
+                description: 'File exceeds 500KB limit'
+            });
+        }
+
+        // Calculate risk score
+        let riskScore = 0;
+        for (const threat of threats) {
+            if (threat.severity === 'CRITICAL') riskScore += 30;
+            else if (threat.severity === 'HIGH') riskScore += 20;
+            else if (threat.severity === 'MEDIUM') riskScore += 10;
+        }
+        riskScore = Math.min(100, riskScore);
+
+        // Determine status
+        let status;
+        if (threats.some(t => t.severity === 'CRITICAL')) {
+            status = 'REJECTED';
+        } else if (riskScore >= 30) {
+            status = 'FLAGGED';
+        } else {
+            status = 'PASSED';
+        }
+
+        return { status, riskScore, threats, warnings };
+    }
+
+    // Make modal functions globally accessible
+    window.openSkillSubmissionModal = openSkillSubmissionModal;
+    window.closeSkillSubmissionModal = closeSkillSubmissionModal;
 
 
 
@@ -545,6 +1450,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (manifestoToPricing) {
         manifestoToPricing.addEventListener('click', () => {
             closeManifestoModal();
+            document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
         });
     }
 
@@ -1725,4 +2631,214 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // ===========================================
+    // AUTH MODAL FUNCTIONALITY
+    // ===========================================
+
+    let isSignUpMode = false;
+
+    function openAuthModal() {
+        const modal = document.getElementById('auth-modal');
+        if (modal) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeAuthModal() {
+        const modal = document.getElementById('auth-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    // Wire up ACCESS_TERMINAL button to open auth modal
+    const accessTerminalLink = document.querySelector('a[href="#login"]');
+    if (accessTerminalLink) {
+        accessTerminalLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            openAuthModal();
+        });
+    }
+
+    // Close modal handlers
+    const closeAuthBtn = document.getElementById('close-auth-modal');
+    if (closeAuthBtn) {
+        closeAuthBtn.addEventListener('click', closeAuthModal);
+    }
+
+    const authModal = document.getElementById('auth-modal');
+    if (authModal) {
+        authModal.addEventListener('click', (e) => {
+            if (e.target === authModal) closeAuthModal();
+        });
+    }
+
+    // Tab switching
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            isSignUpMode = tab.dataset.tab === 'signup';
+
+            // Show/hide confirm password field
+            const confirmField = document.querySelector('.signup-only');
+            if (confirmField) {
+                confirmField.style.display = isSignUpMode ? 'block' : 'none';
+            }
+
+            // Update button text
+            const submitBtn = document.getElementById('auth-submit-btn');
+            if (submitBtn) {
+                submitBtn.querySelector('.btn-text').textContent = isSignUpMode ? 'CREATE_ACCOUNT' : 'AUTHENTICATE';
+            }
+
+            // Update title
+            const title = document.getElementById('auth-modal-title');
+            if (title) {
+                title.textContent = isSignUpMode ? 'CREATE_ACCOUNT' : 'ACCESS_TERMINAL';
+            }
+        });
+    });
+
+    // GitHub OAuth
+    const githubBtn = document.getElementById('auth-github');
+    if (githubBtn && supabase) {
+        githubBtn.addEventListener('click', async () => {
+            try {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'github',
+                    options: {
+                        redirectTo: window.location.origin
+                    }
+                });
+                if (error) throw error;
+            } catch (err) {
+                console.error('GitHub auth error:', err);
+                showToast('AUTH_ERROR', err.message || 'GitHub authentication failed', 'error');
+            }
+        });
+    }
+
+    // Google OAuth
+    const googleBtn = document.getElementById('auth-google');
+    if (googleBtn && supabase) {
+        googleBtn.addEventListener('click', async () => {
+            try {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.origin
+                    }
+                });
+                if (error) throw error;
+            } catch (err) {
+                console.error('Google auth error:', err);
+                showToast('AUTH_ERROR', err.message || 'Google authentication failed', 'error');
+            }
+        });
+    }
+
+    // Email/Password Auth
+    const emailForm = document.getElementById('auth-email-form');
+    if (emailForm && supabase) {
+        emailForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('auth-email')?.value.trim();
+            const password = document.getElementById('auth-password')?.value;
+            const confirmPassword = document.getElementById('auth-password-confirm')?.value;
+
+            if (!email || !password) {
+                showToast('VALIDATION_ERROR', 'Please enter email and password', 'warning');
+                return;
+            }
+
+            if (isSignUpMode && password !== confirmPassword) {
+                showToast('VALIDATION_ERROR', 'Passwords do not match', 'error');
+                return;
+            }
+
+            const submitBtn = document.getElementById('auth-submit-btn');
+            const btnText = submitBtn?.querySelector('.btn-text');
+            const btnLoading = submitBtn?.querySelector('.btn-loading');
+
+            if (btnText) btnText.style.display = 'none';
+            if (btnLoading) btnLoading.style.display = 'inline';
+            if (submitBtn) submitBtn.disabled = true;
+
+            try {
+                if (isSignUpMode) {
+                    // Sign Up
+                    const { data, error } = await supabase.auth.signUp({
+                        email,
+                        password,
+                        options: {
+                            emailRedirectTo: window.location.origin
+                        }
+                    });
+
+                    if (error) throw error;
+
+                    showToast('ACCOUNT_CREATED', 'Check your email to confirm your account!', 'success');
+                    closeAuthModal();
+                } else {
+                    // Sign In
+                    const { data, error } = await supabase.auth.signInWithPassword({
+                        email,
+                        password
+                    });
+
+                    if (error) throw error;
+
+                    showToast('WELCOME_BACK', 'Successfully authenticated!', 'success');
+                    closeAuthModal();
+
+                    // Reload to update UI
+                    window.location.reload();
+                }
+            } catch (err) {
+                console.error('Auth error:', err);
+                showToast('AUTH_ERROR', err.message || 'Authentication failed', 'error');
+            } finally {
+                if (btnText) btnText.style.display = 'inline';
+                if (btnLoading) btnLoading.style.display = 'none';
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        });
+    }
+
+    // Forgot Password
+    const forgotPasswordLink = document.getElementById('forgot-password-link');
+    if (forgotPasswordLink && supabase) {
+        forgotPasswordLink.addEventListener('click', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('auth-email')?.value.trim();
+            if (!email) {
+                showToast('ENTER_EMAIL', 'Please enter your email address first', 'info');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + '/reset-password'
+                });
+
+                if (error) throw error;
+
+                showToast('PASSWORD_RESET_SENT', 'Check your email for reset instructions', 'success');
+            } catch (err) {
+                console.error('Password reset error:', err);
+                showToast('ERROR', err.message || 'Failed to send reset email', 'error');
+            }
+        });
+    }
+
+    // Make functions globally accessible
+    window.openAuthModal = openAuthModal;
+    window.closeAuthModal = closeAuthModal;
 });

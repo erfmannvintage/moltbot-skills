@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
        Using Anon Key for public operations.
     */
 
-    const SUPABASE_URL = 'https://dpcxdsxtaujmclmahvk.supabase.co';
+    const SUPABASE_URL = 'https://dpcrxdsxtaujmclmahvk.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwY3J4ZHN4dGF1am1jbG1haHZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjI1NzEsImV4cCI6MjA4NTE5ODU3MX0.FJTvbP3WK6-pX8e37fxq8-a_juG7Hg04gZVa00rNGZk';
 
     // Initialize Supabase (Global access)
@@ -391,6 +391,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function populateUserProfile(user) {
+        if (!user) return;
+
         const displayName = document.getElementById('user-display-name');
         const email = document.getElementById('user-email');
         const avatar = document.getElementById('user-avatar');

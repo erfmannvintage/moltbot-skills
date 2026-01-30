@@ -2300,6 +2300,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const auditTerminal = document.getElementById('audit-terminal');
         const auditLog = document.getElementById('audit-log');
 
+        // Check Access on Tab Click
+        const validatorTab = document.querySelector('.tab-btn[data-tab="validator"]');
+        if (validatorTab) {
+            validatorTab.addEventListener('click', (e) => {
+                if (!activeUser) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showToast('ACCESS_DENIED', 'Developer credentials required. Please sign in.', 'error');
+                    // Switch back to Request Access or open Auth
+                    document.querySelector('.tab-btn[data-tab="request"]')?.click();
+                    return;
+                }
+                // Optional: Check specific role
+                // if (activeUser.user_metadata.role !== 'developer') ...
+            });
+        }
+
         if (dropZone && fileInput) {
             dropZone.addEventListener('click', () => fileInput.click());
 
@@ -2321,17 +2338,30 @@ document.addEventListener('DOMContentLoaded', () => {
             const file = e.target.files[0];
             if (!file) return;
 
+            // Check file type
+            if (!file.name.endsWith('.md')) {
+                showToast('INVALID_FILE', 'Only .md protocol files are accepted.', 'error');
+                return;
+            }
+
             // UI Reset
             dropZone.style.display = 'none';
             auditTerminal.classList.remove('hidden');
             auditLog.innerHTML = `<div class="line">Analyzing: <span class="white">${file.name}</span>...</div>`;
 
+            // Detect Malicious File (Simulation based on filename)
+            const isMalicious = file.name.includes('malicious');
+
             // Simulation Sequence
             const steps = [
-                { text: "Parsing Markdown Structure...", delay: 800, status: "OK" },
-                { text: "Scanning for Malicious Patterns (curl, wget, eval)...", delay: 1500, status: "CLEAN" },
-                { text: "Verifying Moltbot Compatibility...", delay: 1000, status: "VERIFIED" },
-                { text: "Generating Blue Label Signature...", delay: 1200, status: "SIGNED" }
+                { text: "Parsing Markdown Structure...", delay: 800, status: "OK", color: "green" },
+                {
+                    text: "Scanning for Malicious Patterns (curl, wget, eval)...", delay: 1500,
+                    status: isMalicious ? "THREAT_DETECTED" : "CLEAN",
+                    color: isMalicious ? "red" : "green"
+                },
+                { text: "Verifying Moltbot Compatibility...", delay: 1000, status: "VERIFIED", color: "green" },
+                { text: "Generating Blue Label Signature...", delay: 1200, status: isMalicious ? "FAILED" : "SIGNED", color: isMalicious ? "red" : "green" }
             ];
 
             let cumulativeDelay = 0;
@@ -2339,9 +2369,12 @@ document.addEventListener('DOMContentLoaded', () => {
             steps.forEach(step => {
                 cumulativeDelay += step.delay;
                 setTimeout(() => {
+                    // If we already failed, don't show success steps (simple logic)
+                    if (isMalicious && step.text.includes('Signature')) return;
+
                     const div = document.createElement('div');
                     div.className = 'line';
-                    div.innerHTML = `<span class="dim">> ${step.text}</span> <span class="green">[${step.status}]</span>`;
+                    div.innerHTML = `<span class="dim">> ${step.text}</span> <span class="${step.color}">[${step.status}]</span>`;
                     auditLog.appendChild(div);
                     auditLog.scrollTop = auditLog.scrollHeight;
                 }, cumulativeDelay);
@@ -2350,10 +2383,61 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 const final = document.createElement('div');
                 final.className = 'line';
-                final.innerHTML = `<br><span class="green">✔ AUDIT PASSED.</span> Protocol is safe for deployment.`;
+
+                if (isMalicious) {
+                    final.innerHTML = `<br><span class="red">✖ AUDIT FAILED.</span> Protocol contains banned patterns. Submission blocked.`;
+                } else {
+                    final.innerHTML = `<br><span class="green">✔ AUDIT PASSED.</span> Protocol is safe for deployment.`;
+
+                    // Add Submit Button
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.style.marginTop = '1rem';
+                    actionsDiv.innerHTML = `
+                        <button id="btn-submit-protocol" class="btn-primary" style="margin-right: 1rem;">SUBMIT_PROTOCOL</button>
+                        <button id="btn-reset-validator" class="btn-secondary">SCAN_ANOTHER</button>
+                    `;
+                    final.appendChild(actionsDiv);
+
+                    // Add listeners after appending
+                    setTimeout(() => {
+                        document.getElementById('btn-submit-protocol').onclick = () => submitProtocol(file);
+                        document.getElementById('btn-reset-validator').onclick = resetValidator;
+                    }, 100);
+                }
+
+                if (isMalicious) {
+                    // Add Reset Button only
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.style.marginTop = '1rem';
+                    actionsDiv.innerHTML = `<button id="btn-reset-validator-fail" class="btn-secondary">TRY_AGAIN</button>`;
+                    final.appendChild(actionsDiv);
+                    setTimeout(() => {
+                        document.getElementById('btn-reset-validator-fail').onclick = resetValidator;
+                    }, 100);
+                }
+
                 auditLog.appendChild(final);
                 auditLog.scrollTop = auditLog.scrollHeight;
             }, cumulativeDelay + 500);
+        }
+
+        function resetValidator() {
+            auditLog.innerHTML = '';
+            auditTerminal.classList.add('hidden');
+            dropZone.style.display = 'flex';
+            fileInput.value = ''; // Reset file input
+        }
+
+        async function submitProtocol(file) {
+            showToast('UPLOADING', 'Encrypting and transmitting protocol...');
+
+            // Simulate Database Insert
+            // const { data, error } = await supabase.from('skill_submissions').insert({...})
+
+            setTimeout(() => {
+                showToast('SUBMISSION_RECEIVED', 'Protocol queued for manual review.');
+                resetValidator();
+            }, 2000);
         }
     }
     // Filter logic moved earlier in file (enhanced version supports TOP SELLERS and FUN)

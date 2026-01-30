@@ -5499,9 +5499,44 @@ body.time-warp-active .warp-overlay {
 .pricing-card .btn-nuclear {
     margin-top: auto !important;
     width: 100%;
+    /* Ensure consistent button height */
+    padding: 1rem;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    /* Ensure uniform shape */
+    box-sizing: border-box;
 }
 
-/* Black Market Button Styling override */
+/* Enforce consistent footnote height so buttons align */
+.pricing-card .tier-note {
+    min-height: 2.5em;
+    /* Space for 2 lines */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0;
+}
+
+/* Ensure Black Market button matches others */
 .btn-nuclear {
     width: 100%;
+    /* Red styling just in case it was missing */
+    background: rgba(255, 0, 60, 0.1);
+    border: 1px solid #ff003c;
+    color: #ff003c;
+    text-transform: uppercase;
+    font-family: var(--font-mono);
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-nuclear:hover {
+    background: #ff003c;
+    color: black;
+    box-shadow: 0 0 20px #ff003c;
 }

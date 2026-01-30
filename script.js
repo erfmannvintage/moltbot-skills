@@ -2633,26 +2633,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- BLACK MARKET REDIRECTION ---
-    const blackMarketBtn = document.getElementById('btn-acc-blackmarket');
-    if (blackMarketBtn) {
-        blackMarketBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            // LEMON SQUEEZY INTEGRATION
-            // Replace this URL with your actual Black Market product checkout URL
-            const checkoutUrl = "https://moltbot-skills.lemonsqueezy.com/checkout/buy/black-market-placeholder";
+    // --- BLACK MARKET REDIRECTION REMOVED (Handled by initPublicPricingButtons) ---
 
-            showToast('SECURE_HANDSHAKE', 'Initializing Encrypted Payment Gateway...');
-
-            if (window.LemonSqueezy) {
-                LemonSqueezy.Url.Open(checkoutUrl);
-            } else {
-                console.error("Lemon Squeezy SDK not loaded");
-                // Fallback or error handling
-                window.location.href = checkoutUrl;
-            }
-        });
-    }
 
     // --- TIER MODAL BUTTON FIXES ---
     document.addEventListener('click', (e) => {
@@ -2953,6 +2935,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast('ERROR', err.message || 'Failed to send reset email', 'error');
             }
         });
+    }
+
+    // --- PAYMENT GATEWAY INTEGRATION ---
+    function initLemonSqueezyCheckout(tier, user) {
+        console.log(`Initializing checkout for ${tier} [User: ${user.email}]`);
+
+        // NOTE: Lemon Squeezy integration deferred.
+        // Using DEMO BYPASS to allow access to Black Market page.
+
+        showToast('SECURE_HANDSHAKE', 'Establishing encrypted payment tunnel...');
+
+        if (tier === 'blackmarket') {
+            setTimeout(() => {
+                showToast('PAYMENT_SIMULATION', 'Demo Access Granted. Redirecting...');
+                setTimeout(() => {
+                    window.location.href = 'black-market.html';
+                }, 1000);
+            }, 1000);
+        } else {
+            setTimeout(() => {
+                showToast('SYNDICATE_JOINED', 'Welcome to the Syndicate, Agent.');
+            }, 1000);
+        }
+
+        /* 
+        // FUTURE IMPLEMENTATION:
+        const productId = LEMON_PRODUCTS[tier]; 
+        // Generage checkout URL with user email pre-filled etc.
+        */
     }
 
     // Public Pricing Buttons

@@ -329,11 +329,37 @@ document.addEventListener('DOMContentLoaded', () => {
             activeUser = session.user;
             updateUIForLoggedUser(activeUser);
             loadMemberDashboard(activeUser); // New: Load dashboard
+        } else {
+            // Check for Demo Mode Persistence
+            const storedDemo = localStorage.getItem('moltbot_demo_user');
+            if (storedDemo) {
+                try {
+                    activeUser = JSON.parse(storedDemo);
+                    console.log('Restoring Demo Session:', activeUser);
+                    updateUIForLoggedUser(activeUser);
+                    loadMemberDashboard(activeUser);
+                } catch (e) {
+                    console.error('Failed to restore demo session', e);
+                    localStorage.removeItem('moltbot_demo_user');
+                }
+            }
         }
 
         // Listen for auth changes
         supabase.auth.onAuthStateChange((_event, session) => {
-            activeUser = session ? session.user : null;
+            if (session) {
+                activeUser = session.user;
+                // Clear demo if real login happens
+                localStorage.removeItem('moltbot_demo_user');
+            } else {
+                // Determine if we should fallback to demo or clear
+                // Ideally, sign out should clear everything.
+                if (_event === 'SIGNED_OUT') {
+                    activeUser = null;
+                    localStorage.removeItem('moltbot_demo_user');
+                }
+            }
+
             if (activeUser) {
                 updateUIForLoggedUser(activeUser);
                 loadMemberDashboard(activeUser);
@@ -3003,6 +3029,58 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (submitBtn) submitBtn.disabled = false;
             }
         });
+
+        // DEMO BYPASS BUTTON (For testing without email confirmation)
+        const bypassContainer = document.createElement('div');
+        bypassContainer.style.textAlign = 'center';
+        bypassContainer.style.marginTop = '1rem';
+        bypassContainer.innerHTML = `<button type="button" id="btn-demo-mode" class="text-link" style="font-size: 0.8rem; opacity: 0.7;">[DEV_OVERRIDE: ENABLE_DEMO_MODE]</button>`;
+        emailForm.appendChild(bypassContainer);
+
+        setTimeout(() => {
+            const demoBtn = document.getElementById('btn-demo-mode');
+            if (demoBtn) {
+                demoBtn.addEventListener('click', () => {
+                    enableDemoMode();
+                });
+            }
+        }, 500);
+    }
+
+    function enableDemoMode() {
+        showToast('SYSTEM_OVERRIDE', 'Bypassing security protocols... [DEMO_ACCESS_GRANTED]');
+
+        const demoUser = {
+            id: 'demo-dev-001',
+            email: 'dev@moltbot.demo',
+            user_metadata: {
+                user_name: 'Dev_Architect',
+                role: 'developer',
+                subscription_tier: 'blackmarket'
+            },
+            app_metadata: {
+                provider: 'demo'
+            }
+        };
+
+        activeUser = demoUser;
+        localStorage.setItem('moltbot_demo_user', JSON.stringify(demoUser));
+
+        updateUIForLoggedUser(activeUser);
+        loadMemberDashboard(activeUser);
+        closeAuthModal();
+
+        // Refresh page to ensure all state propagates (optional, but cleaner for some listeners)
+        setTimeout(() => window.location.reload(), 1000);
+    }
+
+    // Check for Demo User on Load
+    const storedDemoUser = localStorage.getItem('moltbot_demo_user');
+    if (storedDemoUser && !activeUser) {
+        // Only load if Supabase didn't already find a real user
+        // But initAuth runs async. Ideally we hook into initAuth.
+        // For simplicity, we can let initAuth run, and if it fails/returns null, we check this.
+        // Actually best to put this check inside initAuth or right after it.
     }
 
     // Forgot Password

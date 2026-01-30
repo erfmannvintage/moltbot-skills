@@ -2543,10 +2543,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (blackMarketBtn) {
         blackMarketBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            showToast('SECURE_HANDSHAKE', 'Redirecting to restricted repository Layer...');
-            setTimeout(() => {
-                window.location.href = 'black-market.html';
-            }, 1000);
+            // LEMON SQUEEZY INTEGRATION
+            // Replace this URL with your actual Black Market product checkout URL
+            const checkoutUrl = "https://moltbot-skills.lemonsqueezy.com/checkout/buy/black-market-placeholder";
+
+            showToast('SECURE_HANDSHAKE', 'Initializing Encrypted Payment Gateway...');
+
+            if (window.LemonSqueezy) {
+                LemonSqueezy.Url.Open(checkoutUrl);
+            } else {
+                console.error("Lemon Squeezy SDK not loaded");
+                // Fallback or error handling
+                window.location.href = checkoutUrl;
+            }
         });
     }
 

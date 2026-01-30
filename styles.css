@@ -5479,3 +5479,29 @@ body.time-warp-active .warp-overlay {
         padding: 2rem 1.5rem;
     }
 }
+
+/* =========================================
+   PRICING & BLACK MARKET FIXES
+   ========================================= */
+
+/* Ensure buttons align to bottom */
+.pricing-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    /* Ensure cards take full height of grid row */
+}
+
+/* Push button to bottom */
+.pricing-card button,
+.pricing-card .btn-primary,
+.pricing-card .btn-secondary,
+.pricing-card .btn-nuclear {
+    margin-top: auto !important;
+    width: 100%;
+}
+
+/* Black Market Button Styling override */
+.btn-nuclear {
+    width: 100%;
+}

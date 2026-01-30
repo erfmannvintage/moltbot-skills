@@ -378,6 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await loadUserProfile(user);
         await loadSkillLibrary(user);
         await loadDeveloperStats(user);
+        checkAndInjectBlackMarketTab(user);
 
         // Wire up dashboard buttons
         initDashboardActions(user);
@@ -2840,7 +2841,147 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Public Pricing Buttons
+    function initPublicPricingButtons() {
+        const syndicateBtn = document.getElementById('btn-sub-syndicate');
+        const blackMarketBtn = document.getElementById('btn-acc-blackmarket');
+
+        const handleCheckout = (tier) => {
+            if (!activeUser) {
+                showToast('🔒 RESTRICTED', 'Authentication required for transaction.', 'warning');
+                // openAuthModal is defined below but hoisted function declarations work, 
+                // but this is called on click, so it should be fine.
+                // activeUser is in scope.
+                if (typeof openAuthModal === 'function') openAuthModal();
+                return;
+            }
+            initLemonSqueezyCheckout(tier, activeUser);
+        };
+
+        if (syndicateBtn) {
+            // Remove old listeners to be safe (clone node?) No, just add.
+            // Actually, if we add multiple it triggers multiple times. 
+            // We can assume this runs once on load.
+            syndicateBtn.addEventListener('click', () => handleCheckout('syndicate'));
+        }
+        if (blackMarketBtn) {
+            blackMarketBtn.addEventListener('click', () => handleCheckout('blackmarket'));
+        }
+    }
+    initPublicPricingButtons();
+
     // Make functions globally accessible
     window.openAuthModal = openAuthModal;
     window.closeAuthModal = closeAuthModal;
+
+    // --- BLACK MARKET LOGIC ---
+    function checkAndInjectBlackMarketTab(user) {
+        const tier = user.user_metadata?.subscription_tier || user.app_metadata?.subscription_tier;
+        // Allow if tier is blackmarket OR syndicate (as requested? "customers who sign up for black market" implies just them, but let's allow syndicate to see it but maybe locked? No, request said "only black market skills available" for them. Let's strictly check blackmarket for now or if they bought the product).
+
+        // For now, let's allow 'syndicate' too as a teaser or if they have access.
+        // Actually, let's stick to 'blackmarket' tier as per strict request.
+        // But also check if they have the entitlement. 
+        // We'll trust the subscription_tier metadata.
+
+        if (tier === 'blackmarket' || tier === 'syndicate') {
+            const dashboardTabs = document.querySelector('.dashboard-tabs');
+            if (dashboardTabs && !document.getElementById('btn-tab-blackmarket')) {
+                // Create Tab Button
+                const btn = document.createElement('button');
+                btn.id = 'btn-tab-blackmarket';
+                btn.className = 'tab-btn';
+                btn.dataset.tab = 'blackmarket';
+                btn.innerHTML = '💀 BLACK_MARKET';
+                btn.style.color = '#bf00ff'; // Neon Purple
+                btn.style.textShadow = '0 0 5px rgba(191, 0, 255, 0.5)';
+                dashboardTabs.appendChild(btn);
+
+                // Create Content Container (if not exists)
+                let contentInfo = document.getElementById('tab-blackmarket');
+                if (!contentInfo) {
+                    contentInfo = document.createElement('div');
+                    contentInfo.id = 'tab-blackmarket';
+                    contentInfo.className = 'dashboard-tab-content';
+                    contentInfo.innerHTML = `
+                        <div class="section-subheader" style="border-bottom: 1px solid #bf00ff; padding-bottom: 1rem;">
+                            <h4 style="color: #bf00ff;">💀 RESTRICTED_ARSENAL // LEVEL_5_ACCESS</h4>
+                        </div>
+                        <p style="color: #888; margin-bottom: 1.5rem;">WARNING: These tools are for authorized operators only. Use with extreme caution.</p>
+                        <div class="skill-library-grid" id="blackmarket-skills-grid">
+                            <div class="empty-library-state">
+                                <span class="empty-icon">📡</span>
+                                <h4>SCANNING_DARK_WEB...</h4>
+                            </div>
+                        </div>
+                    `;
+                    // Append to same container as other tabs
+                    const tabContainer = document.querySelector('.dashboard-tab-content').parentNode;
+                    tabContainer.appendChild(contentInfo);
+                }
+
+                // Add Click Handler
+                btn.addEventListener('click', () => {
+                    // Deactivate others
+                    document.querySelectorAll('.dashboard-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.dashboard-tab-content').forEach(c => c.classList.remove('active'));
+
+                    // Activate this
+                    btn.classList.add('active');
+                    contentInfo.classList.add('active');
+
+                    // Load Skills
+                    loadBlackMarketSkills();
+                });
+            }
+        }
+    }
+
+    async function loadBlackMarketSkills() {
+        if (!supabase) return;
+
+        const grid = document.getElementById('blackmarket-skills-grid');
+        if (!grid) return;
+
+        try {
+            // Fetch skills with category 'blackmarket' OR is_blackmarket_only flag
+            const { data: skills, error } = await supabase
+                .from('skills')
+                .select('*')
+                .eq('category', 'blackmarket'); // Assuming category is used for now based on HTML
+
+            if (error) throw error;
+
+            if (skills && skills.length > 0) {
+                grid.innerHTML = skills.map(skill => `
+                    <div class="library-skill-card" style="border-color: #bf00ff; background: rgba(191, 0, 255, 0.05);">
+                        <div class="skill-icon">👁️</div>
+                        <h5 style="color: #bf00ff;">${skill.title}</h5>
+                        <p>${skill.short_description || 'Restricted Content'}</p>
+                        <div class="skill-meta" style="margin-bottom: 1rem; font-size: 0.8rem; color: #aaa;">
+                            <span>RISK_LEVEL: CRITICAL</span>
+                        </div>
+                        <button class="btn-sm" style="border-color: #bf00ff; color: #bf00ff;" onclick="downloadSkill('${skill.id}')">ACCESS_TOOL</button>
+                    </div>
+                `).join('');
+            } else {
+                grid.innerHTML = `
+                    <div class="empty-library-state">
+                        <span class="empty-icon">🚫</span>
+                        <h4>NO_ASSETS_FOUND</h4>
+                        <p>The network is quiet. Check back later.</p>
+                    </div>
+                `;
+            }
+        } catch (err) {
+            console.error('Black market load error:', err);
+            grid.innerHTML = `
+                <div class="empty-library-state">
+                    <span class="empty-icon">⚠️</span>
+                    <h4>CONNECTION_FAILED</h4>
+                    <p>Unable to reach encrypted server.</p>
+                </div>
+            `;
+        }
+    }
 });

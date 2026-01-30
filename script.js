@@ -2884,7 +2884,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // But also check if they have the entitlement. 
         // We'll trust the subscription_tier metadata.
 
-        if (tier === 'blackmarket' || tier === 'syndicate') {
+        if (tier === 'blackmarket') {
             const dashboardTabs = document.querySelector('.dashboard-tabs');
             if (dashboardTabs && !document.getElementById('btn-tab-blackmarket')) {
                 // Create Tab Button

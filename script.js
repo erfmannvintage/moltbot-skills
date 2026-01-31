@@ -307,7 +307,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     else if (filterText === 'topsellers' || filterText === 'hot') shouldShow = isTopseller;
                     else shouldShow = category.includes(filterText);
 
-                    card.style.display = shouldShow ? 'flex' : 'none';
+                    // Use block display to maintain grid layout (NOT flex)
+                    card.style.display = shouldShow ? 'block' : 'none';
                 });
             });
         });
@@ -376,6 +377,117 @@ document.addEventListener('DOMContentLoaded', () => {
             const name = user.user_metadata.user_name || user.email.split('@')[0];
             loginBtn.textContent = `// ${name.toUpperCase()}`;
             loginBtn.classList.add('logged-in');
+        }
+    }
+
+    // --- BLACK MARKET LOGIC ---
+    function checkAndInjectBlackMarketTab(user) {
+        const tier = user.user_metadata?.subscription_tier || user.app_metadata?.subscription_tier;
+        // Allow if tier is blackmarket OR syndicate (as requested? "customers who sign up for black market" implies just them, but let's allow syndicate to see it but maybe locked? No, request said "only black market skills available" for them. Let's strictly check blackmarket for now or if they bought the product).
+
+        // For now, let's allow 'syndicate' too as a teaser or if they have access.
+        // Actually, let's stick to 'blackmarket' tier as per strict request.
+        // But also check if they have the entitlement.
+        // We'll trust the subscription_tier metadata.
+
+        if (tier === 'blackmarket') {
+            const dashboardTabs = document.querySelector('.dashboard-tabs');
+            if (dashboardTabs && !document.getElementById('btn-tab-blackmarket')) {
+                // Create Tab Button
+                const btn = document.createElement('button');
+                btn.id = 'btn-tab-blackmarket';
+                btn.className = 'tab-btn';
+                btn.dataset.tab = 'blackmarket';
+                btn.innerHTML = '💀 BLACK_MARKET';
+                btn.style.color = '#bf00ff'; // Neon Purple
+                btn.style.textShadow = '0 0 5px rgba(191, 0, 255, 0.5)';
+                dashboardTabs.appendChild(btn);
+
+                // Create Content Container (if not exists)
+                let contentInfo = document.getElementById('tab-blackmarket');
+                if (!contentInfo) {
+                    contentInfo = document.createElement('div');
+                    contentInfo.id = 'tab-blackmarket';
+                    contentInfo.className = 'dashboard-tab-content';
+                    contentInfo.innerHTML = `
+                        <div class="section-subheader" style="border-bottom: 1px solid #bf00ff; padding-bottom: 1rem;">
+                            <h4 style="color: #bf00ff;">💀 RESTRICTED_ARSENAL // LEVEL_5_ACCESS</h4>
+                        </div>
+                        <p style="color: #888; margin-bottom: 1.5rem;">WARNING: These tools are for authorized operators only. Use with extreme caution.</p>
+                        <div class="skill-library-grid" id="blackmarket-skills-grid">
+                            <div class="empty-library-state">
+                                <span class="empty-icon">📡</span>
+                                <h4>SCANNING_DARK_WEB...</h4>
+                            </div>
+                        </div>
+                    `;
+                    // Append to same container as other tabs
+                    const tabContainer = document.querySelector('.dashboard-tab-content').parentNode;
+                    tabContainer.appendChild(contentInfo);
+                }
+
+                // Add Click Handler
+                btn.addEventListener('click', () => {
+                    // Deactivate others
+                    document.querySelectorAll('.dashboard-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.dashboard-tab-content').forEach(c => c.classList.remove('active'));
+
+                    // Activate this
+                    btn.classList.add('active');
+                    contentInfo.classList.add('active');
+
+                    // Load Skills
+                    loadBlackMarketSkills();
+                });
+            }
+        }
+    }
+
+    async function loadBlackMarketSkills() {
+        if (!supabase) return;
+
+        const grid = document.getElementById('blackmarket-skills-grid');
+        if (!grid) return;
+
+        try {
+            // Fetch skills with category 'blackmarket' OR is_blackmarket_only flag
+            const { data: skills, error } = await supabase
+                .from('skills')
+                .select('*')
+                .eq('category', 'blackmarket'); // Assuming category is used for now based on HTML
+
+            if (error) throw error;
+
+            if (skills && skills.length > 0) {
+                grid.innerHTML = skills.map(skill => `
+                    <div class="library-skill-card" style="border-color: #bf00ff; background: rgba(191, 0, 255, 0.05);">
+                        <div class="skill-icon">👁️</div>
+                        <h5 style="color: #bf00ff;">${skill.title}</h5>
+                        <p>${skill.short_description || 'Restricted Content'}</p>
+                        <div class="skill-meta" style="margin-bottom: 1rem; font-size: 0.8rem; color: #aaa;">
+                            <span>RISK_LEVEL: CRITICAL</span>
+                        </div>
+                        <button class="btn-sm" style="border-color: #bf00ff; color: #bf00ff;" onclick="downloadSkill('${skill.id}')">ACCESS_TOOL</button>
+                    </div>
+                `).join('');
+            } else {
+                grid.innerHTML = `
+                    <div class="empty-library-state">
+                        <span class="empty-icon">🚫</span>
+                        <h4>NO_ASSETS_FOUND</h4>
+                        <p>The network is quiet. Check back later.</p>
+                    </div>
+                `;
+            }
+        } catch (err) {
+            console.error('Black market load error:', err);
+            grid.innerHTML = `
+                <div class="empty-library-state">
+                    <span class="empty-icon">⚠️</span>
+                    <h4>CONNECTION_FAILED</h4>
+                    <p>Unable to reach encrypted server.</p>
+                </div>
+            `;
         }
     }
 
@@ -1545,7 +1657,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Show modal
+        // Show modal with scrollbar compensation
+        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+        document.body.style.overflow = 'hidden';
+        document.body.style.paddingRight = `${scrollbarWidth}px`; // Prevent layout shift
+
         skillModal.style.display = 'flex';
         skillModal.classList.add('active');
 
@@ -1579,6 +1695,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!skillModal) return;
         skillModal.style.display = 'none';
         skillModal.classList.remove('active');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = ''; // Remove scrollbar compensation
+
+        // Force grid recalculation to prevent card crushing
+        setTimeout(() => {
+            const grid = document.querySelector('.skills-grid');
+            if (grid) {
+                grid.style.display = 'none';
+                void grid.offsetHeight; // Force reflow
+                grid.style.display = 'grid';
+            }
+        }, 10);
     }
 
     if (closeSkillModal) {
@@ -1690,7 +1818,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     shouldShow = (category === filterCat);
                 }
 
-                card.style.display = shouldShow ? 'flex' : 'none';
+                card.style.display = shouldShow ? 'block' : 'none';
             });
         });
     });
@@ -1718,12 +1846,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     desc.includes(searchTerm) ||
                     category.includes(searchTerm);
 
-                card.style.display = matches ? 'flex' : 'none';
+                card.style.display = matches ? 'block' : 'none';
             });
 
             // Show toast for feedback
             if (searchTerm.length > 2) {
-                const visibleCount = document.querySelectorAll('.skill-card[style*="flex"]').length;
+                const visibleCount = document.querySelectorAll('.skill-card[style*="block"]').length;
                 showToast('SEARCH_RESULTS', `Found ${visibleCount} skills matching "${searchTerm}"`);
             }
         });
@@ -2699,7 +2827,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     desc.includes(searchTerm) ||
                     category.includes(searchTerm);
 
-                card.style.display = matches ? 'flex' : 'none';
+                card.style.display = matches ? 'block' : 'none';
             });
 
             if (searchTerm.length > 2) {
@@ -3171,115 +3299,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Make functions globally accessible
     window.openAuthModal = openAuthModal;
     window.closeAuthModal = closeAuthModal;
-
-    // --- BLACK MARKET LOGIC ---
-    function checkAndInjectBlackMarketTab(user) {
-        const tier = user.user_metadata?.subscription_tier || user.app_metadata?.subscription_tier;
-        // Allow if tier is blackmarket OR syndicate (as requested? "customers who sign up for black market" implies just them, but let's allow syndicate to see it but maybe locked? No, request said "only black market skills available" for them. Let's strictly check blackmarket for now or if they bought the product).
-
-        // For now, let's allow 'syndicate' too as a teaser or if they have access.
-        // Actually, let's stick to 'blackmarket' tier as per strict request.
-        // But also check if they have the entitlement. 
-        // We'll trust the subscription_tier metadata.
-
-        if (tier === 'blackmarket') {
-            const dashboardTabs = document.querySelector('.dashboard-tabs');
-            if (dashboardTabs && !document.getElementById('btn-tab-blackmarket')) {
-                // Create Tab Button
-                const btn = document.createElement('button');
-                btn.id = 'btn-tab-blackmarket';
-                btn.className = 'tab-btn';
-                btn.dataset.tab = 'blackmarket';
-                btn.innerHTML = '💀 BLACK_MARKET';
-                btn.style.color = '#bf00ff'; // Neon Purple
-                btn.style.textShadow = '0 0 5px rgba(191, 0, 255, 0.5)';
-                dashboardTabs.appendChild(btn);
-
-                // Create Content Container (if not exists)
-                let contentInfo = document.getElementById('tab-blackmarket');
-                if (!contentInfo) {
-                    contentInfo = document.createElement('div');
-                    contentInfo.id = 'tab-blackmarket';
-                    contentInfo.className = 'dashboard-tab-content';
-                    contentInfo.innerHTML = `
-                        <div class="section-subheader" style="border-bottom: 1px solid #bf00ff; padding-bottom: 1rem;">
-                            <h4 style="color: #bf00ff;">💀 RESTRICTED_ARSENAL // LEVEL_5_ACCESS</h4>
-                        </div>
-                        <p style="color: #888; margin-bottom: 1.5rem;">WARNING: These tools are for authorized operators only. Use with extreme caution.</p>
-                        <div class="skill-library-grid" id="blackmarket-skills-grid">
-                            <div class="empty-library-state">
-                                <span class="empty-icon">📡</span>
-                                <h4>SCANNING_DARK_WEB...</h4>
-                            </div>
-                        </div>
-                    `;
-                    // Append to same container as other tabs
-                    const tabContainer = document.querySelector('.dashboard-tab-content').parentNode;
-                    tabContainer.appendChild(contentInfo);
-                }
-
-                // Add Click Handler
-                btn.addEventListener('click', () => {
-                    // Deactivate others
-                    document.querySelectorAll('.dashboard-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-                    document.querySelectorAll('.dashboard-tab-content').forEach(c => c.classList.remove('active'));
-
-                    // Activate this
-                    btn.classList.add('active');
-                    contentInfo.classList.add('active');
-
-                    // Load Skills
-                    loadBlackMarketSkills();
-                });
-            }
-        }
-    }
-
-    async function loadBlackMarketSkills() {
-        if (!supabase) return;
-
-        const grid = document.getElementById('blackmarket-skills-grid');
-        if (!grid) return;
-
-        try {
-            // Fetch skills with category 'blackmarket' OR is_blackmarket_only flag
-            const { data: skills, error } = await supabase
-                .from('skills')
-                .select('*')
-                .eq('category', 'blackmarket'); // Assuming category is used for now based on HTML
-
-            if (error) throw error;
-
-            if (skills && skills.length > 0) {
-                grid.innerHTML = skills.map(skill => `
-                    <div class="library-skill-card" style="border-color: #bf00ff; background: rgba(191, 0, 255, 0.05);">
-                        <div class="skill-icon">👁️</div>
-                        <h5 style="color: #bf00ff;">${skill.title}</h5>
-                        <p>${skill.short_description || 'Restricted Content'}</p>
-                        <div class="skill-meta" style="margin-bottom: 1rem; font-size: 0.8rem; color: #aaa;">
-                            <span>RISK_LEVEL: CRITICAL</span>
-                        </div>
-                        <button class="btn-sm" style="border-color: #bf00ff; color: #bf00ff;" onclick="downloadSkill('${skill.id}')">ACCESS_TOOL</button>
-                    </div>
-                `).join('');
-            } else {
-                grid.innerHTML = `
-                    <div class="empty-library-state">
-                        <span class="empty-icon">🚫</span>
-                        <h4>NO_ASSETS_FOUND</h4>
-                        <p>The network is quiet. Check back later.</p>
-                    </div>
-                `;
-            }
-        } catch (err) {
-            console.error('Black market load error:', err);
-            grid.innerHTML = `
-                <div class="empty-library-state">
-                    <span class="empty-icon">⚠️</span>
-                    <h4>CONNECTION_FAILED</h4>
-                    <p>Unable to reach encrypted server.</p>
-                </div>
-            `;
-        }
-    }
 });

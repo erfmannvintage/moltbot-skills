@@ -15,6 +15,8 @@
     <link rel="stylesheet" href="styles.css?v=RESET_V2">
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- RBAC Permissions Library (Phase 1) -->
+    <script src="permissions.js"></script>
     <!-- Lemon Squeezy -->
     <script src="https://app.lemonsqueezy.com/js/lemon.js" defer></script>
 </head>
@@ -731,6 +733,9 @@
                             </div>
                         </div>
                         <div class="dashboard-actions">
+                            <a href="admin.html" class="btn-admin" id="btn-admin-panel" style="display: none;">
+                                <span class="icon">👑</span> ADMIN_PANEL
+                            </a>
                             <button class="btn-secondary" id="btn-toggle-developer">
                                 <span class="icon">🔧</span> SWITCH_TO_ARCHITECT
                             </button>
@@ -1941,6 +1946,8 @@
     </div>
 
     <script src="script.js"></script>
+    <!-- RBAC Integration (Phase 1) - Must load after script.js -->
+    <script src="rbac-integration.js"></script>
 </body>
 
 </html>

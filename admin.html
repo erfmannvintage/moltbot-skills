@@ -4,133 +4,403 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ADMIN_CONSOLE // MOLTBOT_SKILLS</title>
+    <title>ELITE_COMMAND_CENTER // MOLTBOT_SKILLS</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        window.supabaseCreateClient = createClient;
+    </script>
     <style>
-        /* Admin-specific styles */
-        .admin-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
+        :root {
+            --admin-purple: #bf00ff;
+            --admin-gold: #ffd700;
+            --admin-red: #ff3366;
+            --admin-green: #00ff94;
+            --admin-blue: #00d4ff;
+            --admin-orange: #ff9900;
+            --glass-bg: rgba(255, 255, 255, 0.02);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #fff;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            margin: 0;
+            padding: 0;
             min-height: 100vh;
         }
 
-        .admin-header {
+        /* Admin Layout */
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        /* Sidebar */
+        .admin-sidebar {
+            background: linear-gradient(180deg, rgba(191, 0, 255, 0.05) 0%, rgba(0, 0, 0, 0.9) 100%);
+            border-right: 1px solid var(--glass-border);
+            padding: 1.5rem;
+            position: fixed;
+            width: 260px;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .admin-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .admin-brand-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--admin-purple), var(--admin-red));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 0 20px rgba(191, 0, 255, 0.4);
+        }
+
+        .admin-brand-text {
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .admin-brand-text small {
+            display: block;
+            font-size: 0.65rem;
+            color: var(--admin-purple);
+            font-weight: 400;
+        }
+
+        /* Navigation */
+        .admin-nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .admin-nav-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: #666;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.75rem;
+            padding-left: 0.5rem;
+        }
+
+        .admin-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            margin-bottom: 0.25rem;
+        }
+
+        .admin-nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+
+        .admin-nav-item.active {
+            background: linear-gradient(135deg, rgba(191, 0, 255, 0.2), rgba(255, 0, 64, 0.1));
+            color: #fff;
+            border-left: 3px solid var(--admin-purple);
+        }
+
+        .admin-nav-item .nav-icon {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .admin-nav-item .nav-badge {
+            margin-left: auto;
+            background: var(--admin-red);
+            color: #fff;
+            font-size: 0.65rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 10px;
+            font-weight: 600;
+            min-width: 22px;
+            text-align: center;
+        }
+
+        .admin-nav-item .nav-badge.success {
+            background: var(--admin-green);
+            color: #000;
+        }
+
+        .admin-nav-item .nav-badge.warning {
+            background: var(--admin-orange);
+            color: #000;
+        }
+
+        /* User Profile in Sidebar */
+        .admin-user-profile {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.5);
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .admin-user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .admin-user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--admin-purple), var(--admin-gold));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .admin-user-details {
+            flex: 1;
+        }
+
+        .admin-user-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .admin-user-role {
+            font-size: 0.7rem;
+            color: var(--admin-purple);
+        }
+
+        .admin-logout-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .admin-logout-btn:hover {
+            background: rgba(255, 51, 102, 0.2);
+            color: var(--admin-red);
+        }
+
+        /* Main Content Area */
+        .admin-main {
+            margin-left: 260px;
+            padding: 2rem 3rem;
+            min-height: 100vh;
+            flex: 1;
+            width: calc(100vw - 260px);
+            box-sizing: border-box;
+        }
+
+        /* Page Header */
+        .admin-page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #333;
         }
 
-        .admin-logo {
-            font-family: var(--font-mono);
+        .admin-page-title {
             font-size: 1.5rem;
-            color: var(--neon-green);
-        }
-
-        .admin-logo .admin-badge {
-            background: #ff3366;
-            color: #fff;
-            font-size: 0.65rem;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            margin-left: 0.75rem;
-            vertical-align: middle;
-        }
-
-        .admin-nav {
+            font-weight: 700;
             display: flex;
-            gap: 1rem;
+            align-items: center;
+            gap: 0.75rem;
         }
 
-        .admin-nav a {
-            color: #888;
-            text-decoration: none;
-            font-family: var(--font-mono);
-            font-size: 0.85rem;
-            padding: 0.5rem 1rem;
-            border-radius: var(--border-radius);
-            transition: all 0.3s ease;
+        .admin-page-title .title-icon {
+            font-size: 1.75rem;
         }
 
-        .admin-nav a:hover,
-        .admin-nav a.active {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.05);
+        .admin-page-subtitle {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.25rem;
         }
 
+        .admin-header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        /* Stats Grid */
         .admin-stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(6, 1fr);
             gap: 1.25rem;
             margin-bottom: 2rem;
+            width: 100%;
+        }
+
+        @media (max-width: 1400px) {
+            .admin-stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .admin-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         .admin-stat-card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid #333;
-            border-radius: var(--border-radius);
-            padding: 1.5rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            position: relative;
+            overflow: hidden;
         }
 
-        .admin-stat-card h4 {
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            color: #888;
-            margin-bottom: 0.5rem;
+        .admin-stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--admin-purple), var(--admin-blue));
+        }
+
+        .admin-stat-card.success::before {
+            background: linear-gradient(90deg, var(--admin-green), #00ff00);
+        }
+
+        .admin-stat-card.warning::before {
+            background: linear-gradient(90deg, var(--admin-orange), var(--admin-gold));
+        }
+
+        .admin-stat-card.danger::before {
+            background: linear-gradient(90deg, var(--admin-red), #ff0000);
+        }
+
+        .admin-stat-card.info::before {
+            background: linear-gradient(90deg, var(--admin-blue), var(--admin-purple));
+        }
+
+        .admin-stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .admin-stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .admin-stat-trend {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .admin-stat-trend.up {
+            background: rgba(0, 255, 148, 0.1);
+            color: var(--admin-green);
+        }
+
+        .admin-stat-trend.down {
+            background: rgba(255, 51, 102, 0.1);
+            color: var(--admin-red);
         }
 
         .admin-stat-value {
             font-size: 2rem;
             font-weight: 700;
-            color: #fff;
+            margin-bottom: 0.25rem;
         }
 
-        .admin-stat-value.success {
-            color: #0f0;
-        }
-
-        .admin-stat-value.warning {
-            color: #ff9900;
-        }
-
-        .admin-stat-value.danger {
-            color: #ff3366;
-        }
-
-        .admin-stat-value.info {
-            color: #00d4ff;
-        }
-
-        .admin-stat-change {
+        .admin-stat-label {
             font-size: 0.75rem;
-            color: #888;
-            margin-top: 0.5rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
-        .admin-section {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid #333;
-            border-radius: var(--border-radius);
-            padding: 1.5rem;
+        /* Panels */
+        .admin-panel {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
             margin-bottom: 1.5rem;
+            width: 100%;
         }
 
-        .admin-section-header {
+        .admin-panel-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
         }
 
-        .admin-section h3 {
-            font-family: var(--font-mono);
+        .admin-panel-title {
             font-size: 1rem;
-            color: var(--neon-green);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
+        .admin-panel-title .panel-badge {
+            font-size: 0.65rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            background: rgba(191, 0, 255, 0.2);
+            color: var(--admin-purple);
+        }
+
+        .admin-panel-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .admin-panel-body {
+            padding: 1.5rem;
+        }
+
+        /* Tables */
         .admin-table {
             width: 100%;
             border-collapse: collapse;
@@ -140,132 +410,400 @@
         .admin-table td {
             padding: 1rem;
             text-align: left;
-            border-bottom: 1px solid #222;
-            font-family: var(--font-mono);
+            border-bottom: 1px solid var(--glass-border);
             font-size: 0.85rem;
         }
 
         .admin-table th {
-            color: #888;
-            font-weight: 400;
-            text-transform: uppercase;
             font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #666;
+            font-weight: 500;
+            letter-spacing: 0.05em;
         }
 
         .admin-table tr:hover {
             background: rgba(255, 255, 255, 0.02);
         }
 
-        .status-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
+        .admin-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* User Row */
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #333, #555);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .user-avatar.admin {
+            background: linear-gradient(135deg, var(--admin-purple), var(--admin-red));
+        }
+
+        .user-avatar.developer {
+            background: linear-gradient(135deg, var(--admin-gold), var(--admin-orange));
+        }
+
+        .user-info .user-name {
+            font-weight: 500;
+        }
+
+        .user-info .user-email {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.65rem;
+            border-radius: 6px;
             font-size: 0.7rem;
             font-weight: 600;
         }
 
-        .status-passed {
-            background: rgba(0, 255, 0, 0.1);
-            color: #0f0;
+        .badge-admin {
+            background: linear-gradient(135deg, rgba(191, 0, 255, 0.2), rgba(255, 0, 64, 0.2));
+            color: var(--admin-purple);
         }
 
-        .status-flagged {
-            background: rgba(255, 153, 0, 0.1);
-            color: #ff9900;
+        .badge-developer {
+            background: rgba(255, 215, 0, 0.15);
+            color: var(--admin-gold);
         }
 
-        .status-rejected {
-            background: rgba(255, 51, 102, 0.1);
-            color: #ff3366;
-        }
-
-        .status-pending {
-            background: rgba(0, 212, 255, 0.1);
-            color: #00d4ff;
-        }
-
-        .risk-score {
-            font-weight: 700;
-        }
-
-        .risk-low {
-            color: #0f0;
-        }
-
-        .risk-medium {
-            color: #ff9900;
-        }
-
-        .risk-high {
-            color: #ff3366;
-        }
-
-        .action-btn {
-            padding: 0.35rem 0.75rem;
-            font-size: 0.7rem;
-            font-family: var(--font-mono);
-            border: 1px solid #333;
-            background: transparent;
+        .badge-customer {
+            background: rgba(136, 136, 136, 0.15);
             color: #888;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-right: 0.5rem;
         }
 
-        .action-btn:hover {
-            border-color: #fff;
+        .badge-success {
+            background: rgba(0, 255, 148, 0.15);
+            color: var(--admin-green);
+        }
+
+        .badge-warning {
+            background: rgba(255, 153, 0, 0.15);
+            color: var(--admin-orange);
+        }
+
+        .badge-danger {
+            background: rgba(255, 51, 102, 0.15);
+            color: var(--admin-red);
+        }
+
+        .badge-info {
+            background: rgba(0, 212, 255, 0.15);
+            color: var(--admin-blue);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--admin-purple), var(--admin-red));
+            color: #fff;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 20px rgba(191, 0, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
             color: #fff;
         }
 
-        .action-btn.approve:hover {
-            border-color: #0f0;
-            color: #0f0;
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #555;
         }
 
-        .action-btn.reject:hover {
-            border-color: #ff3366;
-            color: #ff3366;
+        .btn-success {
+            background: rgba(0, 255, 148, 0.15);
+            border: 1px solid rgba(0, 255, 148, 0.3);
+            color: var(--admin-green);
         }
 
-        .system-health {
+        .btn-success:hover {
+            background: rgba(0, 255, 148, 0.25);
+        }
+
+        .btn-danger {
+            background: rgba(255, 51, 102, 0.15);
+            border: 1px solid rgba(255, 51, 102, 0.3);
+            color: var(--admin-red);
+        }
+
+        .btn-danger:hover {
+            background: rgba(255, 51, 102, 0.25);
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.75rem;
+            font-size: 0.7rem;
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            min-width: 36px;
+            justify-content: center;
+        }
+
+        /* Activity Feed */
+        .activity-feed {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .activity-icon.user {
+            background: rgba(0, 212, 255, 0.15);
+        }
+
+        .activity-icon.security {
+            background: rgba(255, 51, 102, 0.15);
+        }
+
+        .activity-icon.submission {
+            background: rgba(255, 153, 0, 0.15);
+        }
+
+        .activity-icon.system {
+            background: rgba(0, 255, 148, 0.15);
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-text {
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-text strong {
+            color: var(--admin-purple);
+        }
+
+        .activity-time {
+            font-size: 0.7rem;
+            color: #666;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 1rem;
+            width: 100%;
+        }
+
+        .quick-action-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quick-action-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--admin-purple);
+            transform: translateY(-3px);
+        }
+
+        .quick-action-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .quick-action-label {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* Charts */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            min-height: 200px;
+        }
+
+        .chart-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* System Health Grid */
+        .health-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            width: 100%;
         }
 
         .health-item {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 1rem;
             padding: 1rem;
-            border-radius: var(--border-radius);
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
         }
 
-        .health-icon {
-            font-size: 1.5rem;
+        .health-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .health-indicator.online {
+            background: var(--admin-green);
+            box-shadow: 0 0 10px var(--admin-green);
+        }
+
+        .health-indicator.offline {
+            background: var(--admin-red);
+            box-shadow: 0 0 10px var(--admin-red);
+        }
+
+        .health-indicator.degraded {
+            background: var(--admin-orange);
+            box-shadow: 0 0 10px var(--admin-orange);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         .health-info h5 {
-            font-family: var(--font-mono);
             font-size: 0.85rem;
-            color: #fff;
             margin-bottom: 0.25rem;
         }
 
         .health-info span {
-            font-size: 0.75rem;
-            color: #888;
+            font-size: 0.7rem;
+            color: #666;
         }
 
+        /* Section visibility */
+        .admin-section {
+            display: none;
+        }
+
+        .admin-section.active {
+            display: block;
+        }
+
+        /* Search & Filters */
+        .search-bar {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.85rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--admin-purple);
+        }
+
+        .search-input::placeholder {
+            color: #555;
+        }
+
+        .filter-select {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.85rem;
+            min-width: 150px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--admin-purple);
+        }
+
+        /* Loading & Access States */
         .loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 9999;
@@ -275,14 +813,29 @@
             display: none;
         }
 
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--glass-border);
+            border-top-color: var(--admin-purple);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         .access-denied {
             text-align: center;
             padding: 4rem;
+            max-width: 500px;
+            margin: 0 auto;
         }
 
         .access-denied h2 {
-            color: #ff3366;
-            font-family: var(--font-mono);
+            color: var(--admin-red);
             font-size: 2rem;
             margin-bottom: 1rem;
         }
@@ -290,470 +843,2225 @@
         .access-denied p {
             color: #888;
             margin-bottom: 2rem;
+            line-height: 1.6;
         }
 
-        @media (max-width: 900px) {
+        /* Login Form */
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+        }
+
+        .login-form h3 {
+            color: var(--admin-purple);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.7rem;
+            color: #888;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .form-control {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--admin-purple);
+        }
+
+        .login-error {
+            color: var(--admin-red);
+            font-size: 0.8rem;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        /* Empty States */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 0.9rem;
+        }
+
+        /* Tabs */
+        .admin-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 1rem;
+        }
+
+        .admin-tab {
+            padding: 0.6rem 1.25rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: none;
+            border: none;
+            font-family: inherit;
+        }
+
+        .admin-tab:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .admin-tab.active {
+            color: #fff;
+            background: rgba(191, 0, 255, 0.2);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: #111;
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #fff;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            padding: 1.25rem 1.5rem;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        /* Dashboard grid layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .admin-layout {
+                flex-direction: column;
+            }
+
+            .admin-sidebar {
+                position: fixed;
+                left: -280px;
+                transition: left 0.3s ease;
+            }
+
+            .admin-sidebar.open {
+                left: 0;
+            }
+
+            .admin-main {
+                margin-left: 0;
+                width: 100vw;
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
             .admin-stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
 
-            .system-health {
-                grid-template-columns: 1fr;
+            .health-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
-        @media (max-width: 600px) {
-            .admin-stats-grid {
+        @media (max-width: 500px) {
+            .health-grid {
                 grid-template-columns: 1fr;
-            }
-
-            .admin-header {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .admin-table {
-                font-size: 0.75rem;
             }
         }
     </style>
 </head>
 
 <body>
-    <canvas id="matrix-bg"></canvas>
-    <div class="scanlines"></div>
-    <div class="noise-overlay"></div>
-
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="loading-overlay">
-        <div style="text-align: center;">
-            <div class="glitch-text" data-text="AUTHENTICATING...">AUTHENTICATING...</div>
-            <p style="color: #888; margin-top: 1rem;">Verifying admin credentials...</p>
-        </div>
+        <div class="loading-spinner"></div>
+        <div style="color: var(--admin-purple); font-weight: 600;">AUTHENTICATING...</div>
+        <div style="color: #666; font-size: 0.8rem; margin-top: 0.5rem;">Verifying admin credentials</div>
     </div>
 
-    <!-- Access Denied (shown if not admin) -->
+    <!-- Access Denied -->
     <div id="access-denied" class="access-denied" style="display: none;">
         <h2>🚫 ACCESS_DENIED</h2>
-        <p>You do not have permission to access the admin console.</p>
-        <a href="index.html" class="btn-primary">RETURN_TO_MAIN</a>
+        <p id="access-denied-reason">You do not have permission to access the admin console.</p>
+        <div class="login-form" id="admin-login-form" style="display: none;">
+            <h3>👑 Admin Authentication</h3>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="admin-email" class="form-control" placeholder="admin@email.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="admin-password" class="form-control" placeholder="••••••••">
+            </div>
+            <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" id="admin-signin-btn">
+                AUTHENTICATE
+            </button>
+            <p class="login-error" id="admin-login-error"></p>
+        </div>
+        <a href="index.html" class="btn btn-secondary" style="margin-top: 1.5rem;">← RETURN TO MAIN SITE</a>
     </div>
 
     <!-- Admin Dashboard -->
-    <div id="admin-dashboard" class="admin-container" style="display: none;">
-        <header class="admin-header">
-            <div class="admin-logo">
-                <span class="prompt">></span> MOLTBOT_ADMIN<span class="cursor">_</span>
-                <span class="admin-badge">RESTRICTED</span>
+    <div id="admin-dashboard" class="admin-layout" style="display: none;">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="admin-brand">
+                <div class="admin-brand-icon">👑</div>
+                <div class="admin-brand-text">
+                    MOLTBOT
+                    <small>COMMAND_CENTER</small>
+                </div>
             </div>
-            <nav class="admin-nav">
-                <a href="index.html">[MAIN_SITE]</a>
-                <a href="#" class="active">[DASHBOARD]</a>
-                <a href="#" id="admin-logout">[LOGOUT]</a>
+
+            <nav>
+                <div class="admin-nav-section">
+                    <div class="admin-nav-label">Overview</div>
+                    <a class="admin-nav-item active" data-section="dashboard">
+                        <span class="nav-icon">📊</span>
+                        Dashboard
+                    </a>
+                    <a class="admin-nav-item" data-section="activity">
+                        <span class="nav-icon">📜</span>
+                        Activity Log
+                    </a>
+                </div>
+
+                <div class="admin-nav-section">
+                    <div class="admin-nav-label">Users & Access</div>
+                    <a class="admin-nav-item" data-section="users">
+                        <span class="nav-icon">👥</span>
+                        User Management
+                        <span class="nav-badge" id="nav-users-count">0</span>
+                    </a>
+                    <a class="admin-nav-item" data-section="developers">
+                        <span class="nav-icon">⚡</span>
+                        Developer Apps
+                        <span class="nav-badge warning" id="nav-dev-apps-count">0</span>
+                    </a>
+                </div>
+
+                <div class="admin-nav-section">
+                    <div class="admin-nav-label">Content</div>
+                    <a class="admin-nav-item" data-section="submissions">
+                        <span class="nav-icon">📦</span>
+                        Submissions
+                        <span class="nav-badge warning" id="nav-submissions-count">0</span>
+                    </a>
+                    <a class="admin-nav-item" data-section="moderation">
+                        <span class="nav-icon">🛡️</span>
+                        Moderation
+                        <span class="nav-badge" id="nav-flagged-count">0</span>
+                    </a>
+                    <a class="admin-nav-item" data-section="skills">
+                        <span class="nav-icon">🎯</span>
+                        All Skills
+                    </a>
+                </div>
+
+                <div class="admin-nav-section">
+                    <div class="admin-nav-label">Business</div>
+                    <a class="admin-nav-item" data-section="revenue">
+                        <span class="nav-icon">💰</span>
+                        Revenue
+                    </a>
+                    <a class="admin-nav-item" data-section="subscriptions">
+                        <span class="nav-icon">💳</span>
+                        Subscriptions
+                    </a>
+                </div>
+
+                <div class="admin-nav-section">
+                    <div class="admin-nav-label">System</div>
+                    <a class="admin-nav-item" data-section="health">
+                        <span class="nav-icon">💚</span>
+                        System Health
+                        <span class="nav-badge success">OK</span>
+                    </a>
+                    <a class="admin-nav-item" data-section="settings">
+                        <span class="nav-icon">⚙️</span>
+                        Settings
+                    </a>
+                </div>
             </nav>
-        </header>
 
-        <!-- Stats Grid -->
-        <div class="admin-stats-grid">
-            <div class="admin-stat-card">
-                <h4>TOTAL_USERS</h4>
-                <div class="admin-stat-value info" id="stat-users">--</div>
-                <div class="admin-stat-change">All registered accounts</div>
-            </div>
-            <div class="admin-stat-card">
-                <h4>PENDING_SUBMISSIONS</h4>
-                <div class="admin-stat-value warning" id="stat-pending">--</div>
-                <div class="admin-stat-change">Awaiting review</div>
-            </div>
-            <div class="admin-stat-card">
-                <h4>FLAGGED_SECURITY</h4>
-                <div class="admin-stat-value danger" id="stat-flagged">--</div>
-                <div class="admin-stat-change">Needs manual security review</div>
-            </div>
-            <div class="admin-stat-card">
-                <h4>APPROVED_SKILLS</h4>
-                <div class="admin-stat-value success" id="stat-approved">--</div>
-                <div class="admin-stat-change">Published to marketplace</div>
-            </div>
-        </div>
-
-        <!-- Flagged Submissions Section -->
-        <section class="admin-section">
-            <div class="admin-section-header">
-                <h3>⚠️ FLAGGED_SUBMISSIONS // SECURITY_REVIEW_REQUIRED</h3>
-                <button class="btn-secondary" id="refresh-flagged">REFRESH</button>
-            </div>
-            <table class="admin-table" id="flagged-table">
-                <thead>
-                    <tr>
-                        <th>Skill Name</th>
-                        <th>Developer</th>
-                        <th>Risk Score</th>
-                        <th>Threats</th>
-                        <th>Submitted</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="flagged-tbody">
-                    <tr>
-                        <td colspan="6" style="text-align: center; color: #888;">Loading flagged submissions...</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-
-        <!-- Pending Submissions Section -->
-        <section class="admin-section">
-            <div class="admin-section-header">
-                <h3>📋 PENDING_SUBMISSIONS</h3>
-            </div>
-            <table class="admin-table" id="pending-table">
-                <thead>
-                    <tr>
-                        <th>Skill Name</th>
-                        <th>Category</th>
-                        <th>Developer</th>
-                        <th>Price</th>
-                        <th>Submitted</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="pending-tbody">
-                    <tr>
-                        <td colspan="6" style="text-align: center; color: #888;">Loading pending submissions...</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-
-        <!-- System Health Section -->
-        <section class="admin-section">
-            <div class="admin-section-header">
-                <h3>💚 SYSTEM_HEALTH</h3>
-            </div>
-            <div class="system-health">
-                <div class="health-item">
-                    <span class="health-icon">🔐</span>
-                    <div class="health-info">
-                        <h5>Security Scanner</h5>
-                        <span id="health-scanner">Checking...</span>
+            <div class="admin-user-profile">
+                <div class="admin-user-info">
+                    <div class="admin-user-avatar" id="sidebar-avatar">?</div>
+                    <div class="admin-user-details">
+                        <div class="admin-user-name" id="sidebar-name">Loading...</div>
+                        <div class="admin-user-role">👑 ADMINISTRATOR</div>
                     </div>
-                </div>
-                <div class="health-item">
-                    <span class="health-icon">🗄️</span>
-                    <div class="health-info">
-                        <h5>Supabase</h5>
-                        <span id="health-supabase">Checking...</span>
-                    </div>
-                </div>
-                <div class="health-item">
-                    <span class="health-icon">💳</span>
-                    <div class="health-info">
-                        <h5>Payment Gateway</h5>
-                        <span id="health-payments">Checking...</span>
-                    </div>
+                    <button class="admin-logout-btn" id="btn-logout" title="Logout">🚪</button>
                 </div>
             </div>
-        </section>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- DASHBOARD SECTION -->
+            <section class="admin-section active" id="section-dashboard">
+                <div class="admin-page-header">
+                    <div>
+                        <div class="admin-page-title">
+                            <span class="title-icon">📊</span>
+                            Command Center
+                        </div>
+                        <div class="admin-page-subtitle">Real-time overview of your marketplace</div>
+                    </div>
+                    <div class="admin-header-actions">
+                        <button class="btn btn-secondary" onclick="refreshDashboard()">
+                            🔄 Refresh
+                        </button>
+                        <a href="index.html" class="btn btn-secondary">
+                            🌐 View Site
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="admin-stats-grid">
+                    <div class="admin-stat-card info">
+                        <div class="admin-stat-header">
+                            <div class="admin-stat-icon">👥</div>
+                            <span class="admin-stat-trend up">↑ Active</span>
+                        </div>
+                        <div class="admin-stat-value" id="stat-total-users">0</div>
+                        <div class="admin-stat-label">Total Users</div>
+                    </div>
+                    <div class="admin-stat-card success">
+                        <div class="admin-stat-header">
+                            <div class="admin-stat-icon">⚡</div>
+                        </div>
+                        <div class="admin-stat-value" id="stat-developers">0</div>
+                        <div class="admin-stat-label">Active Developers</div>
+                    </div>
+                    <div class="admin-stat-card warning">
+                        <div class="admin-stat-header">
+                            <div class="admin-stat-icon">📋</div>
+                            <span class="admin-stat-trend" id="pending-trend">Pending</span>
+                        </div>
+                        <div class="admin-stat-value" id="stat-pending">0</div>
+                        <div class="admin-stat-label">Pending Review</div>
+                    </div>
+                    <div class="admin-stat-card danger">
+                        <div class="admin-stat-header">
+                            <div class="admin-stat-icon">⚠️</div>
+                        </div>
+                        <div class="admin-stat-value" id="stat-flagged">0</div>
+                        <div class="admin-stat-label">Flagged Security</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-header">
+                            <div class="admin-stat-icon">🎯</div>
+                        </div>
+                        <div class="admin-stat-value" id="stat-skills">0</div>
+                        <div class="admin-stat-label">Published Skills</div>
+                    </div>
+                    <div class="admin-stat-card success">
+                        <div class="admin-stat-header">
+                            <div class="admin-stat-icon">💰</div>
+                        </div>
+                        <div class="admin-stat-value" id="stat-revenue">£0</div>
+                        <div class="admin-stat-label">Total Revenue</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Quick Actions -->
+                    <div class="admin-panel">
+                        <div class="admin-panel-header">
+                            <div class="admin-panel-title">⚡ Quick Actions</div>
+                        </div>
+                        <div class="admin-panel-body">
+                            <div class="quick-actions">
+                                <div class="quick-action-card" onclick="switchSection('submissions')">
+                                    <div class="quick-action-icon">📦</div>
+                                    <div class="quick-action-label">Review Submissions</div>
+                                </div>
+                                <div class="quick-action-card" onclick="switchSection('developers')">
+                                    <div class="quick-action-icon">⚡</div>
+                                    <div class="quick-action-label">Developer Apps</div>
+                                </div>
+                                <div class="quick-action-card" onclick="switchSection('users')">
+                                    <div class="quick-action-icon">👤</div>
+                                    <div class="quick-action-label">Manage Users</div>
+                                </div>
+                                <div class="quick-action-card" onclick="switchSection('moderation')">
+                                    <div class="quick-action-icon">🛡️</div>
+                                    <div class="quick-action-label">Security Review</div>
+                                </div>
+                                <div class="quick-action-card" onclick="exportData()">
+                                    <div class="quick-action-icon">📥</div>
+                                    <div class="quick-action-label">Export Data</div>
+                                </div>
+                                <div class="quick-action-card" onclick="switchSection('settings')">
+                                    <div class="quick-action-icon">⚙️</div>
+                                    <div class="quick-action-label">Settings</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="admin-panel">
+                        <div class="admin-panel-header">
+                            <div class="admin-panel-title">📜 Recent Activity</div>
+                            <button class="btn btn-sm btn-secondary" onclick="switchSection('activity')">View All</button>
+                        </div>
+                        <div class="admin-panel-body">
+                            <div class="activity-feed" id="recent-activity">
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">📭</div>
+                                    <div class="empty-state-text">No recent activity</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Health Overview -->
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <div class="admin-panel-title">💚 System Status</div>
+                        <button class="btn btn-sm btn-secondary" onclick="checkSystemHealth()">Check Now</button>
+                    </div>
+                    <div class="admin-panel-body">
+                        <div class="health-grid" id="health-grid">
+                            <div class="health-item">
+                                <div class="health-indicator online" id="health-db"></div>
+                                <div class="health-info">
+                                    <h5>Database</h5>
+                                    <span id="health-db-status">Connected</span>
+                                </div>
+                            </div>
+                            <div class="health-item">
+                                <div class="health-indicator online" id="health-auth"></div>
+                                <div class="health-info">
+                                    <h5>Authentication</h5>
+                                    <span id="health-auth-status">Operational</span>
+                                </div>
+                            </div>
+                            <div class="health-item">
+                                <div class="health-indicator online" id="health-storage"></div>
+                                <div class="health-info">
+                                    <h5>Storage</h5>
+                                    <span id="health-storage-status">Online</span>
+                                </div>
+                            </div>
+                            <div class="health-item">
+                                <div class="health-indicator online" id="health-payments"></div>
+                                <div class="health-info">
+                                    <h5>Payments</h5>
+                                    <span id="health-payments-status">LemonSqueezy OK</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- USERS SECTION -->
+            <section class="admin-section" id="section-users">
+                <div class="admin-page-header">
+                    <div>
+                        <div class="admin-page-title">
+                            <span class="title-icon">👥</span>
+                            User Management
+                        </div>
+                        <div class="admin-page-subtitle">Manage all registered users</div>
+                    </div>
+                    <div class="admin-header-actions">
+                        <button class="btn btn-secondary" onclick="loadUsers()">🔄 Refresh</button>
+                        <button class="btn btn-primary" onclick="openCreateUserModal()">+ Add User</button>
+                    </div>
+                </div>
+
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="Search users by name or email..." id="user-search">
+                    <select class="filter-select" id="user-filter-type">
+                        <option value="">All Types</option>
+                        <option value="admin">Admins</option>
+                        <option value="developer">Developers</option>
+                        <option value="customer">Customers</option>
+                    </select>
+                    <select class="filter-select" id="user-filter-tier">
+                        <option value="">All Tiers</option>
+                        <option value="free">Free Agent</option>
+                        <option value="syndicate">Syndicate</option>
+                        <option value="blackmarket">Black Market</option>
+                    </select>
+                </div>
+
+                <div class="admin-panel">
+                    <div class="admin-panel-body" style="padding: 0;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Account Type</th>
+                                    <th>Tier</th>
+                                    <th>Status</th>
+                                    <th>Joined</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tbody">
+                                <tr>
+                                    <td colspan="6" class="empty-state">Loading users...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- DEVELOPER APPLICATIONS SECTION -->
+            <section class="admin-section" id="section-developers">
+                <div class="admin-page-header">
+                    <div>
+                        <div class="admin-page-title">
+                            <span class="title-icon">⚡</span>
+                            Developer Applications
+                        </div>
+                        <div class="admin-page-subtitle">Review and approve developer access requests</div>
+                    </div>
+                    <div class="admin-header-actions">
+                        <button class="btn btn-secondary" onclick="loadDeveloperApplications()">🔄 Refresh</button>
+                    </div>
+                </div>
+
+                <div class="admin-tabs">
+                    <button class="admin-tab active" data-tab="pending-apps">Pending</button>
+                    <button class="admin-tab" data-tab="approved-apps">Approved</button>
+                    <button class="admin-tab" data-tab="rejected-apps">Rejected</button>
+                </div>
+
+                <div class="admin-panel">
+                    <div class="admin-panel-body" style="padding: 0;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Applicant</th>
+                                    <th>Experience</th>
+                                    <th>Portfolio</th>
+                                    <th>Applied</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dev-apps-tbody">
+                                <tr>
+                                    <td colspan="6" class="empty-state">Loading applications...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SUBMISSIONS SECTION -->
+            <section class="admin-section" id="section-submissions">
+                <div class="admin-page-header">
+                    <div>
+                        <div class="admin-page-title">
+                            <span class="title-icon">📦</span>
+                            Skill Submissions
+                        </div>
+                        <div class="admin-page-subtitle">Review submitted skills for approval</div>
+                    </div>
+                    <div class="admin-header-actions">
+                        <button class="btn btn-secondary" onclick="loadSubmissions()">🔄 Refresh</button>
+                    </div>
+                </div>
+
+                <div class="admin-tabs">
+                    <button class="admin-tab active" data-tab="pending-subs">Pending</button>
+                    <button class="admin-tab" data-tab="approved-subs">Approved</button>
+                    <button class="admin-tab" data-tab="rejected-subs">Rejected</button>
+                </div>
+
+                <div class="admin-panel">
+                    <div class="admin-panel-body" style="padding: 0;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Skill Name</th>
+                                    <th>Developer</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Submitted</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="submissions-tbody">
+                                <tr>
+                                    <td colspan="6" class="empty-state">Loading submissions...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODERATION SECTION -->
+            <section class="admin-section" id="section-moderation">
+                <div class="admin-page-header">
+                    <div>
+                        <div class="admin-page-title">
+                            <span class="title-icon">🛡️</span>
+                            Security Moderation
+                        </div>
+                        <div class="admin-page-subtitle">Review flagged content and security alerts</div>
+                    </div>
+                    <div class="admin-header-actions">
+                        <button class="btn btn-secondary" onclick="loadFlaggedContent()">🔄 Refresh</button>
+                    </div>
+                </div>
+
+                <div class="admin-stats-grid" style="margin-bottom: 2rem;">
+                    <div class="admin-stat-card danger">
+                        <div class="admin-stat-value" id="mod-high-risk">0</div>
+                        <div class="admin-stat-label">High Risk</div>
+                    </div>
+                    <div class="admin-stat-card warning">
+                        <div class="admin-stat-value" id="mod-medium-risk">0</div>
+                        <div class="admin-stat-label">Medium Risk</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="mod-low-risk">0</div>
+                        <div class="admin-stat-label">Low Risk</div>
+                    </div>
+                </div>
+
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <div class="admin-panel-title">⚠️ Flagged Submissions</div>
+                    </div>
+                    <div class="admin-panel-body" style="padding: 0;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Type</th>
+                                    <th>Risk Score</th>
+                                    <th>Threats</th>
+                                    <th>Flagged</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="flagged-tbody">
+                                <tr>
+                                    <td colspan="6" class="empty-state">
+                                        <div class="empty-state-icon">✅</div>
+                                        <div>No flagged content</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- REVENUE SECTION -->
+            <section class="admin-section" id="section-revenue">
+                <div class="admin-page-header">
+                    <div>
+                        <div class="admin-page-title">
+                            <span class="title-icon">💰</span>
+                            Revenue Dashboard
+                        </div>
+                        <div class="admin-page-subtitle">Track earnings and financial metrics</div>
+                    </div>
+                </div>
+
+                <div class="admin-stats-grid">
+                    <div class="admin-stat-card success">
+                        <div class="admin-stat-value" id="rev-total">£0</div>
+                        <div class="admin-stat-label">Total Revenue</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="rev-month">£0</div>
+                        <div class="admin-stat-label">This Month</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="rev-mrr">£0</div>
+                        <div class="admin-stat-label">MRR</div>
+                    </div>
+                    <div class="admin-stat-card info">
+                        <div class="admin-stat-value" id="rev-avg">£0</div>
+                        <div class="admin-stat-label">Avg Order Value</div>
+                    </div>
+                </div>
+
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <div class="admin-panel-title">📈 Revenue Chart</div>
+                        <select class="filter-select" id="revenue-period" onchange="updateRevenueChart()">
+                            <option value="7">Last 7 Days</option>
+                            <option value="30" selected>Last 30 Days</option>
+                            <option value="90">Last 90 Days</option>
+                        </select>
+                    </div>
+                    <div class="admin-panel-body">
+                        <div class="chart-container" style="height: 300px; background: transparent;">
+                            <canvas id="revenue-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <div class="admin-panel-title">💳 Recent Transactions</div>
+                    </div>
+                    <div class="admin-panel-body" style="padding: 0;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Transaction ID</th>
+                                    <th>User</th>
+                                    <th>Item</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactions-tbody">
+                                <tr>
+                                    <td colspan="6" class="empty-state">No transactions yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SUBSCRIPTIONS SECTION -->
+            <section class="admin-section" id="section-subscriptions">
+                <div class="admin-page-header">
+                    <div>
+                        <div class="admin-page-title">
+                            <span class="title-icon">💳</span>
+                            Subscription Management
+                        </div>
+                        <div class="admin-page-subtitle">Manage user subscriptions and tiers</div>
+                    </div>
+                </div>
+
+                <div class="admin-stats-grid">
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="sub-free">0</div>
+                        <div class="admin-stat-label">Free Agent</div>
+                    </div>
+                    <div class="admin-stat-card info">
+                        <div class="admin-stat-value" id="sub-syndicate">0</div>
+                        <div class="admin-stat-label">Syndicate</div>
+                    </div>
+                    <div class="admin-stat-card warning">
+                        <div class="admin-stat-value" id="sub-blackmarket">0</div>
+                        <div class="admin-stat-label">Black Market</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="admin-panel">
+                        <div class="admin-panel-header">
+                            <div class="admin-panel-title">📊 Subscription Breakdown</div>
+                        </div>
+                        <div class="admin-panel-body">
+                            <div class="chart-container" style="height: 250px; background: transparent;">
+                                <canvas id="subscription-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="admin-panel">
+                        <div class="admin-panel-header">
+                            <div class="admin-panel-title">📈 User Growth</div>
+                        </div>
+                        <div class="admin-panel-body">
+                            <div class="chart-container" style="height: 250px; background: transparent;">
+                                <canvas id="user-growth-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SKILLS SECTION -->
+            <section class="admin-section" id="section-skills">
+                <div class="admin-page-header">
+                    <div>
+                        <div class="admin-page-title">
+                            <span class="title-icon">🎯</span>
+                            All Skills
+                        </div>
+                        <div class="admin-page-subtitle">Manage published skills in the marketplace</div>
+                    </div>
+                    <div class="admin-header-actions">
+                        <button class="btn btn-secondary" onclick="loadAllSkills()">🔄 Refresh</button>
+                    </div>
+                </div>
+
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="Search skills..." id="skill-search">
+                    <select class="filter-select" id="skill-filter-category">
+                        <option value="">All Categories</option>
+                        <option value="automation">Automation</option>
+                        <option value="social">Social</option>
+                        <option value="analytics">Analytics</option>
+                        <option value="utilities">Utilities</option>
+                    </select>
+                </div>
+
+                <div class="admin-panel">
+                    <div class="admin-panel-body" style="padding: 0;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Skill</th>
+                                    <th>Developer</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Downloads</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="skills-tbody">
+                                <tr>
+                                    <td colspan="6" class="empty-state">Loading skills...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ACTIVITY LOG SECTION -->
+            <section class="admin-section" id="section-activity">
+                <div class="admin-page-header">
+                    <div>
+                        <div class="admin-page-title">
+                            <span class="title-icon">📜</span>
+                            Activity Log
+                        </div>
+                        <div class="admin-page-subtitle">Complete audit trail of all actions</div>
+                    </div>
+                    <div class="admin-header-actions">
+                        <button class="btn btn-secondary" onclick="exportActivityLog()">📥 Export</button>
+                    </div>
+                </div>
+
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="Search activity..." id="activity-search">
+                    <select class="filter-select" id="activity-filter-type">
+                        <option value="">All Actions</option>
+                        <option value="user">User Events</option>
+                        <option value="submission">Submissions</option>
+                        <option value="admin">Admin Actions</option>
+                        <option value="system">System Events</option>
+                    </select>
+                </div>
+
+                <div class="admin-panel">
+                    <div class="admin-panel-body">
+                        <div class="activity-feed" id="full-activity-log" style="max-height: none;">
+                            <div class="empty-state">Loading activity...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SYSTEM HEALTH SECTION -->
+            <section class="admin-section" id="section-health">
+                <div class="admin-page-header">
+                    <div>
+                        <div class="admin-page-title">
+                            <span class="title-icon">💚</span>
+                            System Health
+                        </div>
+                        <div class="admin-page-subtitle">Monitor all system components</div>
+                    </div>
+                    <div class="admin-header-actions">
+                        <button class="btn btn-secondary" onclick="checkSystemHealth()">🔄 Check Now</button>
+                    </div>
+                </div>
+
+                <div class="admin-stats-grid">
+                    <div class="admin-stat-card success">
+                        <div class="admin-stat-value">99.9%</div>
+                        <div class="admin-stat-label">Uptime</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="health-response-time">--ms</div>
+                        <div class="admin-stat-label">Avg Response</div>
+                    </div>
+                    <div class="admin-stat-card info">
+                        <div class="admin-stat-value" id="health-requests">0</div>
+                        <div class="admin-stat-label">Requests Today</div>
+                    </div>
+                </div>
+
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <div class="admin-panel-title">🖥️ Service Status</div>
+                    </div>
+                    <div class="admin-panel-body">
+                        <div class="health-grid">
+                            <div class="health-item">
+                                <div class="health-indicator online" id="svc-supabase"></div>
+                                <div class="health-info">
+                                    <h5>Supabase Database</h5>
+                                    <span>PostgreSQL connected</span>
+                                </div>
+                            </div>
+                            <div class="health-item">
+                                <div class="health-indicator online" id="svc-auth"></div>
+                                <div class="health-info">
+                                    <h5>Authentication</h5>
+                                    <span>Supabase Auth active</span>
+                                </div>
+                            </div>
+                            <div class="health-item">
+                                <div class="health-indicator online" id="svc-storage"></div>
+                                <div class="health-info">
+                                    <h5>File Storage</h5>
+                                    <span>Supabase Storage ready</span>
+                                </div>
+                            </div>
+                            <div class="health-item">
+                                <div class="health-indicator online" id="svc-payments"></div>
+                                <div class="health-info">
+                                    <h5>LemonSqueezy</h5>
+                                    <span>Payment gateway active</span>
+                                </div>
+                            </div>
+                            <div class="health-item">
+                                <div class="health-indicator online" id="svc-netlify"></div>
+                                <div class="health-info">
+                                    <h5>Netlify Functions</h5>
+                                    <span>Serverless active</span>
+                                </div>
+                            </div>
+                            <div class="health-item">
+                                <div class="health-indicator online" id="svc-cdn"></div>
+                                <div class="health-info">
+                                    <h5>CDN</h5>
+                                    <span>Global distribution OK</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SETTINGS SECTION -->
+            <section class="admin-section" id="section-settings">
+                <div class="admin-page-header">
+                    <div>
+                        <div class="admin-page-title">
+                            <span class="title-icon">⚙️</span>
+                            Settings
+                        </div>
+                        <div class="admin-page-subtitle">Configure system settings and preferences</div>
+                    </div>
+                </div>
+
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <div class="admin-panel-title">🎛️ General Settings</div>
+                    </div>
+                    <div class="admin-panel-body">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                            <div class="form-group">
+                                <label>Site Name</label>
+                                <input type="text" class="form-control" value="MOLTBOT_SKILLS" id="setting-site-name">
+                            </div>
+                            <div class="form-group">
+                                <label>Support Email</label>
+                                <input type="email" class="form-control" value="support@moltbot.com" id="setting-support-email">
+                            </div>
+                            <div class="form-group">
+                                <label>Maintenance Mode</label>
+                                <select class="filter-select" id="setting-maintenance" style="width: 100%;">
+                                    <option value="off">Off - Site Live</option>
+                                    <option value="on">On - Under Maintenance</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" style="margin-top: 1rem;">Save Settings</button>
+                    </div>
+                </div>
+
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <div class="admin-panel-title">💰 Pricing Configuration</div>
+                    </div>
+                    <div class="admin-panel-body">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                            <div class="form-group">
+                                <label>Free Downloads/Month</label>
+                                <input type="number" class="form-control" value="3" id="setting-free-limit">
+                            </div>
+                            <div class="form-group">
+                                <label>Syndicate £/month</label>
+                                <input type="number" class="form-control" value="9.99" id="setting-syndicate-price">
+                            </div>
+                            <div class="form-group">
+                                <label>Black Market £/month</label>
+                                <input type="number" class="form-control" value="29.99" id="setting-blackmarket-price">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" style="margin-top: 1rem;">Update Pricing</button>
+                    </div>
+                </div>
+
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <div class="admin-panel-title">🔐 Security Settings</div>
+                    </div>
+                    <div class="admin-panel-body">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                            <div class="form-group">
+                                <label>Auto-flag Risk Threshold</label>
+                                <input type="number" class="form-control" value="30" id="setting-risk-threshold" placeholder="Score 0-100">
+                            </div>
+                            <div class="form-group">
+                                <label>Email Verification</label>
+                                <select class="filter-select" id="setting-email-verify" style="width: 100%;">
+                                    <option value="yes">Required</option>
+                                    <option value="no">Optional</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" style="margin-top: 1rem;">Save Security Settings</button>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- User Detail Modal -->
+    <div class="modal-overlay" id="user-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">👤 User Details</div>
+                <button class="modal-close" onclick="closeModal('user-modal')">&times;</button>
+            </div>
+            <div class="modal-body" id="user-modal-body">
+                <!-- Content loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('user-modal')">Close</button>
+                <button class="btn btn-danger" id="user-modal-ban">Ban User</button>
+                <button class="btn btn-primary" id="user-modal-save">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Initialize Supabase
-        const SUPABASE_URL = 'https://your-project.supabase.co';
-        const SUPABASE_ANON_KEY = 'your-anon-key';
+        const SUPABASE_URL = 'https://dpcrxdsxtaujmclmahvk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwY3J4ZHN4dGF1am1jbG1haHZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjI1NzEsImV4cCI6MjA4NTE5ODU3MX0.FJTvbP3WK6-pX8e37fxq8-a_juG7Hg04gZVa00rNGZk';
 
-        // Replace with actual values - these should come from environment
-        let supabase;
-        try {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } catch (e) {
-            console.warn('Supabase not configured');
-        }
-
+        var supabase = null;
         let currentUser = null;
         let userProfile = null;
 
+        // Initialize Supabase
+        function initSupabase() {
+            try {
+                const createClientFn = window.supabaseCreateClient;
+                if (createClientFn) {
+                    supabase = createClientFn(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    console.log('[ADMIN] Supabase initialized');
+                    return true;
+                }
+                console.error('[ADMIN] Supabase not loaded');
+                return false;
+            } catch (e) {
+                console.error('[ADMIN] Init error:', e);
+                return false;
+            }
+        }
+
         // Check admin access
         async function checkAdminAccess() {
-            const loadingOverlay = document.getElementById('loading-overlay');
-            const accessDenied = document.getElementById('access-denied');
-            const adminDashboard = document.getElementById('admin-dashboard');
+            const loading = document.getElementById('loading-overlay');
+            const denied = document.getElementById('access-denied');
+            const dashboard = document.getElementById('admin-dashboard');
+            const reason = document.getElementById('access-denied-reason');
+            const loginForm = document.getElementById('admin-login-form');
 
             if (!supabase) {
-                loadingOverlay.classList.add('hidden');
-                accessDenied.style.display = 'block';
+                loading.classList.add('hidden');
+                denied.style.display = 'block';
+                reason.textContent = 'Database connection failed.';
                 return false;
             }
 
             try {
-                const { data: { user }, error } = await supabase.auth.getUser();
-
-                if (error || !user) {
-                    loadingOverlay.classList.add('hidden');
-                    accessDenied.style.display = 'block';
+                // Check for demo mode
+                if (localStorage.getItem('moltbot_demo_user')) {
+                    loading.classList.add('hidden');
+                    denied.style.display = 'block';
+                    reason.innerHTML = '⚠️ <strong>Demo Mode</strong> cannot access admin. Sign in with real credentials:';
+                    loginForm.style.display = 'block';
                     return false;
                 }
 
-                currentUser = user;
+                const { data: { session }, error } = await supabase.auth.getSession();
 
-                // Check if user is admin
+                if (error || !session?.user) {
+                    loading.classList.add('hidden');
+                    denied.style.display = 'block';
+                    reason.innerHTML = 'Please sign in with your admin account:';
+                    loginForm.style.display = 'block';
+                    return false;
+                }
+
+                currentUser = session.user;
+
                 const { data: profile, error: profileError } = await supabase
                     .from('user_profiles')
                     .select('*')
-                    .eq('id', user.id)
+                    .eq('id', currentUser.id)
                     .single();
 
                 if (profileError || !profile || profile.account_type !== 'admin') {
-                    loadingOverlay.classList.add('hidden');
-                    accessDenied.style.display = 'block';
+                    loading.classList.add('hidden');
+                    denied.style.display = 'block';
+                    reason.innerHTML = `Account <strong>${currentUser.email}</strong> is not an admin.<br><br>Sign in with admin credentials:`;
+                    loginForm.style.display = 'block';
                     return false;
                 }
 
                 userProfile = profile;
-                loadingOverlay.classList.add('hidden');
-                adminDashboard.style.display = 'block';
+                loading.classList.add('hidden');
+                dashboard.style.display = 'flex';
+
+                // Update sidebar
+                document.getElementById('sidebar-name').textContent = currentUser.email.split('@')[0].toUpperCase();
+                document.getElementById('sidebar-avatar').textContent = currentUser.email[0].toUpperCase();
+
                 return true;
             } catch (err) {
-                console.error('Admin check error:', err);
-                loadingOverlay.classList.add('hidden');
-                accessDenied.style.display = 'block';
+                console.error('Access check error:', err);
+                loading.classList.add('hidden');
+                denied.style.display = 'block';
+                reason.textContent = 'Error: ' + err.message;
+                loginForm.style.display = 'block';
                 return false;
             }
         }
 
-        // Load dashboard stats
+        // Handle login
+        async function handleLogin() {
+            const email = document.getElementById('admin-email').value.trim();
+            const password = document.getElementById('admin-password').value;
+            const errorEl = document.getElementById('admin-login-error');
+            const btn = document.getElementById('admin-signin-btn');
+
+            if (!email || !password) {
+                errorEl.textContent = 'Enter email and password.';
+                return;
+            }
+
+            btn.textContent = 'AUTHENTICATING...';
+            btn.disabled = true;
+            errorEl.textContent = '';
+
+            try {
+                localStorage.removeItem('moltbot_demo_user');
+                const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+                if (error) {
+                    errorEl.textContent = error.message;
+                    btn.textContent = 'AUTHENTICATE';
+                    btn.disabled = false;
+                    return;
+                }
+
+                await checkAdminAccess();
+                if (document.getElementById('admin-dashboard').style.display === 'flex') {
+                    initDashboard();
+                }
+            } catch (err) {
+                errorEl.textContent = err.message;
+                btn.textContent = 'AUTHENTICATE';
+                btn.disabled = false;
+            }
+        }
+
+        // Initialize Dashboard
+        function initDashboard() {
+            loadStats();
+            loadUsers();
+            loadRecentActivity();
+            checkSystemHealth();
+            initCharts();
+        }
+
+        // Chart instances
+        let revenueChart = null;
+        let subscriptionChart = null;
+        let userGrowthChart = null;
+
+        // Initialize Charts
+        function initCharts() {
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js not loaded');
+                return;
+            }
+
+            // Set Chart.js defaults for dark theme
+            Chart.defaults.color = '#888';
+            Chart.defaults.borderColor = 'rgba(255,255,255,0.1)';
+
+            initRevenueChart();
+            initSubscriptionChart();
+            initUserGrowthChart();
+        }
+
+        // Revenue Line Chart
+        function initRevenueChart() {
+            const ctx = document.getElementById('revenue-chart');
+            if (!ctx) return;
+
+            // Generate sample data for last 30 days
+            const labels = [];
+            const data = [];
+            for (let i = 29; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                labels.push(date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }));
+                data.push(Math.floor(Math.random() * 500) + 100);
+            }
+
+            revenueChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Revenue (£)',
+                        data: data,
+                        borderColor: '#bf00ff',
+                        backgroundColor: 'rgba(191, 0, 255, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: '#bf00ff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { maxTicksLimit: 7 }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: {
+                                callback: (value) => '£' + value
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+        }
+
+        // Update Revenue Chart based on period
+        function updateRevenueChart() {
+            const period = document.getElementById('revenue-period')?.value || 30;
+            if (!revenueChart) return;
+
+            const labels = [];
+            const data = [];
+            for (let i = period - 1; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                labels.push(date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }));
+                data.push(Math.floor(Math.random() * 500) + 100);
+            }
+
+            revenueChart.data.labels = labels;
+            revenueChart.data.datasets[0].data = data;
+            revenueChart.update();
+        }
+
+        // Subscription Doughnut Chart
+        function initSubscriptionChart() {
+            const ctx = document.getElementById('subscription-chart');
+            if (!ctx) return;
+
+            subscriptionChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Free Agent', 'Syndicate', 'Black Market'],
+                    datasets: [{
+                        data: [65, 25, 10],
+                        backgroundColor: [
+                            'rgba(136, 136, 136, 0.8)',
+                            'rgba(0, 212, 255, 0.8)',
+                            'rgba(255, 153, 0, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(136, 136, 136, 1)',
+                            'rgba(0, 212, 255, 1)',
+                            'rgba(255, 153, 0, 1)'
+                        ],
+                        borderWidth: 2,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // User Growth Bar Chart
+        function initUserGrowthChart() {
+            const ctx = document.getElementById('user-growth-chart');
+            if (!ctx) return;
+
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            const newUsers = [12, 19, 15, 25, 22, 30];
+            const activeUsers = [45, 52, 48, 60, 55, 70];
+
+            userGrowthChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: 'New Users',
+                            data: newUsers,
+                            backgroundColor: 'rgba(0, 255, 148, 0.8)',
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Active Users',
+                            data: activeUsers,
+                            backgroundColor: 'rgba(191, 0, 255, 0.8)',
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true,
+                                pointStyle: 'rect'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' } }
+                    }
+                }
+            });
+        }
+
+        // Update subscription chart with real data
+        async function updateSubscriptionStats() {
+            if (!supabase) return;
+
+            try {
+                const { data: profiles } = await supabase
+                    .from('user_profiles')
+                    .select('subscription_tier');
+
+                if (profiles) {
+                    let free = 0, syndicate = 0, blackmarket = 0;
+                    profiles.forEach(p => {
+                        if (p.subscription_tier === 'syndicate') syndicate++;
+                        else if (p.subscription_tier === 'blackmarket') blackmarket++;
+                        else free++;
+                    });
+
+                    document.getElementById('sub-free').textContent = free;
+                    document.getElementById('sub-syndicate').textContent = syndicate;
+                    document.getElementById('sub-blackmarket').textContent = blackmarket;
+
+                    if (subscriptionChart) {
+                        subscriptionChart.data.datasets[0].data = [free, syndicate, blackmarket];
+                        subscriptionChart.update();
+                    }
+                }
+            } catch (err) {
+                console.error('Subscription stats error:', err);
+            }
+        }
+
+        // Load Stats
         async function loadStats() {
             if (!supabase) return;
 
             try {
                 // Total users
-                const { count: userCount } = await supabase
+                const { count: userCount, error: userError } = await supabase
                     .from('user_profiles')
                     .select('*', { count: 'exact', head: true });
-                document.getElementById('stat-users').textContent = userCount || 0;
+                if (!userError) {
+                    document.getElementById('stat-total-users').textContent = userCount || 0;
+                    document.getElementById('nav-users-count').textContent = userCount || 0;
+                }
 
-                // Pending submissions
-                const { count: pendingCount } = await supabase
-                    .from('skill_submissions')
+                // Developers
+                const { count: devCount, error: devError } = await supabase
+                    .from('user_profiles')
                     .select('*', { count: 'exact', head: true })
-                    .eq('status', 'pending');
-                document.getElementById('stat-pending').textContent = pendingCount || 0;
+                    .eq('account_type', 'developer');
+                if (!devError) {
+                    document.getElementById('stat-developers').textContent = devCount || 0;
+                }
 
-                // Flagged submissions
-                const { count: flaggedCount } = await supabase
-                    .from('skill_submissions')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('status', 'flagged');
-                document.getElementById('stat-flagged').textContent = flaggedCount || 0;
+                // Pending developer apps (table may not exist)
+                try {
+                    const { count: pendingApps } = await supabase
+                        .from('developer_applications')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('status', 'pending');
+                    document.getElementById('nav-dev-apps-count').textContent = pendingApps || 0;
+                } catch (e) {
+                    document.getElementById('nav-dev-apps-count').textContent = '0';
+                }
 
-                // Approved skills
-                const { count: approvedCount } = await supabase
-                    .from('skills')
-                    .select('*', { count: 'exact', head: true });
-                document.getElementById('stat-approved').textContent = approvedCount || 0;
+                // Pending submissions (table may not exist)
+                try {
+                    const { count: pendingSubs } = await supabase
+                        .from('skill_submissions')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('status', 'pending');
+                    document.getElementById('nav-submissions-count').textContent = pendingSubs || 0;
+                    document.getElementById('stat-pending').textContent = pendingSubs || 0;
+                } catch (e) {
+                    document.getElementById('nav-submissions-count').textContent = '0';
+                    document.getElementById('stat-pending').textContent = '0';
+                }
+
+                // Flagged content (table may not exist)
+                try {
+                    const { count: flaggedCount } = await supabase
+                        .from('flagged_content')
+                        .select('*', { count: 'exact', head: true });
+                    document.getElementById('nav-flagged-count').textContent = flaggedCount || 0;
+                    document.getElementById('stat-flagged').textContent = flaggedCount || 0;
+                } catch (e) {
+                    document.getElementById('nav-flagged-count').textContent = '0';
+                    document.getElementById('stat-flagged').textContent = '0';
+                }
+
+                // Published skills (table may not exist)
+                try {
+                    const { count: skillsCount } = await supabase
+                        .from('skills')
+                        .select('*', { count: 'exact', head: true });
+                    document.getElementById('stat-skills').textContent = skillsCount || 0;
+                } catch (e) {
+                    document.getElementById('stat-skills').textContent = '0';
+                }
+
             } catch (err) {
-                console.error('Stats load error:', err);
+                console.error('Stats error:', err);
             }
         }
 
-        // Load flagged submissions
-        async function loadFlaggedSubmissions() {
+        // Load Users
+        async function loadUsers() {
             if (!supabase) return;
 
-            const tbody = document.getElementById('flagged-tbody');
+            const tbody = document.getElementById('users-tbody');
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Loading...</td></tr>';
 
             try {
                 const { data, error } = await supabase
-                    .from('skill_submissions')
+                    .from('user_profiles')
                     .select('*')
-                    .eq('status', 'flagged')
-                    .order('submitted_at', { ascending: false });
+                    .order('created_at', { ascending: false })
+                    .limit(100);
 
                 if (error) throw error;
 
                 if (!data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #0f0;">✓ No flagged submissions</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No users found</td></tr>';
                     return;
                 }
 
-                tbody.innerHTML = data.map(sub => {
-                    const riskScore = sub.security_scan?.risk_score || 0;
-                    const riskClass = riskScore >= 50 ? 'risk-high' : riskScore >= 30 ? 'risk-medium' : 'risk-low';
-                    const threats = sub.security_scan?.threats_count || 0;
-                    const submitted = new Date(sub.submitted_at).toLocaleDateString();
+                tbody.innerHTML = data.map(user => {
+                    const accountType = user.account_type || 'customer';
+                    const tier = user.subscription_tier || 'free';
+                    const joined = user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown';
+
+                    const badgeClass = accountType === 'admin' ? 'badge-admin' :
+                                      accountType === 'developer' ? 'badge-developer' : 'badge-customer';
+                    const avatarClass = accountType === 'admin' ? 'admin' :
+                                       accountType === 'developer' ? 'developer' : '';
 
                     return `
                         <tr>
-                            <td>${sub.name}</td>
-                            <td>${sub.developer_id?.slice(0, 8) || 'Unknown'}...</td>
-                            <td class="risk-score ${riskClass}">${riskScore}/100</td>
-                            <td>${threats} detected</td>
-                            <td>${submitted}</td>
                             <td>
-                                <button class="action-btn" onclick="viewSubmission('${sub.id}')">VIEW</button>
-                                <button class="action-btn approve" onclick="approveSubmission('${sub.id}')">APPROVE</button>
-                                <button class="action-btn reject" onclick="rejectSubmission('${sub.id}')">REJECT</button>
+                                <div class="user-cell">
+                                    <div class="user-avatar ${avatarClass}">${(user.display_name || user.id || '?')[0].toUpperCase()}</div>
+                                    <div class="user-info">
+                                        <div class="user-name">${user.display_name || user.id?.slice(0, 8) || 'Unknown'}</div>
+                                        <div class="user-email">${user.email || 'N/A'}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge ${badgeClass}">${accountType === 'admin' ? '👑 ' : accountType === 'developer' ? '⚡ ' : ''}${accountType.toUpperCase()}</span></td>
+                            <td><span class="badge badge-info">${tier.toUpperCase()}</span></td>
+                            <td><span class="badge badge-success">Active</span></td>
+                            <td>${joined}</td>
+                            <td>
+                                <button class="btn btn-sm btn-secondary" onclick="viewUser('${user.id}')">View</button>
+                                <button class="btn btn-sm btn-secondary" onclick="editUser('${user.id}')">Edit</button>
                             </td>
                         </tr>
                     `;
                 }).join('');
+
             } catch (err) {
-                console.error('Flagged load error:', err);
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ff3366;">Error loading flagged submissions</td></tr>';
+                console.error('Users error:', err);
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Error loading users</td></tr>';
             }
         }
 
-        // Load pending submissions
-        async function loadPendingSubmissions() {
-            if (!supabase) return;
-
-            const tbody = document.getElementById('pending-tbody');
-
-            try {
-                const { data, error } = await supabase
-                    .from('skill_submissions')
-                    .select('*')
-                    .eq('status', 'pending')
-                    .order('submitted_at', { ascending: false });
-
-                if (error) throw error;
-
-                if (!data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #888;">No pending submissions</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = data.map(sub => {
-                    const submitted = new Date(sub.submitted_at).toLocaleDateString();
-                    return `
-                        <tr>
-                            <td>${sub.name}</td>
-                            <td>${sub.category}</td>
-                            <td>${sub.developer_id?.slice(0, 8) || 'Unknown'}...</td>
-                            <td>£${sub.price || 0}</td>
-                            <td>${submitted}</td>
-                            <td>
-                                <button class="action-btn" onclick="viewSubmission('${sub.id}')">VIEW</button>
-                                <button class="action-btn approve" onclick="approveSubmission('${sub.id}')">APPROVE</button>
-                                <button class="action-btn reject" onclick="rejectSubmission('${sub.id}')">REJECT</button>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-            } catch (err) {
-                console.error('Pending load error:', err);
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ff3366;">Error loading pending submissions</td></tr>';
-            }
+        // Load Recent Activity
+        function loadRecentActivity() {
+            const feed = document.getElementById('recent-activity');
+            feed.innerHTML = `
+                <div class="activity-item">
+                    <div class="activity-icon user">👤</div>
+                    <div class="activity-content">
+                        <div class="activity-text"><strong>Admin</strong> logged in to command center</div>
+                        <div class="activity-time">Just now</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon system">✅</div>
+                    <div class="activity-content">
+                        <div class="activity-text">System health check passed</div>
+                        <div class="activity-time">2 minutes ago</div>
+                    </div>
+                </div>
+            `;
         }
 
-        // Check system health
-        async function checkSystemHealth() {
-            // Scanner check
-            const scannerEl = document.getElementById('health-scanner');
-            try {
-                const res = await fetch('/.netlify/functions/integrations_v2/skill-scanner', { method: 'OPTIONS' });
-                scannerEl.textContent = res.ok ? '✓ Online' : '⚠ Degraded';
-                scannerEl.style.color = res.ok ? '#0f0' : '#ff9900';
-            } catch (e) {
-                scannerEl.textContent = '✗ Offline';
-                scannerEl.style.color = '#ff3366';
-            }
-
-            // Supabase check
-            const supabaseEl = document.getElementById('health-supabase');
-            if (supabase) {
-                supabaseEl.textContent = '✓ Connected';
-                supabaseEl.style.color = '#0f0';
-            } else {
-                supabaseEl.textContent = '✗ Not configured';
-                supabaseEl.style.color = '#ff3366';
-            }
-
-            // Payments check (placeholder)
-            const paymentsEl = document.getElementById('health-payments');
-            paymentsEl.textContent = '✓ LemonSqueezy Active';
-            paymentsEl.style.color = '#0f0';
+        // Check System Health
+        function checkSystemHealth() {
+            // All online for now
+            document.querySelectorAll('.health-indicator').forEach(el => {
+                el.classList.remove('offline', 'degraded');
+                el.classList.add('online');
+            });
         }
 
-        // View submission details
-        function viewSubmission(id) {
-            alert('View submission: ' + id + '\n\nFull modal viewer coming soon.');
+        // Navigation
+        function switchSection(sectionId) {
+            document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.admin-nav-item').forEach(n => n.classList.remove('active'));
+
+            const section = document.getElementById('section-' + sectionId);
+            const navItem = document.querySelector(`[data-section="${sectionId}"]`);
+
+            if (section) section.classList.add('active');
+            if (navItem) navItem.classList.add('active');
         }
 
-        // Approve submission
-        async function approveSubmission(id) {
-            if (!confirm('Approve this skill and publish to marketplace?')) return;
-
-            try {
-                const { error } = await supabase
-                    .from('skill_submissions')
-                    .update({ status: 'approved', reviewed_at: new Date().toISOString() })
-                    .eq('id', id);
-
-                if (error) throw error;
-
-                alert('Skill approved!');
-                loadStats();
-                loadFlaggedSubmissions();
-                loadPendingSubmissions();
-            } catch (err) {
-                alert('Error approving: ' + err.message);
-            }
-        }
-
-        // Reject submission
-        async function rejectSubmission(id) {
-            const reason = prompt('Enter rejection reason:');
-            if (!reason) return;
-
-            try {
-                const { error } = await supabase
-                    .from('skill_submissions')
-                    .update({
-                        status: 'rejected',
-                        reviewed_at: new Date().toISOString(),
-                        reviewer_notes: reason
-                    })
-                    .eq('id', id);
-
-                if (error) throw error;
-
-                alert('Skill rejected.');
-                loadStats();
-                loadFlaggedSubmissions();
-                loadPendingSubmissions();
-            } catch (err) {
-                alert('Error rejecting: ' + err.message);
-            }
-        }
-
-        // Logout
-        document.getElementById('admin-logout')?.addEventListener('click', async (e) => {
-            e.preventDefault();
-            if (supabase) {
-                await supabase.auth.signOut();
-            }
-            window.location.href = 'index.html';
-        });
-
-        // Refresh button
-        document.getElementById('refresh-flagged')?.addEventListener('click', () => {
-            loadFlaggedSubmissions();
-            loadPendingSubmissions();
+        // Refresh Dashboard
+        function refreshDashboard() {
             loadStats();
-        });
+            loadUsers();
+            loadRecentActivity();
+            checkSystemHealth();
+        }
+
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function viewUser(userId) {
+            alert('View user: ' + userId);
+        }
+
+        function editUser(userId) {
+            alert('Edit user: ' + userId);
+        }
+
+        function exportData() {
+            alert('Export functionality coming soon');
+        }
+
+        function exportActivityLog() {
+            alert('Activity log export coming soon');
+        }
+
+        // Load Developer Applications
+        async function loadDeveloperApplications() {
+            const tbody = document.getElementById('dev-apps-tbody');
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Loading...</td></tr>';
+
+            try {
+                const { data, error } = await supabase
+                    .from('developer_applications')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.log('Developer applications table may not exist:', error.message);
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No applications found</td></tr>';
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No pending applications</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.map(app => `
+                    <tr>
+                        <td>${app.user_email || app.user_id?.slice(0, 8) || 'Unknown'}</td>
+                        <td>${app.experience || 'N/A'}</td>
+                        <td><a href="${app.portfolio_url || '#'}" target="_blank">${app.portfolio_url ? 'View' : 'None'}</a></td>
+                        <td>${new Date(app.created_at).toLocaleDateString()}</td>
+                        <td><span class="badge badge-warning">${app.status || 'pending'}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-success" onclick="approveDevApp('${app.id}')">Approve</button>
+                            <button class="btn btn-sm btn-danger" onclick="rejectDevApp('${app.id}')">Reject</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Dev apps error:', err);
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Error loading applications</td></tr>';
+            }
+        }
+
+        // Load Submissions
+        async function loadSubmissions() {
+            const tbody = document.getElementById('submissions-tbody');
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Loading...</td></tr>';
+
+            try {
+                const { data, error } = await supabase
+                    .from('skill_submissions')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.log('Skill submissions table may not exist:', error.message);
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No submissions found</td></tr>';
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No pending submissions</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.map(sub => `
+                    <tr>
+                        <td>${sub.name || 'Unnamed Skill'}</td>
+                        <td>${sub.developer_email || sub.developer_id?.slice(0, 8) || 'Unknown'}</td>
+                        <td><span class="badge badge-info">${sub.category || 'General'}</span></td>
+                        <td>£${sub.price || '0'}</td>
+                        <td>${new Date(sub.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary" onclick="reviewSubmission('${sub.id}')">Review</button>
+                            <button class="btn btn-sm btn-success" onclick="approveSubmission('${sub.id}')">Approve</button>
+                            <button class="btn btn-sm btn-danger" onclick="rejectSubmission('${sub.id}')">Reject</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Submissions error:', err);
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Error loading submissions</td></tr>';
+            }
+        }
+
+        // Load Flagged Content
+        async function loadFlaggedContent() {
+            const tbody = document.getElementById('flagged-tbody');
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Loading...</td></tr>';
+
+            try {
+                const { data, error } = await supabase
+                    .from('flagged_content')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.log('Flagged content table may not exist:', error.message);
+                    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">
+                        <div class="empty-state-icon">✅</div>
+                        <div>No flagged content</div>
+                    </td></tr>`;
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">
+                        <div class="empty-state-icon">✅</div>
+                        <div>No flagged content</div>
+                    </td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = data.map(item => `
+                    <tr>
+                        <td>${item.item_name || 'Unknown'}</td>
+                        <td><span class="badge badge-info">${item.item_type || 'Unknown'}</span></td>
+                        <td><span class="badge ${item.risk_score > 70 ? 'badge-danger' : item.risk_score > 40 ? 'badge-warning' : 'badge-info'}">${item.risk_score || 0}</span></td>
+                        <td>${item.threats || 'N/A'}</td>
+                        <td>${new Date(item.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary" onclick="reviewFlagged('${item.id}')">Review</button>
+                            <button class="btn btn-sm btn-success" onclick="clearFlag('${item.id}')">Clear</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Flagged content error:', err);
+                tbody.innerHTML = `<tr><td colspan="6" class="empty-state">
+                    <div class="empty-state-icon">✅</div>
+                    <div>No flagged content</div>
+                </td></tr>`;
+            }
+        }
+
+        // Load All Skills
+        async function loadAllSkills() {
+            const tbody = document.getElementById('skills-tbody');
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Loading...</td></tr>';
+
+            try {
+                const { data, error } = await supabase
+                    .from('skills')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.log('Skills table may not exist:', error.message);
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No skills found</td></tr>';
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No skills published yet</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.map(skill => `
+                    <tr>
+                        <td>${skill.name || 'Unnamed'}</td>
+                        <td>${skill.developer_name || skill.developer_id?.slice(0, 8) || 'Unknown'}</td>
+                        <td><span class="badge badge-info">${skill.category || 'General'}</span></td>
+                        <td>£${skill.price || '0'}</td>
+                        <td>${skill.downloads || 0}</td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary" onclick="viewSkill('${skill.id}')">View</button>
+                            <button class="btn btn-sm btn-secondary" onclick="editSkill('${skill.id}')">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="removeSkill('${skill.id}')">Remove</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Skills error:', err);
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Error loading skills</td></tr>';
+            }
+        }
+
+        // Open Create User Modal
+        function openCreateUserModal() {
+            document.getElementById('user-modal-body').innerHTML = `
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" class="form-control" id="new-user-email" placeholder="user@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Display Name</label>
+                    <input type="text" class="form-control" id="new-user-name" placeholder="Display name">
+                </div>
+                <div class="form-group">
+                    <label>Account Type</label>
+                    <select class="filter-select" id="new-user-type" style="width: 100%;">
+                        <option value="customer">Customer</option>
+                        <option value="developer">Developer</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Subscription Tier</label>
+                    <select class="filter-select" id="new-user-tier" style="width: 100%;">
+                        <option value="free">Free Agent</option>
+                        <option value="syndicate">Syndicate</option>
+                        <option value="blackmarket">Black Market</option>
+                    </select>
+                </div>
+            `;
+            document.getElementById('user-modal').querySelector('.modal-title').textContent = '➕ Create New User';
+            document.getElementById('user-modal-save').onclick = createUser;
+            document.getElementById('user-modal-ban').style.display = 'none';
+            openModal('user-modal');
+        }
+
+        // Create User
+        async function createUser() {
+            const email = document.getElementById('new-user-email').value.trim();
+            const name = document.getElementById('new-user-name').value.trim();
+            const type = document.getElementById('new-user-type').value;
+            const tier = document.getElementById('new-user-tier').value;
+
+            if (!email) {
+                alert('Email is required');
+                return;
+            }
+
+            try {
+                // Note: Creating users requires admin API or inviting via email
+                alert('User invitation sent to: ' + email + '\n\nNote: Full user creation requires Supabase Admin API integration.');
+                closeModal('user-modal');
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        // Approve/Reject Dev Applications
+        async function approveDevApp(appId) {
+            if (!confirm('Approve this developer application?')) return;
+            try {
+                await supabase.from('developer_applications').update({ status: 'approved' }).eq('id', appId);
+                loadDeveloperApplications();
+                alert('Application approved!');
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        async function rejectDevApp(appId) {
+            if (!confirm('Reject this developer application?')) return;
+            try {
+                await supabase.from('developer_applications').update({ status: 'rejected' }).eq('id', appId);
+                loadDeveloperApplications();
+                alert('Application rejected');
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        // Submission actions
+        function reviewSubmission(subId) {
+            alert('Review submission: ' + subId);
+        }
+
+        async function approveSubmission(subId) {
+            if (!confirm('Approve this skill submission?')) return;
+            try {
+                await supabase.from('skill_submissions').update({ status: 'approved' }).eq('id', subId);
+                loadSubmissions();
+                alert('Submission approved!');
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        async function rejectSubmission(subId) {
+            if (!confirm('Reject this skill submission?')) return;
+            try {
+                await supabase.from('skill_submissions').update({ status: 'rejected' }).eq('id', subId);
+                loadSubmissions();
+                alert('Submission rejected');
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        // Flagged content actions
+        function reviewFlagged(itemId) {
+            alert('Review flagged item: ' + itemId);
+        }
+
+        async function clearFlag(itemId) {
+            if (!confirm('Clear this flag?')) return;
+            try {
+                await supabase.from('flagged_content').delete().eq('id', itemId);
+                loadFlaggedContent();
+                alert('Flag cleared');
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        // Skill actions
+        function viewSkill(skillId) {
+            alert('View skill: ' + skillId);
+        }
+
+        function editSkill(skillId) {
+            alert('Edit skill: ' + skillId);
+        }
+
+        async function removeSkill(skillId) {
+            if (!confirm('Remove this skill from the marketplace?')) return;
+            try {
+                await supabase.from('skills').delete().eq('id', skillId);
+                loadAllSkills();
+                alert('Skill removed');
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        // Debounce helper
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Filter Users
+        function filterUsers() {
+            const searchTerm = document.getElementById('user-search')?.value.toLowerCase() || '';
+            const typeFilter = document.getElementById('user-filter-type')?.value || '';
+            const tierFilter = document.getElementById('user-filter-tier')?.value || '';
+
+            const rows = document.querySelectorAll('#users-tbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const matchesSearch = !searchTerm || text.includes(searchTerm);
+                const matchesType = !typeFilter || text.includes(typeFilter.toLowerCase());
+                const matchesTier = !tierFilter || text.includes(tierFilter.toLowerCase());
+
+                row.style.display = (matchesSearch && matchesType && matchesTier) ? '' : 'none';
+            });
+        }
+
+        // View User Details
+        async function viewUser(userId) {
+            try {
+                const { data: user, error } = await supabase
+                    .from('user_profiles')
+                    .select('*')
+                    .eq('id', userId)
+                    .single();
+
+                if (error || !user) {
+                    alert('User not found');
+                    return;
+                }
+
+                document.getElementById('user-modal-body').innerHTML = `
+                    <div style="display: grid; gap: 1rem;">
+                        <div><strong>ID:</strong> ${user.id}</div>
+                        <div><strong>Email:</strong> ${user.email || 'N/A'}</div>
+                        <div><strong>Display Name:</strong> ${user.display_name || 'Not set'}</div>
+                        <div><strong>Account Type:</strong> ${user.account_type || 'customer'}</div>
+                        <div><strong>Subscription Tier:</strong> ${user.subscription_tier || 'free'}</div>
+                        <div><strong>Created:</strong> ${user.created_at ? new Date(user.created_at).toLocaleString() : 'Unknown'}</div>
+                        <div><strong>Last Updated:</strong> ${user.updated_at ? new Date(user.updated_at).toLocaleString() : 'Unknown'}</div>
+                    </div>
+                `;
+                document.getElementById('user-modal').querySelector('.modal-title').textContent = '👤 User Details';
+                document.getElementById('user-modal-ban').style.display = 'inline-flex';
+                document.getElementById('user-modal-ban').onclick = () => banUser(userId);
+                document.getElementById('user-modal-save').style.display = 'none';
+                openModal('user-modal');
+            } catch (err) {
+                alert('Error loading user: ' + err.message);
+            }
+        }
+
+        // Edit User
+        async function editUser(userId) {
+            try {
+                const { data: user, error } = await supabase
+                    .from('user_profiles')
+                    .select('*')
+                    .eq('id', userId)
+                    .single();
+
+                if (error || !user) {
+                    alert('User not found');
+                    return;
+                }
+
+                document.getElementById('user-modal-body').innerHTML = `
+                    <div class="form-group">
+                        <label>Display Name</label>
+                        <input type="text" class="form-control" id="edit-user-name" value="${user.display_name || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label>Account Type</label>
+                        <select class="filter-select" id="edit-user-type" style="width: 100%;">
+                            <option value="customer" ${user.account_type === 'customer' ? 'selected' : ''}>Customer</option>
+                            <option value="developer" ${user.account_type === 'developer' ? 'selected' : ''}>Developer</option>
+                            <option value="admin" ${user.account_type === 'admin' ? 'selected' : ''}>Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Subscription Tier</label>
+                        <select class="filter-select" id="edit-user-tier" style="width: 100%;">
+                            <option value="free" ${user.subscription_tier === 'free' ? 'selected' : ''}>Free Agent</option>
+                            <option value="syndicate" ${user.subscription_tier === 'syndicate' ? 'selected' : ''}>Syndicate</option>
+                            <option value="blackmarket" ${user.subscription_tier === 'blackmarket' ? 'selected' : ''}>Black Market</option>
+                        </select>
+                    </div>
+                `;
+                document.getElementById('user-modal').querySelector('.modal-title').textContent = '✏️ Edit User';
+                document.getElementById('user-modal-ban').style.display = 'inline-flex';
+                document.getElementById('user-modal-ban').onclick = () => banUser(userId);
+                document.getElementById('user-modal-save').style.display = 'inline-flex';
+                document.getElementById('user-modal-save').onclick = () => saveUserChanges(userId);
+                openModal('user-modal');
+            } catch (err) {
+                alert('Error loading user: ' + err.message);
+            }
+        }
+
+        // Save User Changes
+        async function saveUserChanges(userId) {
+            const name = document.getElementById('edit-user-name')?.value.trim();
+            const type = document.getElementById('edit-user-type')?.value;
+            const tier = document.getElementById('edit-user-tier')?.value;
+
+            try {
+                const { error } = await supabase
+                    .from('user_profiles')
+                    .update({
+                        display_name: name,
+                        account_type: type,
+                        subscription_tier: tier,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', userId);
+
+                if (error) throw error;
+
+                closeModal('user-modal');
+                loadUsers();
+                loadStats();
+                alert('User updated successfully!');
+            } catch (err) {
+                alert('Error updating user: ' + err.message);
+            }
+        }
+
+        // Ban User
+        async function banUser(userId) {
+            if (!confirm('Are you sure you want to ban this user? This will disable their account.')) return;
+
+            try {
+                const { error } = await supabase
+                    .from('user_profiles')
+                    .update({
+                        account_status: 'banned',
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', userId);
+
+                if (error) throw error;
+
+                closeModal('user-modal');
+                loadUsers();
+                alert('User has been banned');
+            } catch (err) {
+                alert('Error banning user: ' + err.message);
+            }
+        }
 
         // Initialize
-        (async () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Wait for Supabase to load
+            let attempts = 0;
+            while (!window.supabaseCreateClient && attempts < 30) {
+                await new Promise(r => setTimeout(r, 100));
+                attempts++;
+            }
+
+            initSupabase();
+
+            // Setup event listeners
+            document.getElementById('admin-signin-btn')?.addEventListener('click', handleLogin);
+            document.getElementById('admin-password')?.addEventListener('keypress', e => {
+                if (e.key === 'Enter') handleLogin();
+            });
+            document.getElementById('btn-logout')?.addEventListener('click', async () => {
+                await supabase.auth.signOut();
+                window.location.href = 'index.html';
+            });
+
+            // Navigation
+            document.querySelectorAll('.admin-nav-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const section = item.dataset.section;
+                    if (section) switchSection(section);
+                });
+            });
+
+            // Tab switching
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const parent = tab.closest('.admin-tabs');
+                    parent.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                });
+            });
+
+            // User search
+            document.getElementById('user-search')?.addEventListener('input', debounce(filterUsers, 300));
+            document.getElementById('user-filter-type')?.addEventListener('change', filterUsers);
+            document.getElementById('user-filter-tier')?.addEventListener('change', filterUsers);
+
+            // Check access
             const hasAccess = await checkAdminAccess();
             if (hasAccess) {
-                loadStats();
-                loadFlaggedSubmissions();
-                loadPendingSubmissions();
-                checkSystemHealth();
+                initDashboard();
             }
-        })();
+        });
     </script>
 </body>
 

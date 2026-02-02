@@ -93,6 +93,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize Supabase (Global access)
     const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
+    // Expose Supabase client globally for RBAC integration (Phase 1)
+    window.supabaseClient = supabase;
+
     // --- NEWSLETTER HANDLING ---
     const newsForm = document.getElementById('newsletter-form');
     if (newsForm) {
@@ -655,9 +658,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (accountBadge) {
-            accountBadge.textContent = profile.account_type?.toUpperCase() || 'CUSTOMER';
-            if (profile.account_type === 'developer') {
+            // Clear previous classes
+            accountBadge.classList.remove('developer', 'admin');
+
+            // Normalize account type (handle case variations)
+            const accountType = (profile.account_type || '').toLowerCase().trim();
+
+            if (accountType === 'admin') {
+                accountBadge.textContent = '👑 ADMIN';
+                accountBadge.classList.add('admin');
+            } else if (accountType === 'developer') {
+                accountBadge.textContent = '⚡ DEVELOPER';
                 accountBadge.classList.add('developer');
+            } else {
+                accountBadge.textContent = 'CUSTOMER';
             }
         }
 
@@ -692,12 +706,27 @@ document.addEventListener('DOMContentLoaded', () => {
         // Update developer toggle button text
         const toggleBtn = document.getElementById('btn-toggle-developer');
         if (toggleBtn) {
-            if (profile.account_type === 'developer') {
+            if (profile.account_type === 'admin') {
+                // Admins don't need toggle - they have full access
+                toggleBtn.innerHTML = '<span class="icon">👑</span> ADMIN_ACCESS';
+                toggleBtn.disabled = true;
+                toggleBtn.style.opacity = '0.6';
+                toggleBtn.style.cursor = 'default';
+            } else if (profile.account_type === 'developer') {
                 toggleBtn.innerHTML = '<span class="icon">👤</span> SWITCH_TO_CUSTOMER';
+                toggleBtn.disabled = false;
+                toggleBtn.style.opacity = '1';
+                toggleBtn.style.cursor = 'pointer';
             } else {
                 toggleBtn.innerHTML = '<span class="icon">🔧</span> BECOME_ARCHITECT';
+                toggleBtn.disabled = false;
+                toggleBtn.style.opacity = '1';
+                toggleBtn.style.cursor = 'pointer';
             }
         }
+
+        // Log profile for debugging
+        console.log('[PROFILE] Loaded:', profile.account_type, profile);
     }
 
     async function loadSkillLibrary(user) {

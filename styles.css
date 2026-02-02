@@ -139,6 +139,30 @@ body {
     background: rgba(187, 41, 235, 0.1);
 }
 
+/* Admin Panel Button */
+.btn-admin {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    text-decoration: none;
+    background: linear-gradient(135deg, rgba(191, 0, 255, 0.2), rgba(255, 0, 64, 0.2));
+    border: 1px solid rgba(191, 0, 255, 0.5);
+    color: #bf00ff;
+    transition: all 0.3s ease;
+    animation: adminPulse 2s ease-in-out infinite;
+}
+
+.btn-admin:hover {
+    background: linear-gradient(135deg, rgba(191, 0, 255, 0.4), rgba(255, 0, 64, 0.4));
+    border-color: #bf00ff;
+    box-shadow: 0 0 20px rgba(191, 0, 255, 0.5);
+    transform: translateY(-2px);
+}
+
 /* Hero Section */
 .hero-section {
     padding: var(--spacing-lg) 0;
@@ -4221,6 +4245,22 @@ body.time-warp-active .warp-overlay {
     background: rgba(255, 215, 0, 0.2);
     color: #ffd700;
     border-color: #ffd700;
+}
+
+.account-badge.admin,
+#user-account-badge.admin {
+    background: linear-gradient(135deg, rgba(255, 0, 0, 0.4), rgba(255, 215, 0, 0.3)) !important;
+    color: #ff0000 !important;
+    border: 2px solid #ff0000 !important;
+    font-weight: bold !important;
+    text-shadow: 0 0 15px rgba(255, 0, 0, 0.8) !important;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.6), inset 0 0 10px rgba(255, 215, 0, 0.3) !important;
+    animation: adminPulse 2s ease-in-out infinite !important;
+}
+
+@keyframes adminPulse {
+    0%, 100% { box-shadow: 0 0 15px rgba(255, 0, 0, 0.4), inset 0 0 10px rgba(255, 215, 0, 0.2); }
+    50% { box-shadow: 0 0 25px rgba(255, 0, 0, 0.6), inset 0 0 15px rgba(255, 215, 0, 0.4); }
 }
 
 .dashboard-actions {

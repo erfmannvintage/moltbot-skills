@@ -907,6 +907,72 @@
             text-align: center;
         }
 
+        /* Skill Upload Form */
+        .skill-upload-form {
+            max-width: 800px;
+        }
+
+        .skill-upload-form .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .skill-upload-form textarea,
+        .skill-upload-form input,
+        .skill-upload-form select {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .skill-upload-form textarea:focus,
+        .skill-upload-form input:focus,
+        .skill-upload-form select:focus {
+            outline: none;
+            border-color: var(--admin-purple);
+        }
+
+        .skill-upload-form textarea {
+            resize: vertical;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .skill-upload-form .checkbox-group {
+            display: flex;
+            align-items: center;
+        }
+
+        .skill-upload-form .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .skill-upload-form .checkbox-group input[type="checkbox"] {
+            width: auto;
+            accent-color: var(--admin-purple);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        @media (max-width: 600px) {
+            .skill-upload-form .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* Empty States */
         .empty-state {
             text-align: center;
@@ -1308,6 +1374,11 @@
                         Developer Apps
                         <span class="nav-badge warning" id="nav-dev-apps-count">0</span>
                     </a>
+                    <a class="admin-nav-item" data-section="support">
+                        <span class="nav-icon">🎫</span>
+                        Support Tickets
+                        <span class="nav-badge warning" id="nav-tickets-count">0</span>
+                    </a>
                 </div>
 
                 <div class="admin-nav-section">
@@ -1325,6 +1396,15 @@
                     <a class="admin-nav-item" data-section="skills">
                         <span class="nav-icon">🎯</span>
                         All Skills
+                    </a>
+                    <a class="admin-nav-item" data-section="upload-skill">
+                        <span class="nav-icon">📤</span>
+                        Upload Skill
+                    </a>
+                    <a class="admin-nav-item" data-section="bespoke-requests">
+                        <span class="nav-icon">🎨</span>
+                        Bespoke Requests
+                        <span class="nav-badge warning" id="nav-bespoke-count">0</span>
                     </a>
                 </div>
 
@@ -1629,6 +1709,52 @@
                 </div>
             </section>
 
+            <!-- SUPPORT TICKETS SECTION -->
+            <section class="admin-section" id="section-support">
+                <div class="admin-page-header">
+                    <div>
+                        <div class="admin-page-title">
+                            <span class="title-icon">🎫</span>
+                            Support Tickets
+                        </div>
+                        <div class="admin-page-subtitle">View and respond to user support requests</div>
+                    </div>
+                    <div class="admin-header-actions">
+                        <button class="btn btn-secondary" onclick="loadSupportTickets()">🔄 Refresh</button>
+                    </div>
+                </div>
+
+                <div class="admin-tabs">
+                    <button class="admin-tab active" data-tab="open-tickets" onclick="filterSupportTickets('open')">Open</button>
+                    <button class="admin-tab" data-tab="pending-tickets" onclick="filterSupportTickets('pending')">Pending</button>
+                    <button class="admin-tab" data-tab="resolved-tickets" onclick="filterSupportTickets('resolved')">Resolved</button>
+                    <button class="admin-tab" data-tab="all-tickets" onclick="filterSupportTickets('all')">All</button>
+                </div>
+
+                <div class="admin-panel">
+                    <div class="admin-panel-body" style="padding: 0;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Ticket #</th>
+                                    <th>User</th>
+                                    <th>Subject</th>
+                                    <th>Category</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tickets-tbody">
+                                <tr>
+                                    <td colspan="7" class="empty-state">Loading tickets...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
             <!-- SUBMISSIONS SECTION -->
             <section class="admin-section" id="section-submissions">
                 <div class="admin-page-header">
@@ -1898,6 +2024,148 @@
                             <tbody id="skills-tbody">
                                 <tr>
                                     <td colspan="6" class="empty-state">Loading skills...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- UPLOAD SKILL SECTION -->
+            <section class="admin-section" id="section-upload-skill">
+                <div class="admin-page-header">
+                    <div>
+                        <div class="admin-page-title">
+                            <span class="title-icon">📤</span>
+                            Upload New Skill
+                        </div>
+                        <div class="admin-page-subtitle">Directly add skills to the marketplace</div>
+                    </div>
+                </div>
+
+                <div class="admin-panel">
+                    <div class="admin-panel-body">
+                        <form id="admin-skill-upload-form" class="skill-upload-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="upload-skill-title">Skill Title *</label>
+                                    <input type="text" id="upload-skill-title" required placeholder="e.g., Expert Python Developer">
+                                </div>
+                                <div class="form-group">
+                                    <label for="upload-skill-category">Category *</label>
+                                    <select id="upload-skill-category" required>
+                                        <option value="">Select category...</option>
+                                        <option value="dev">Development</option>
+                                        <option value="business">Business</option>
+                                        <option value="marketing">Marketing</option>
+                                        <option value="finance">Finance</option>
+                                        <option value="research">Research</option>
+                                        <option value="engineering">Engineering</option>
+                                        <option value="personal">Personal</option>
+                                        <option value="fun">Fun</option>
+                                        <option value="automation">Automation</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="upload-skill-description">Short Description *</label>
+                                <textarea id="upload-skill-description" rows="2" required placeholder="Brief description shown in skill cards..."></textarea>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="upload-skill-price">Price (£) *</label>
+                                    <input type="number" id="upload-skill-price" min="0" step="0.01" required placeholder="0 for free">
+                                </div>
+                                <div class="form-group">
+                                    <label for="upload-skill-version">Version</label>
+                                    <input type="text" id="upload-skill-version" value="1.0.0" placeholder="1.0.0">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="upload-skill-content">Skill Content (Markdown) *</label>
+                                <textarea id="upload-skill-content" rows="15" required placeholder="# Skill Title
+
+## Role
+You are an expert...
+
+## Instructions
+1. When the user asks...
+2. Always follow...
+
+## Examples
+..."></textarea>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group checkbox-group">
+                                    <label>
+                                        <input type="checkbox" id="upload-skill-verified" checked>
+                                        Mark as Verified
+                                    </label>
+                                </div>
+                                <div class="form-group checkbox-group">
+                                    <label>
+                                        <input type="checkbox" id="upload-skill-blackmarket">
+                                        Black Market Only
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" onclick="previewSkill()">👁️ Preview</button>
+                                <button type="submit" class="btn btn-primary">📤 Upload Skill</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BESPOKE REQUESTS SECTION -->
+            <section class="admin-section" id="section-bespoke-requests">
+                <div class="admin-page-header">
+                    <div>
+                        <div class="admin-page-title">
+                            <span class="title-icon">🎨</span>
+                            Bespoke Skill Requests
+                        </div>
+                        <div class="admin-page-subtitle">Custom skill requests from businesses</div>
+                    </div>
+                    <div class="admin-header-actions">
+                        <button class="btn btn-secondary" onclick="loadBespokeRequests()">🔄 Refresh</button>
+                    </div>
+                </div>
+
+                <div class="search-bar">
+                    <select class="filter-select" id="bespoke-filter-status">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="quoted">Quoted</option>
+                        <option value="accepted">Accepted</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="declined">Declined</option>
+                    </select>
+                </div>
+
+                <div class="admin-panel">
+                    <div class="admin-panel-body" style="padding: 0;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Category</th>
+                                    <th>Budget</th>
+                                    <th>Status</th>
+                                    <th>Submitted</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bespoke-requests-tbody">
+                                <tr>
+                                    <td colspan="6" class="empty-state">Loading requests...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -2305,6 +2573,8 @@
         function initDashboard() {
             loadStats();
             loadUsers();
+            loadSupportTickets();
+            loadBespokeRequests();
             loadRecentActivity();
             checkSystemHealth();
             initCharts();
@@ -2664,6 +2934,142 @@
             }
         }
 
+        // Load Support Tickets
+        let allTickets = [];
+        async function loadSupportTickets() {
+            if (!supabase) return;
+
+            const tbody = document.getElementById('tickets-tbody');
+            const ticketCount = document.getElementById('nav-tickets-count');
+            tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Loading...</td></tr>';
+
+            try {
+                const { data, error } = await supabase
+                    .from('support_tickets')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                allTickets = data || [];
+
+                // Update badge count (open tickets)
+                const openCount = allTickets.filter(t => t.status === 'open').length;
+                if (ticketCount) ticketCount.textContent = openCount;
+
+                renderTickets(allTickets.filter(t => t.status === 'open'));
+
+            } catch (err) {
+                console.error('Tickets error:', err);
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Error loading tickets</td></tr>';
+            }
+        }
+
+        function filterSupportTickets(status) {
+            // Update active tab
+            document.querySelectorAll('#section-support .admin-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            if (status === 'all') {
+                renderTickets(allTickets);
+            } else {
+                renderTickets(allTickets.filter(t => t.status === status));
+            }
+        }
+
+        function renderTickets(tickets) {
+            const tbody = document.getElementById('tickets-tbody');
+
+            if (!tickets || tickets.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No tickets found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = tickets.map(ticket => {
+                const statusClass = ticket.status === 'open' ? 'badge-warning' :
+                                   ticket.status === 'resolved' ? 'badge-success' :
+                                   ticket.status === 'pending' ? 'badge-info' : 'badge-secondary';
+                const created = new Date(ticket.created_at).toLocaleDateString();
+
+                return `
+                    <tr data-status="${ticket.status}">
+                        <td><code>#${ticket.id?.slice(0, 8) || '---'}</code></td>
+                        <td>${ticket.email || 'Unknown'}</td>
+                        <td>${ticket.subject || 'No subject'}</td>
+                        <td><span class="badge badge-info">${(ticket.category || 'general').toUpperCase()}</span></td>
+                        <td><span class="badge ${statusClass}">${(ticket.status || 'open').toUpperCase()}</span></td>
+                        <td>${created}</td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary" onclick="viewTicketAdmin('${ticket.id}')">View</button>
+                            <button class="btn btn-sm btn-primary" onclick="respondToTicket('${ticket.id}')">Respond</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function viewTicketAdmin(ticketId) {
+            try {
+                const { data: ticket, error } = await supabase
+                    .from('support_tickets')
+                    .select('*')
+                    .eq('id', ticketId)
+                    .single();
+
+                if (error || !ticket) {
+                    alert('Ticket not found');
+                    return;
+                }
+
+                const details = `
+TICKET #${ticket.id?.slice(0, 8)}
+━━━━━━━━━━━━━━━━━━━━
+User: ${ticket.email}
+Subject: ${ticket.subject}
+Category: ${ticket.category}
+Status: ${ticket.status?.toUpperCase()}
+Created: ${new Date(ticket.created_at).toLocaleString()}
+
+Description:
+${ticket.description}
+
+${ticket.admin_response ? `\nAdmin Response:\n${ticket.admin_response}` : '\n[No response yet]'}
+                `.trim();
+
+                alert(details);
+            } catch (err) {
+                alert('Error loading ticket');
+            }
+        }
+
+        async function respondToTicket(ticketId) {
+            const response = prompt('Enter your response to this ticket:');
+            if (!response) return;
+
+            const newStatus = confirm('Mark as resolved?') ? 'resolved' : 'pending';
+
+            try {
+                const { error } = await supabase
+                    .from('support_tickets')
+                    .update({
+                        admin_response: response,
+                        status: newStatus,
+                        updated_at: new Date().toISOString(),
+                        responded_by: currentUser?.id
+                    })
+                    .eq('id', ticketId);
+
+                if (error) throw error;
+
+                showNotification('Response sent!', 'success');
+                loadSupportTickets();
+            } catch (err) {
+                showNotification('Error: ' + err.message, 'error');
+            }
+        }
+
         // Load Recent Activity
         function loadRecentActivity() {
             const feed = document.getElementById('recent-activity');
@@ -2911,6 +3317,205 @@
             } catch (err) {
                 console.error('Skills error:', err);
                 tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Error loading skills</td></tr>';
+            }
+        }
+
+        // Admin Skill Upload Form Handler
+        document.getElementById('admin-skill-upload-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '⏳ Uploading...';
+
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+
+                const skillData = {
+                    title: document.getElementById('upload-skill-title').value.trim(),
+                    name: document.getElementById('upload-skill-title').value.trim(),
+                    description: document.getElementById('upload-skill-description').value.trim(),
+                    category: document.getElementById('upload-skill-category').value,
+                    price: parseFloat(document.getElementById('upload-skill-price').value) || 0,
+                    version: document.getElementById('upload-skill-version').value || '1.0.0',
+                    content: document.getElementById('upload-skill-content').value,
+                    is_verified: document.getElementById('upload-skill-verified').checked,
+                    is_black_market: document.getElementById('upload-skill-blackmarket').checked,
+                    creator_id: user.id,
+                    developer_id: user.id,
+                    developer_name: 'AI Agent Skills',
+                    status: 'published',
+                    downloads: 0,
+                    created_at: new Date().toISOString()
+                };
+
+                const { data, error } = await supabase
+                    .from('skills')
+                    .insert([skillData])
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                alert('✅ Skill uploaded successfully!');
+                e.target.reset();
+                document.getElementById('upload-skill-version').value = '1.0.0';
+                loadAllSkills();
+            } catch (err) {
+                console.error('Upload error:', err);
+                alert('❌ Error uploading skill: ' + err.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+
+        // Preview Skill
+        function previewSkill() {
+            const content = document.getElementById('upload-skill-content').value;
+            const title = document.getElementById('upload-skill-title').value || 'Skill Preview';
+
+            const previewWindow = window.open('', '_blank');
+            previewWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${title} - Preview</title>
+                    <style>
+                        body { font-family: system-ui; max-width: 800px; margin: 40px auto; padding: 20px; background: #1a1a1a; color: #fff; }
+                        pre { background: #0a0a0a; padding: 20px; border-radius: 8px; overflow-x: auto; }
+                        h1, h2, h3 { color: #00ff94; }
+                    </style>
+                </head>
+                <body>
+                    <h1>${title}</h1>
+                    <hr>
+                    <pre>${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+                </body>
+                </html>
+            `);
+        }
+
+        // Load Bespoke Requests
+        async function loadBespokeRequests() {
+            const tbody = document.getElementById('bespoke-requests-tbody');
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Loading...</td></tr>';
+
+            try {
+                const { data, error } = await supabase
+                    .from('bespoke_requests')
+                    .select('*')
+                    .order('submitted_at', { ascending: false });
+
+                if (error) {
+                    console.log('Bespoke requests table may not exist:', error.message);
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No requests found</td></tr>';
+                    // Update badge
+                    document.getElementById('nav-bespoke-count').textContent = '0';
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No bespoke requests yet</td></tr>';
+                    document.getElementById('nav-bespoke-count').textContent = '0';
+                    return;
+                }
+
+                // Update badge count
+                const pendingCount = data.filter(r => r.status === 'pending').length;
+                document.getElementById('nav-bespoke-count').textContent = pendingCount.toString();
+
+                tbody.innerHTML = data.map(req => `
+                    <tr>
+                        <td>
+                            <strong>${escapeHtml(req.name)}</strong>
+                            <div style="font-size: 0.8rem; color: #888;">${escapeHtml(req.email)}</div>
+                        </td>
+                        <td><span class="badge badge-info">${req.category || 'Other'}</span></td>
+                        <td>${req.budget || 'Not specified'}</td>
+                        <td>
+                            <span class="badge ${getBespokeStatusBadge(req.status)}">${req.status}</span>
+                        </td>
+                        <td>${new Date(req.submitted_at).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary" onclick="viewBespokeRequest('${req.id}')">View</button>
+                            <button class="btn btn-sm btn-primary" onclick="updateBespokeStatus('${req.id}')">Update</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Bespoke requests error:', err);
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Error loading requests</td></tr>';
+            }
+        }
+
+        function getBespokeStatusBadge(status) {
+            const badges = {
+                'pending': 'badge-warning',
+                'quoted': 'badge-info',
+                'accepted': 'badge-success',
+                'in_progress': 'badge-info',
+                'completed': 'badge-success',
+                'declined': 'badge-danger'
+            };
+            return badges[status] || 'badge-secondary';
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function viewBespokeRequest(id) {
+            try {
+                const { data, error } = await supabase
+                    .from('bespoke_requests')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+
+                if (error) throw error;
+
+                alert(`📋 BESPOKE REQUEST DETAILS\n\n` +
+                    `Company: ${data.name}\n` +
+                    `Email: ${data.email}\n` +
+                    `Category: ${data.category}\n` +
+                    `Budget: ${data.budget}\n` +
+                    `Status: ${data.status}\n\n` +
+                    `Description:\n${data.description}\n\n` +
+                    `Admin Notes: ${data.admin_notes || 'None'}`);
+            } catch (err) {
+                alert('Error loading request: ' + err.message);
+            }
+        }
+
+        async function updateBespokeStatus(id) {
+            const newStatus = prompt('Enter new status (pending, quoted, accepted, in_progress, completed, declined):');
+            if (!newStatus) return;
+
+            const validStatuses = ['pending', 'quoted', 'accepted', 'in_progress', 'completed', 'declined'];
+            if (!validStatuses.includes(newStatus)) {
+                alert('Invalid status. Choose from: ' + validStatuses.join(', '));
+                return;
+            }
+
+            try {
+                const { error } = await supabase
+                    .from('bespoke_requests')
+                    .update({
+                        status: newStatus,
+                        responded_at: new Date().toISOString()
+                    })
+                    .eq('id', id);
+
+                if (error) throw error;
+                alert('✅ Status updated!');
+                loadBespokeRequests();
+            } catch (err) {
+                alert('Error updating status: ' + err.message);
             }
         }
 
@@ -3164,8 +3769,47 @@
 
         // Flagged content actions
         async function reviewFlagged(itemId) {
-            showNotification('Opening flagged item review...', 'info');
-            // TODO: Implement flagged content review modal
+            try {
+                // Fetch the flagged item details
+                const { data: flaggedItem, error } = await supabase
+                    .from('flagged_content')
+                    .select('*, skills(*)')
+                    .eq('id', itemId)
+                    .single();
+
+                if (error || !flaggedItem) {
+                    showNotification('Could not load flagged item', 'error');
+                    return;
+                }
+
+                // Create modal content
+                const modalContent = `
+                    <div style="display: grid; gap: 1rem;">
+                        <div><strong>Flag ID:</strong> ${flaggedItem.id}</div>
+                        <div><strong>Reason:</strong> ${flaggedItem.reason || 'Not specified'}</div>
+                        <div><strong>Reporter:</strong> ${flaggedItem.reporter_id || 'Anonymous'}</div>
+                        <div><strong>Date Flagged:</strong> ${new Date(flaggedItem.created_at).toLocaleString()}</div>
+                        <hr style="border-color: #333;">
+                        <div><strong>Content Type:</strong> ${flaggedItem.content_type || 'Skill'}</div>
+                        <div><strong>Content ID:</strong> ${flaggedItem.content_id}</div>
+                        ${flaggedItem.skills ? `
+                            <div><strong>Skill Title:</strong> ${flaggedItem.skills.title || 'N/A'}</div>
+                            <div><strong>Skill Creator:</strong> ${flaggedItem.skills.creator_id || 'N/A'}</div>
+                        ` : ''}
+                        <div><strong>Details:</strong></div>
+                        <pre style="background: #1a1a1a; padding: 1rem; border-radius: 4px; overflow-x: auto; white-space: pre-wrap;">${flaggedItem.details || 'No additional details'}</pre>
+                    </div>
+                `;
+
+                // Show in user modal (reuse existing modal)
+                document.getElementById('user-modal-body').innerHTML = modalContent;
+                document.getElementById('user-modal').classList.add('active');
+
+                showNotification('Flagged item loaded', 'info');
+            } catch (err) {
+                console.error('Review flagged error:', err);
+                showNotification('Error loading flagged item: ' + err.message, 'error');
+            }
         }
 
         async function clearFlag(itemId) {

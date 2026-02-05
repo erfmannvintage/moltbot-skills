@@ -233,6 +233,155 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- DYNAMIC TOP ARCHITECTS LOADING ---
+    async function loadTopArchitects() {
+        const grid = document.getElementById('top-architects-grid');
+        if (!grid || !supabase) return;
+
+        try {
+            // Query developers with their stats, ordered by lifetime downloads
+            const { data: architects, error } = await supabase
+                .from('user_profiles')
+                .select('id, display_name, email, specialty, lifetime_downloads, total_earnings, is_verified, account_type')
+                .in('account_type', ['developer', 'admin'])
+                .order('lifetime_downloads', { ascending: false, nullsFirst: false })
+                .limit(5);
+
+            if (error) throw error;
+
+            if (architects && architects.length > 0) {
+                // Clear static content and populate with real data
+                grid.innerHTML = '';
+
+                architects.forEach((arch, index) => {
+                    const card = createArchitectCard(arch, index + 1);
+                    grid.appendChild(card);
+                });
+            }
+            // If no architects found, keep static placeholder cards
+        } catch (err) {
+            console.error('Failed to load top architects:', err);
+            // Keep existing static cards as fallback
+        }
+    }
+
+    function createArchitectCard(arch, rank) {
+        const card = document.createElement('div');
+        card.className = `architect-card rank-${rank}`;
+        card.dataset.developerId = arch.id;
+
+        // Determine rank badge style
+        const rankBadges = { 1: 'gold', 2: 'silver', 3: 'bronze' };
+        const badgeClass = rankBadges[rank] || '';
+
+        // Get display name and first letter for avatar
+        const displayName = arch.display_name || arch.email?.split('@')[0] || 'Developer';
+        const avatarLetter = displayName.charAt(0).toUpperCase();
+
+        // Format earnings (hide actual amount, show tier)
+        const earnings = arch.total_earnings || 0;
+        const earningsDisplay = earnings > 10000 ? '$' + Math.floor(earnings / 1000) + 'k' :
+                                earnings > 1000 ? '$' + (earnings / 1000).toFixed(1) + 'k' :
+                                '$' + earnings.toFixed(0);
+
+        // Specialty tag
+        const specialty = arch.specialty || 'AI Development';
+        const specialtyClass = specialty.toLowerCase().includes('security') ? 'security' :
+                              specialty.toLowerCase().includes('data') ? 'dev' : '';
+
+        // Count skills (we'll estimate based on downloads for now)
+        const estimatedSkills = Math.max(1, Math.floor((arch.lifetime_downloads || 0) / 100));
+
+        card.innerHTML = `
+            <div class="rank-badge ${badgeClass}">#${rank}</div>
+            <div class="arch-avatar">
+                <span class="avatar-letter">${avatarLetter}</span>
+                ${arch.is_verified ? '<div class="verified-mark">✓</div>' : ''}
+            </div>
+            <div class="arch-details">
+                <h4>${displayName}</h4>
+                <span class="specialty-tag ${specialtyClass}">${specialty}</span>
+                <div class="arch-stats-row">
+                    <div class="stat-item">
+                        <span class="stat-value">${formatDownloads(arch.lifetime_downloads || 0)}</span>
+                        <span class="stat-label">SOLD</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">${estimatedSkills}</span>
+                        <span class="stat-label">SKILLS</span>
+                    </div>
+                    <div class="stat-item blurred">
+                        <span class="stat-value">${earningsDisplay}</span>
+                        <span class="stat-label">EARNED</span>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-view-profile" onclick="viewDeveloperProfile('${arch.id}')">VIEW_PROFILE</button>
+        `;
+
+        return card;
+    }
+
+    // View developer profile - shows their skills
+    window.viewDeveloperProfile = async function(developerId) {
+        if (!supabase) {
+            showToast('ERROR', 'Unable to load profile');
+            return;
+        }
+
+        try {
+            // Get developer's skills
+            const { data: skills, error } = await supabase
+                .from('skills')
+                .select('*')
+                .eq('developer_id', developerId)
+                .eq('is_verified', true)
+                .order('downloads_count', { ascending: false });
+
+            if (error) throw error;
+
+            if (skills && skills.length > 0) {
+                // Filter marketplace to show only this developer's skills
+                const skillCards = document.querySelectorAll('.skill-card');
+                skillCards.forEach(card => {
+                    const skillId = card.dataset.skillId?.replace('db-', '');
+                    const isMatch = skills.some(s => s.id === skillId);
+                    card.style.display = isMatch ? '' : 'none';
+                });
+
+                // Scroll to marketplace
+                document.getElementById('marketplace')?.scrollIntoView({ behavior: 'smooth' });
+                showToast('FILTERING', `Showing skills by this developer`);
+
+                // Add reset button if not exists
+                addFilterResetButton();
+            } else {
+                showToast('NO_SKILLS', 'This developer has no published skills yet');
+            }
+        } catch (err) {
+            console.error('Error loading developer profile:', err);
+            showToast('ERROR', 'Failed to load developer skills');
+        }
+    };
+
+    function addFilterResetButton() {
+        const filterBar = document.querySelector('.filter-bar');
+        if (!filterBar || document.getElementById('reset-dev-filter')) return;
+
+        const resetBtn = document.createElement('button');
+        resetBtn.id = 'reset-dev-filter';
+        resetBtn.className = 'filter-btn';
+        resetBtn.style.background = 'var(--neon-purple)';
+        resetBtn.style.color = 'white';
+        resetBtn.textContent = '✕ CLEAR FILTER';
+        resetBtn.onclick = () => {
+            document.querySelectorAll('.skill-card').forEach(card => card.style.display = '');
+            resetBtn.remove();
+            showToast('FILTER_CLEARED', 'Showing all skills');
+        };
+        filterBar.appendChild(resetBtn);
+    }
+
     function createSkillCard(skill) {
         const card = document.createElement('div');
         card.className = 'skill-card';
@@ -3350,6 +3499,7 @@ ${skill.description || 'See skill documentation for detailed usage instructions.
     // --- INIT: Load skills from database ---
     if (supabase) {
         loadSkillsFromSupabase();
+        loadTopArchitects();
     }
 
     // --- LIVE FEED SIMULATION ---

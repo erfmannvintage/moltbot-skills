@@ -1418,6 +1418,11 @@
                         <span class="nav-icon">💳</span>
                         Subscriptions
                     </a>
+                    <a class="admin-nav-item" data-section="newsletter">
+                        <span class="nav-icon">📧</span>
+                        Newsletter
+                        <span class="nav-badge" id="nav-subscribers-count">0</span>
+                    </a>
                 </div>
 
                 <div class="admin-nav-section">
@@ -1977,6 +1982,114 @@
                             <div class="chart-container" style="height: 250px; background: transparent;">
                                 <canvas id="user-growth-chart"></canvas>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- NEWSLETTER SECTION -->
+            <section class="admin-section" id="section-newsletter">
+                <div class="admin-page-header">
+                    <div>
+                        <div class="admin-page-title">
+                            <span class="title-icon">📧</span>
+                            Newsletter Subscribers
+                        </div>
+                        <div class="admin-page-subtitle">Manage email subscribers and send campaigns</div>
+                    </div>
+                    <div class="admin-header-actions">
+                        <button class="btn btn-secondary" onclick="exportSubscribers()">📥 Export CSV</button>
+                        <button class="btn btn-primary" onclick="openComposeEmail()">✉️ Compose Email</button>
+                    </div>
+                </div>
+
+                <div class="admin-stats-grid">
+                    <div class="admin-stat-card success">
+                        <div class="admin-stat-value" id="total-subscribers">0</div>
+                        <div class="admin-stat-label">Total Subscribers</div>
+                    </div>
+                    <div class="admin-stat-card info">
+                        <div class="admin-stat-value" id="new-subscribers-week">0</div>
+                        <div class="admin-stat-label">New This Week</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="unsubscribed-count">0</div>
+                        <div class="admin-stat-label">Unsubscribed</div>
+                    </div>
+                </div>
+
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <div class="admin-panel-title">📋 Subscriber List</div>
+                        <div class="search-bar" style="margin: 0;">
+                            <input type="text" class="search-input" placeholder="Search by email..." id="subscriber-search" style="width: 250px;">
+                        </div>
+                    </div>
+                    <div class="admin-panel-body" style="padding: 0;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Source</th>
+                                    <th>Subscribed</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="subscribers-tbody">
+                                <tr>
+                                    <td colspan="5" class="empty-state">Loading subscribers...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Email Compose Panel (hidden by default) -->
+                <div class="admin-panel" id="compose-email-panel" style="display: none; margin-top: 1rem;">
+                    <div class="admin-panel-header">
+                        <div class="admin-panel-title">✉️ Compose Newsletter</div>
+                        <button class="btn btn-sm btn-secondary" onclick="closeComposeEmail()">✕ Close</button>
+                    </div>
+                    <div class="admin-panel-body">
+                        <div class="email-compose-form">
+                            <div class="form-group">
+                                <label>Subject Line</label>
+                                <input type="text" id="email-subject" class="form-control" placeholder="🔥 New Skills Just Dropped...">
+                            </div>
+                            <div class="form-group">
+                                <label>Email Content (Markdown supported)</label>
+                                <textarea id="email-content" class="form-control" rows="10" placeholder="# Hello Agent,
+
+We've got some exciting new skills for you...
+
+## What's New
+- Skill 1
+- Skill 2
+
+[Check them out →](https://aiagentskillsmd.com)
+
+Stay elite,
+AI Agent Skills Team"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Send To</label>
+                                <select id="email-recipients" class="filter-select" style="width: 100%;">
+                                    <option value="all">All Subscribers</option>
+                                    <option value="active">Active Only (not unsubscribed)</option>
+                                    <option value="test">Test (your email only)</option>
+                                </select>
+                            </div>
+                            <div class="form-actions">
+                                <button class="btn btn-secondary" onclick="previewEmail()">👁️ Preview</button>
+                                <button class="btn btn-primary" onclick="sendNewsletter()">🚀 Send Newsletter</button>
+                            </div>
+                            <p class="form-note" style="margin-top: 1rem;">
+                                <strong>Note:</strong> To actually send emails, connect to an email service like
+                                <a href="https://resend.com" target="_blank">Resend</a>,
+                                <a href="https://mailchimp.com" target="_blank">Mailchimp</a>, or use
+                                <a href="https://lemonsqueezy.com" target="_blank">LemonSqueezy's</a> built-in email features.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -2575,6 +2688,7 @@ You are an expert...
             loadUsers();
             loadSupportTickets();
             loadBespokeRequests();
+            loadNewsletterSubscribers();
             loadRecentActivity();
             checkSystemHealth();
             initCharts();
@@ -3517,6 +3631,171 @@ ${ticket.admin_response ? `\nAdmin Response:\n${ticket.admin_response}` : '\n[No
             } catch (err) {
                 alert('Error updating status: ' + err.message);
             }
+        }
+
+        // ========== NEWSLETTER MANAGEMENT ==========
+
+        async function loadNewsletterSubscribers() {
+            const tbody = document.getElementById('subscribers-tbody');
+            tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Loading...</td></tr>';
+
+            try {
+                const { data, error } = await supabase
+                    .from('newsletter_subscribers')
+                    .select('*')
+                    .order('subscribed_at', { ascending: false });
+
+                if (error) {
+                    console.log('Newsletter table may not exist:', error.message);
+                    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No subscribers yet</td></tr>';
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No subscribers yet</td></tr>';
+                    document.getElementById('nav-subscribers-count').textContent = '0';
+                    document.getElementById('total-subscribers').textContent = '0';
+                    return;
+                }
+
+                // Update stats
+                const activeCount = data.filter(s => !s.unsubscribed_at).length;
+                const unsubCount = data.filter(s => s.unsubscribed_at).length;
+                const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+                const newThisWeek = data.filter(s => new Date(s.subscribed_at) > weekAgo && !s.unsubscribed_at).length;
+
+                document.getElementById('nav-subscribers-count').textContent = activeCount.toString();
+                document.getElementById('total-subscribers').textContent = activeCount.toString();
+                document.getElementById('new-subscribers-week').textContent = newThisWeek.toString();
+                document.getElementById('unsubscribed-count').textContent = unsubCount.toString();
+
+                tbody.innerHTML = data.map(sub => `
+                    <tr>
+                        <td><strong>${escapeHtml(sub.email)}</strong></td>
+                        <td><span class="badge badge-info">${sub.source || 'website'}</span></td>
+                        <td>${new Date(sub.subscribed_at).toLocaleDateString()}</td>
+                        <td>
+                            ${sub.unsubscribed_at
+                                ? '<span class="badge badge-danger">Unsubscribed</span>'
+                                : '<span class="badge badge-success">Active</span>'}
+                        </td>
+                        <td>
+                            ${sub.unsubscribed_at
+                                ? `<button class="btn btn-sm btn-secondary" onclick="resubscribeUser('${sub.id}')">Resubscribe</button>`
+                                : `<button class="btn btn-sm btn-danger" onclick="unsubscribeUser('${sub.id}')">Unsubscribe</button>`}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Newsletter error:', err);
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Error loading subscribers</td></tr>';
+            }
+        }
+
+        async function unsubscribeUser(id) {
+            if (!confirm('Remove this subscriber?')) return;
+            try {
+                const { error } = await supabase
+                    .from('newsletter_subscribers')
+                    .update({ unsubscribed_at: new Date().toISOString() })
+                    .eq('id', id);
+                if (error) throw error;
+                loadNewsletterSubscribers();
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        async function resubscribeUser(id) {
+            try {
+                const { error } = await supabase
+                    .from('newsletter_subscribers')
+                    .update({ unsubscribed_at: null })
+                    .eq('id', id);
+                if (error) throw error;
+                loadNewsletterSubscribers();
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        function exportSubscribers() {
+            const rows = document.querySelectorAll('#subscribers-tbody tr');
+            if (rows.length === 0 || rows[0].classList.contains('empty-state')) {
+                alert('No subscribers to export');
+                return;
+            }
+
+            let csv = 'Email,Source,Subscribed Date,Status\n';
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 4) {
+                    const email = cells[0].textContent.trim();
+                    const source = cells[1].textContent.trim();
+                    const date = cells[2].textContent.trim();
+                    const status = cells[3].textContent.trim();
+                    csv += `"${email}","${source}","${date}","${status}"\n`;
+                }
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `subscribers_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function openComposeEmail() {
+            document.getElementById('compose-email-panel').style.display = 'block';
+            document.getElementById('compose-email-panel').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function closeComposeEmail() {
+            document.getElementById('compose-email-panel').style.display = 'none';
+        }
+
+        function previewEmail() {
+            const subject = document.getElementById('email-subject').value || 'No subject';
+            const content = document.getElementById('email-content').value || 'No content';
+
+            const preview = window.open('', '_blank');
+            preview.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Email Preview: ${subject}</title>
+                    <style>
+                        body { font-family: system-ui; max-width: 600px; margin: 40px auto; padding: 20px; background: #f5f5f5; }
+                        .email-container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                        h1 { color: #333; }
+                        pre { background: #1a1a1a; color: #0f0; padding: 20px; border-radius: 8px; white-space: pre-wrap; }
+                    </style>
+                </head>
+                <body>
+                    <div class="email-container">
+                        <p style="color: #666; font-size: 12px;">SUBJECT: ${subject}</p>
+                        <hr>
+                        <pre>${content}</pre>
+                    </div>
+                </body>
+                </html>
+            `);
+        }
+
+        function sendNewsletter() {
+            const subject = document.getElementById('email-subject').value;
+            const content = document.getElementById('email-content').value;
+            const recipients = document.getElementById('email-recipients').value;
+
+            if (!subject || !content) {
+                alert('Please fill in subject and content');
+                return;
+            }
+
+            // For now, just show instructions
+            alert(`📧 NEWSLETTER READY TO SEND\n\nTo send this newsletter:\n\n1. Export subscribers using "Export CSV"\n2. Import into your email service (Mailchimp, Resend, etc.)\n3. Use the subject and content you've written\n\nOr connect an email API for automated sending.`);
         }
 
         // Open Create User Modal

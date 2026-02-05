@@ -9031,3 +9031,231 @@ body.time-warp-active .warp-overlay {
         padding: 1.5rem;
     }
 }
+
+/* ========================================
+   VALUE PROPOSITION SECTION
+   ======================================== */
+
+.value-prop-section {
+    padding: 5rem 0;
+    background: linear-gradient(180deg, rgba(0, 255, 148, 0.02) 0%, transparent 100%);
+    border-top: 1px solid rgba(0, 255, 148, 0.1);
+}
+
+.value-header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.value-header h2 {
+    font-size: 2.5rem;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+}
+
+.highlight-text {
+    background: linear-gradient(90deg, var(--neon-green), var(--neon-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.value-intro {
+    color: var(--text-dim);
+    font-size: 1.2rem;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.value-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+.value-card {
+    background: rgba(10, 10, 10, 0.8);
+    border: 1px solid #222;
+    border-radius: 16px;
+    padding: 2rem;
+    transition: all 0.3s;
+}
+
+.value-card:hover {
+    transform: translateY(-5px);
+}
+
+.business-card {
+    border-color: rgba(0, 255, 148, 0.2);
+}
+
+.business-card:hover {
+    border-color: var(--neon-green);
+    box-shadow: 0 20px 40px rgba(0, 255, 148, 0.1);
+}
+
+.personal-card {
+    border-color: rgba(41, 121, 255, 0.2);
+}
+
+.personal-card:hover {
+    border-color: var(--neon-blue);
+    box-shadow: 0 20px 40px rgba(41, 121, 255, 0.1);
+}
+
+.value-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.value-icon {
+    font-size: 2rem;
+}
+
+.value-badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.business-card .value-badge {
+    background: rgba(0, 255, 148, 0.1);
+    color: var(--neon-green);
+    border: 1px solid rgba(0, 255, 148, 0.3);
+}
+
+.personal-card .value-badge {
+    background: rgba(41, 121, 255, 0.1);
+    color: var(--neon-blue);
+    border: 1px solid rgba(41, 121, 255, 0.3);
+}
+
+.value-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.value-desc {
+    color: var(--text-dim);
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.value-benefits {
+    list-style: none;
+    margin-bottom: 1.5rem;
+}
+
+.value-benefits li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-dim);
+}
+
+.benefit-check {
+    flex-shrink: 0;
+}
+
+.value-benefits strong {
+    color: var(--text-primary);
+}
+
+.value-example {
+    background: rgba(0, 0, 0, 0.3);
+    border-left: 3px solid var(--neon-green);
+    padding: 1rem;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.9rem;
+}
+
+.personal-card .value-example {
+    border-left-color: var(--neon-blue);
+}
+
+.example-label {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.value-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+    padding: 3rem 0;
+    border-top: 1px solid #1a1a1a;
+    border-bottom: 1px solid #1a1a1a;
+    margin-bottom: 3rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    background: linear-gradient(90deg, var(--neon-green), var(--neon-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.value-cta {
+    text-align: center;
+}
+
+.cta-text {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-dim);
+}
+
+.btn-large {
+    padding: 1.25rem 3rem;
+    font-size: 1.1rem;
+}
+
+@media (max-width: 900px) {
+    .value-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .value-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .value-header h2 {
+        font-size: 1.75rem;
+    }
+
+    .value-stats {
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .stat-number {
+        font-size: 1.75rem;
+    }
+}

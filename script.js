@@ -3995,27 +3995,21 @@ ${ticket.admin_response ? `\nAdmin Response:\n${ticket.admin_response}` : ''}
         observer.observe(skillsGridEl, { childList: true, subtree: true });
     }
 
-    // Developer Portal Modal Logic
+    // Developer Portal Modal Logic - Now redirects to dedicated page
     const devModal = document.getElementById('dev-modal');
-    const openModalBtn = document.getElementById('open-dev-modal');
-    const closeModalBtn = document.querySelector('.modal-close');
+    const closeModalBtn = devModal ? devModal.querySelector('.modal-close') : null;
 
-    if (devModal && openModalBtn && closeModalBtn) {
-        openModalBtn.addEventListener('click', () => {
-            devModal.classList.add('active');
-            document.body.style.overflow = 'hidden'; // Prevent scrolling
+    // Footer "Become Architect" link - redirect to developer portal
+    const becomeArchitectBtn = document.getElementById('become-architect');
+    if (becomeArchitectBtn) {
+        becomeArchitectBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = 'developer.html';
         });
+    }
 
-        // specific handler for the footer link
-        const becomeArchitectBtn = document.getElementById('become-architect');
-        if (becomeArchitectBtn) {
-            becomeArchitectBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                devModal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            });
-        }
-
+    // Modal close handler (in case modal is opened from elsewhere)
+    if (devModal && closeModalBtn) {
         closeModalBtn.addEventListener('click', () => {
             devModal.classList.remove('active');
             document.body.style.overflow = '';
@@ -4028,169 +4022,168 @@ ${ticket.admin_response ? `\nAdmin Response:\n${ticket.admin_response}` : ''}
                 document.body.style.overflow = '';
             }
         });
+    }
 
-        // Tab Switching Logic
-        const tabs = document.querySelectorAll('.tab-btn');
-        const contents = document.querySelectorAll('.tab-content');
+    // Tab Switching Logic (for dev modal)
+    const devModalTabs = document.querySelectorAll('#dev-modal .tab-btn');
+    const devModalContents = document.querySelectorAll('#dev-modal .tab-content');
 
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Remove active class from all
-                tabs.forEach(t => t.classList.remove('active'));
-                contents.forEach(c => c.classList.remove('active'));
+    devModalTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active class from all
+            devModalTabs.forEach(t => t.classList.remove('active'));
+            devModalContents.forEach(c => c.classList.remove('active'));
 
-                // Add active to clicked
-                tab.classList.add('active');
-                document.getElementById(tab.dataset.tab).classList.add('active');
-            });
+            // Add active to clicked
+            tab.classList.add('active');
+            document.getElementById(tab.dataset.tab)?.classList.add('active');
         });
+    });
 
-        // Validator Logic
-        const dropZone = document.getElementById('drop-zone');
-        const fileInput = document.getElementById('file-upload');
-        const auditTerminal = document.getElementById('audit-terminal');
-        const auditLog = document.getElementById('audit-log');
+    // Validator Logic
+    const dropZone = document.getElementById('drop-zone');
+    const validatorFileInput = document.getElementById('file-upload');
+    const auditTerminal = document.getElementById('audit-terminal');
+    const auditLog = document.getElementById('audit-log');
 
-        // Check Access on Tab Click
-        const validatorTab = document.querySelector('.tab-btn[data-tab="validator"]');
-        if (validatorTab) {
-            validatorTab.addEventListener('click', (e) => {
-                if (!activeUser) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    showToast('ACCESS_DENIED', 'Developer credentials required. Please sign in.', 'error');
-                    // Switch back to Request Access or open Auth
-                    document.querySelector('.tab-btn[data-tab="request"]')?.click();
-                    return;
-                }
-                // Optional: Check specific role
-                // if (activeUser.user_metadata.role !== 'developer') ...
-            });
-        }
-
-        if (dropZone && fileInput) {
-            dropZone.addEventListener('click', () => fileInput.click());
-
-            fileInput.addEventListener('change', handleFile);
-
-            dropZone.addEventListener('dragover', (e) => {
+    // Check Access on Tab Click
+    const validatorTab = document.querySelector('.tab-btn[data-tab="validator"]');
+    if (validatorTab) {
+        validatorTab.addEventListener('click', (e) => {
+            if (!activeUser) {
                 e.preventDefault();
-                dropZone.classList.add('drag-over');
-            });
-            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-            dropZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropZone.classList.remove('drag-over');
-                if (e.dataTransfer.files.length) handleFile({ target: { files: e.dataTransfer.files } });
-            });
-        }
-
-        function handleFile(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            // Check file type
-            if (!file.name.endsWith('.md')) {
-                showToast('INVALID_FILE', 'Only .md protocol files are accepted.', 'error');
+                e.stopPropagation();
+                showToast('ACCESS_DENIED', 'Developer credentials required. Please sign in.', 'error');
+                // Switch back to Request Access or open Auth
+                document.querySelector('.tab-btn[data-tab="request"]')?.click();
                 return;
             }
-
-            // UI Reset
-            dropZone.style.display = 'none';
-            auditTerminal.classList.remove('hidden');
-            auditLog.innerHTML = `<div class="line">Analyzing: <span class="white">${file.name}</span>...</div>`;
-
-            // Detect Malicious File (Simulation based on filename)
-            const isMalicious = file.name.includes('malicious');
-
-            // Simulation Sequence
-            const steps = [
-                { text: "Parsing Markdown Structure...", delay: 800, status: "OK", color: "green" },
-                {
-                    text: "Scanning for Malicious Patterns (curl, wget, eval)...", delay: 1500,
-                    status: isMalicious ? "THREAT_DETECTED" : "CLEAN",
-                    color: isMalicious ? "red" : "green"
-                },
-                { text: "Verifying Moltbot Compatibility...", delay: 1000, status: "VERIFIED", color: "green" },
-                { text: "Generating Blue Label Signature...", delay: 1200, status: isMalicious ? "FAILED" : "SIGNED", color: isMalicious ? "red" : "green" }
-            ];
-
-            let cumulativeDelay = 0;
-
-            steps.forEach(step => {
-                cumulativeDelay += step.delay;
-                setTimeout(() => {
-                    // If we already failed, don't show success steps (simple logic)
-                    if (isMalicious && step.text.includes('Signature')) return;
-
-                    const div = document.createElement('div');
-                    div.className = 'line';
-                    div.innerHTML = `<span class="dim">> ${step.text}</span> <span class="${step.color}">[${step.status}]</span>`;
-                    auditLog.appendChild(div);
-                    auditLog.scrollTop = auditLog.scrollHeight;
-                }, cumulativeDelay);
-            });
-
-            setTimeout(() => {
-                const final = document.createElement('div');
-                final.className = 'line';
-
-                if (isMalicious) {
-                    final.innerHTML = `<br><span class="red">✖ AUDIT FAILED.</span> Protocol contains banned patterns. Submission blocked.`;
-                } else {
-                    final.innerHTML = `<br><span class="green">✔ AUDIT PASSED.</span> Protocol is safe for deployment.`;
-
-                    // Add Submit Button
-                    const actionsDiv = document.createElement('div');
-                    actionsDiv.style.marginTop = '1rem';
-                    actionsDiv.innerHTML = `
-                        <button id="btn-submit-protocol" class="btn-primary" style="margin-right: 1rem;">SUBMIT_PROTOCOL</button>
-                        <button id="btn-reset-validator" class="btn-secondary">SCAN_ANOTHER</button>
-                    `;
-                    final.appendChild(actionsDiv);
-
-                    // Add listeners after appending
-                    setTimeout(() => {
-                        document.getElementById('btn-submit-protocol').onclick = () => submitProtocol(file);
-                        document.getElementById('btn-reset-validator').onclick = resetValidator;
-                    }, 100);
-                }
-
-                if (isMalicious) {
-                    // Add Reset Button only
-                    const actionsDiv = document.createElement('div');
-                    actionsDiv.style.marginTop = '1rem';
-                    actionsDiv.innerHTML = `<button id="btn-reset-validator-fail" class="btn-secondary">TRY_AGAIN</button>`;
-                    final.appendChild(actionsDiv);
-                    setTimeout(() => {
-                        document.getElementById('btn-reset-validator-fail').onclick = resetValidator;
-                    }, 100);
-                }
-
-                auditLog.appendChild(final);
-                auditLog.scrollTop = auditLog.scrollHeight;
-            }, cumulativeDelay + 500);
-        }
-
-        function resetValidator() {
-            auditLog.innerHTML = '';
-            auditTerminal.classList.add('hidden');
-            dropZone.style.display = 'flex';
-            fileInput.value = ''; // Reset file input
-        }
-
-        async function submitProtocol(file) {
-            showToast('UPLOADING', 'Encrypting and transmitting protocol...');
-
-            // Simulate Database Insert
-            // const { data, error } = await supabase.from('skill_submissions').insert({...})
-
-            setTimeout(() => {
-                showToast('SUBMISSION_RECEIVED', 'Protocol queued for manual review.');
-                resetValidator();
-            }, 2000);
-        }
+        });
     }
+
+    if (dropZone && validatorFileInput) {
+        dropZone.addEventListener('click', () => validatorFileInput.click());
+
+        validatorFileInput.addEventListener('change', handleValidatorFile);
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            if (e.dataTransfer.files.length) handleValidatorFile({ target: { files: e.dataTransfer.files } });
+        });
+    }
+
+    function handleValidatorFile(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Check file type
+        if (!file.name.endsWith('.md')) {
+            showToast('INVALID_FILE', 'Only .md protocol files are accepted.', 'error');
+            return;
+        }
+
+        // UI Reset
+        dropZone.style.display = 'none';
+        auditTerminal.classList.remove('hidden');
+        auditLog.innerHTML = `<div class="line">Analyzing: <span class="white">${file.name}</span>...</div>`;
+
+        // Detect Malicious File (Simulation based on filename)
+        const isMalicious = file.name.includes('malicious');
+
+        // Simulation Sequence
+        const steps = [
+            { text: "Parsing Markdown Structure...", delay: 800, status: "OK", color: "green" },
+            {
+                text: "Scanning for Malicious Patterns (curl, wget, eval)...", delay: 1500,
+                status: isMalicious ? "THREAT_DETECTED" : "CLEAN",
+                color: isMalicious ? "red" : "green"
+            },
+            { text: "Verifying Moltbot Compatibility...", delay: 1000, status: "VERIFIED", color: "green" },
+            { text: "Generating Blue Label Signature...", delay: 1200, status: isMalicious ? "FAILED" : "SIGNED", color: isMalicious ? "red" : "green" }
+        ];
+
+        let cumulativeDelay = 0;
+
+        steps.forEach(step => {
+            cumulativeDelay += step.delay;
+            setTimeout(() => {
+                // If we already failed, don't show success steps (simple logic)
+                if (isMalicious && step.text.includes('Signature')) return;
+
+                const div = document.createElement('div');
+                div.className = 'line';
+                div.innerHTML = `<span class="dim">> ${step.text}</span> <span class="${step.color}">[${step.status}]</span>`;
+                auditLog.appendChild(div);
+                auditLog.scrollTop = auditLog.scrollHeight;
+            }, cumulativeDelay);
+        });
+
+        setTimeout(() => {
+            const final = document.createElement('div');
+            final.className = 'line';
+
+            if (isMalicious) {
+                final.innerHTML = `<br><span class="red">✖ AUDIT FAILED.</span> Protocol contains banned patterns. Submission blocked.`;
+            } else {
+                final.innerHTML = `<br><span class="green">✔ AUDIT PASSED.</span> Protocol is safe for deployment.`;
+
+                // Add Submit Button
+                const actionsDiv = document.createElement('div');
+                actionsDiv.style.marginTop = '1rem';
+                actionsDiv.innerHTML = `
+                    <button id="btn-submit-protocol" class="btn-primary" style="margin-right: 1rem;">SUBMIT_PROTOCOL</button>
+                    <button id="btn-reset-validator" class="btn-secondary">SCAN_ANOTHER</button>
+                `;
+                final.appendChild(actionsDiv);
+
+                // Add listeners after appending
+                setTimeout(() => {
+                    document.getElementById('btn-submit-protocol').onclick = () => submitProtocol(file);
+                    document.getElementById('btn-reset-validator').onclick = resetValidator;
+                }, 100);
+            }
+
+            if (isMalicious) {
+                // Add Reset Button only
+                const actionsDiv = document.createElement('div');
+                actionsDiv.style.marginTop = '1rem';
+                actionsDiv.innerHTML = `<button id="btn-reset-validator-fail" class="btn-secondary">TRY_AGAIN</button>`;
+                final.appendChild(actionsDiv);
+                setTimeout(() => {
+                    document.getElementById('btn-reset-validator-fail').onclick = resetValidator;
+                }, 100);
+            }
+
+            auditLog.appendChild(final);
+            auditLog.scrollTop = auditLog.scrollHeight;
+        }, cumulativeDelay + 500);
+    }
+
+    function resetValidator() {
+        auditLog.innerHTML = '';
+        auditTerminal.classList.add('hidden');
+        dropZone.style.display = 'flex';
+        validatorFileInput.value = ''; // Reset file input
+    }
+
+    async function submitProtocol(file) {
+        showToast('UPLOADING', 'Encrypting and transmitting protocol...');
+
+        // Simulate Database Insert
+        // const { data, error } = await supabase.from('skill_submissions').insert({...})
+
+        setTimeout(() => {
+            showToast('SUBMISSION_RECEIVED', 'Protocol queued for manual review.');
+            resetValidator();
+        }, 2000);
+    }
+
     // Filter logic moved earlier in file (enhanced version supports TOP SELLERS and FUN)
 
     // --- INIT: Load skills from database ---

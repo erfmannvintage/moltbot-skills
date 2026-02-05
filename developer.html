@@ -1999,14 +1999,35 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
-            // Wait for Supabase
+            const loading = document.getElementById('loading-overlay');
+            const denied = document.getElementById('access-denied');
+            const dashboard = document.getElementById('dev-dashboard');
+            const reason = document.getElementById('access-denied-reason');
+
+            function showError(message) {
+                if (loading) loading.classList.add('hidden');
+                if (dashboard) dashboard.style.display = 'none';
+                if (denied) denied.style.display = 'flex';
+                if (reason) reason.innerHTML = message;
+            }
+
+            // Wait for Supabase with timeout
             let attempts = 0;
             while (!window.supabaseCreateClient && attempts < 30) {
                 await new Promise(r => setTimeout(r, 100));
                 attempts++;
             }
 
-            initSupabase();
+            // Check if Supabase loaded
+            if (!window.supabaseCreateClient) {
+                showError('Database connection timed out.<br><br>Please refresh the page or <a href="index.html" class="btn-primary">return to homepage</a>');
+                return;
+            }
+
+            if (!initSupabase()) {
+                showError('Database initialization failed.<br><br>Please refresh the page or <a href="index.html" class="btn-primary">return to homepage</a>');
+                return;
+            }
 
             // Navigation
             document.querySelectorAll('.dev-nav-item').forEach(item => {

@@ -45,7 +45,7 @@ class PermissionsManager {
 
                 // If profile doesn't exist, create it
                 if (error.code === 'PGRST116') {
-                    console.log('[RBAC] Profile not found, creating...');
+                    // [RBAC] Profile not found, creating...');
                     await this.createUserProfile();
                     return await this.fetchUserProfile(true);
                 }
@@ -55,7 +55,7 @@ class PermissionsManager {
 
             this.userProfile = data;
             this.lastFetch = now;
-            console.log('[RBAC] Profile loaded:', {
+            // [RBAC] Profile loaded:', {
                 account_type: data.account_type,
                 developer_status: data.developer_status
             });
@@ -83,7 +83,7 @@ class PermissionsManager {
 
             this.userProfile = data;
             this.lastFetch = Date.now();
-            console.log('[RBAC] Profile created:', data);
+            // [RBAC] Profile created:', data);
             return data;
         } catch (err) {
             console.error('[RBAC] Error creating user profile:', err);
@@ -207,7 +207,7 @@ class PermissionsManager {
             // Refresh profile cache
             await this.fetchUserProfile(true);
 
-            console.log('[RBAC] Developer application submitted:', data.id);
+            // [RBAC] Developer application submitted:', data.id);
             return data;
         } catch (err) {
             console.error('[RBAC] Error submitting developer application:', err);
@@ -219,12 +219,12 @@ class PermissionsManager {
     clearCache() {
         this.userProfile = null;
         this.lastFetch = null;
-        console.log('[RBAC] Cache cleared');
+        // [RBAC] Cache cleared');
     }
 }
 
 // Export singleton instance
 if (typeof window !== 'undefined') {
     window.PermissionsManager = PermissionsManager;
-    console.log('✅ PermissionsManager loaded');
+    // PermissionsManager loaded
 }

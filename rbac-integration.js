@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 (async function initRBAC() {
     'use strict';
 
-    console.log('[RBAC] Initializing...');
+    // [RBAC] Initializing...');
 
     // Wait for dependencies
     const waitForDependencies = async () => {
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Get or create Supabase client
     let supabase = window.supabaseClient;
     if (!supabase && window.supabase) {
-        console.log('[RBAC] Creating own Supabase client');
+        // [RBAC] Creating own Supabase client');
         const SUPABASE_URL = 'https://dpcrxdsxtaujmclmahvk.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwY3J4ZHN4dGF1am1jbG1haHZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjI1NzEsImV4cCI6MjA4NTE5ODU3MX0.FJTvbP3WK6-pX8e37fxq8-a_juG7Hg04gZVa00rNGZk';
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Initialize on auth state change
     supabase.auth.onAuthStateChange(async (_event, session) => {
-        console.log('[RBAC] Auth state changed:', _event);
+        // [RBAC] Auth state changed:', _event);
         if (session?.user) {
             await permissions.init(session.user, supabase);
             await updateUIBasedOnPermissions();
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize for current session
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
-        console.log('[RBAC] Initializing for current user:', session.user.email);
+        // [RBAC] Initializing for current user:', session.user.email);
         await permissions.init(session.user, supabase);
         await updateUIBasedOnPermissions();
     }
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const canUpload = await permissions.canUploadSkills();
             const devStatus = await permissions.getDeveloperStatus();
 
-            console.log(`[RBAC] Account: ${accountType}, Can Upload: ${canUpload}, Dev Status: ${devStatus}`);
+            // [RBAC] Account: ${accountType}, Can Upload: ${canUpload}, Dev Status: ${devStatus}
 
             // Show/hide developer upgrade banner
             const upgradeBanner = document.getElementById('developer-upgrade-section');
@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             // Permission granted - allow access
-            console.log('[RBAC] Validator access granted');
+            // [RBAC] Validator access granted');
         });
     }
 
@@ -232,7 +232,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 dashboardBadge.classList.add('customer');
             }
 
-            console.log('[RBAC] Dashboard badge updated:', accountType);
+            // [RBAC] Dashboard badge updated:', accountType);
         }
 
         // Show/hide admin panel button
@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (adminBtn) {
             if (accountType === 'admin') {
                 adminBtn.style.display = 'inline-flex';
-                console.log('[RBAC] Admin panel button shown');
+                // [RBAC] Admin panel button shown');
             } else {
                 adminBtn.style.display = 'none';
             }
@@ -305,7 +305,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const applyBtn = document.getElementById('btn-apply-developer');
     if (applyBtn) {
         applyBtn.addEventListener('click', openDeveloperApplicationModal);
-        console.log('[RBAC] Apply button handler attached');
+        // [RBAC] Apply button handler attached');
     }
 
     // Cancel application
@@ -399,7 +399,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        console.log('[RBAC] Form submit handler attached');
+        // [RBAC] Form submit handler attached');
     }
 
     // ========== WRAP EXISTING SUBMIT PROTOCOL FUNCTION ==========
@@ -434,10 +434,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             return originalSubmitProtocol.call(this, file);
         };
 
-        console.log('[RBAC] submitProtocol wrapped with permission check');
+        // [RBAC] submitProtocol wrapped with permission check');
     }
 
-    console.log('✅ RBAC system initialized');
+    // RBAC system initialized
 
 })();
 }); // End DOMContentLoaded

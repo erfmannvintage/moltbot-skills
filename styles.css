@@ -4868,6 +4868,18 @@ body.time-warp-active .warp-overlay {
     color: #000;
 }
 
+.filter-btn.entrepreneur {
+    background: rgba(255, 165, 0, 0.2);
+    border-color: #ffa500;
+    color: #ffa500;
+}
+
+.filter-btn.entrepreneur:hover,
+.filter-btn.entrepreneur.active {
+    background: #ffa500;
+    color: #000;
+}
+
 /* =========================================
    DEVELOPER PORTAL MODAL
    ========================================= */

@@ -332,7 +332,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session) {
-            console.log('User signed in:', session.user);
             activeUser = session.user;
             updateUIForLoggedUser(activeUser);
             loadMemberDashboard(activeUser); // New: Load dashboard
@@ -342,7 +341,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (storedDemo) {
                 try {
                     activeUser = JSON.parse(storedDemo);
-                    console.log('Restoring Demo Session:', activeUser);
                     updateUIForLoggedUser(activeUser);
                     loadMemberDashboard(activeUser);
                 } catch (e) {
@@ -729,9 +727,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 toggleBtn.style.cursor = 'pointer';
             }
         }
-
-        // Log profile for debugging
-        console.log('[PROFILE] Loaded:', profile.account_type, profile);
 
         // Initialize elite dashboard features
         initEliteDashboard(profile);
@@ -1494,7 +1489,7 @@ ${skill.description || 'See skill documentation for detailed usage instructions.
             const sort = sortSelect?.value || 'recent';
 
             // Apply filters to library grid
-            console.log('Filtering library:', { search, category, status, sort });
+            // TODO: Implement actual filtering logic
         };
 
         if (searchInput) searchInput.addEventListener('input', debounce(filterLibrary, 300));
@@ -1517,8 +1512,7 @@ ${skill.description || 'See skill documentation for detailed usage instructions.
     }
 
     function filterNotifications(filter) {
-        console.log('Filtering notifications by:', filter);
-        // Implement notification filtering
+        // TODO: Implement notification filtering
     }
 
     // Support ticket form
@@ -2059,7 +2053,7 @@ ${skill.description || 'See skill documentation for detailed usage instructions.
                     fileUrl = urlData?.publicUrl;
                 }
             } catch (storageErr) {
-                console.log('Storage not configured, saving content directly');
+                // Storage not configured, saving content directly
             }
 
             // Determine status based on security scan
@@ -2252,8 +2246,7 @@ ${skill.description || 'See skill documentation for detailed usage instructions.
 
         if (blackMarketBtn) {
             blackMarketBtn.addEventListener('click', () => {
-                console.log("Time Warp Visuals Triggered");
-                // 1. Trigger Time Warp Visuals
+                // Trigger Time Warp Visuals
                 document.body.classList.add('time-warp-active');
 
                 // Add overlay if missing
@@ -3998,8 +3991,6 @@ ${skill.description || 'See skill documentation for detailed usage instructions.
 
     // --- PAYMENT GATEWAY INTEGRATION ---
     function initLemonSqueezyCheckout(tier, user) {
-        console.log(`Initializing checkout for ${tier} [User: ${user.email}]`);
-
         // NOTE: Lemon Squeezy integration deferred.
         // Using DEMO BYPASS to allow access to Black Market page.
 

@@ -4158,29 +4158,24 @@ ${skill.description || 'See skill documentation for detailed usage instructions.
 
     // --- PAYMENT GATEWAY INTEGRATION ---
     function initLemonSqueezyCheckout(tier, user) {
-        // NOTE: Lemon Squeezy integration deferred.
-        // Using DEMO BYPASS to allow access to Black Market page.
+        // Check if LemonSqueezy product IDs are configured
+        const productId = LEMON_PRODUCTS[tier];
+
+        if (!productId || productId.startsWith('YOUR_')) {
+            // Payment not configured yet
+            showToast('⚠️ PAYMENT_SETUP', 'Payment system is being configured. Please check back soon!');
+            return;
+        }
 
         showToast('SECURE_HANDSHAKE', 'Establishing encrypted payment tunnel...');
 
-        if (tier === 'blackmarket') {
-            setTimeout(() => {
-                showToast('PAYMENT_SIMULATION', 'Demo Access Granted. Redirecting...');
-                setTimeout(() => {
-                    window.location.href = 'black-market.html';
-                }, 1000);
-            }, 1000);
+        // Use LemonSqueezy overlay checkout
+        if (window.LemonSqueezy) {
+            window.LemonSqueezy.Url.Open(`https://aiagentskills.lemonsqueezy.com/checkout/buy/${productId}?checkout[email]=${encodeURIComponent(user.email)}&checkout[custom][user_id]=${user.id}`);
         } else {
-            setTimeout(() => {
-                showToast('SYNDICATE_JOINED', 'Welcome to the Syndicate, Agent.');
-            }, 1000);
+            // Fallback to redirect
+            window.location.href = `https://aiagentskills.lemonsqueezy.com/checkout/buy/${productId}?checkout[email]=${encodeURIComponent(user.email)}&checkout[custom][user_id]=${user.id}`;
         }
-
-        /* 
-        // FUTURE IMPLEMENTATION:
-        const productId = LEMON_PRODUCTS[tier]; 
-        // Generage checkout URL with user email pre-filled etc.
-        */
     }
 
     // Public Pricing Buttons

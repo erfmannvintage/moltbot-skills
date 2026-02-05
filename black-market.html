@@ -746,13 +746,7 @@
                 const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
                 if (!session) {
-                    // Check for demo mode
-                    const demoUser = localStorage.getItem('aiagent_demo_user');
-                    if (demoUser) {
-                        // Demo users get limited access for testing
-                        return true;
-                    }
-                    // Not logged in - redirect
+                    // No session - must be logged in with valid subscription
                     showAccessDenied('LOGIN_REQUIRED', 'You must be logged in to access the Black Market.');
                     return false;
                 }

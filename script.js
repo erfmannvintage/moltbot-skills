@@ -250,10 +250,27 @@ document.addEventListener('DOMContentLoaded', () => {
             if (error) throw error;
 
             if (architects && architects.length > 0) {
+                // Get skill counts for each architect
+                const architectIds = architects.map(a => a.id);
+                const { data: skillCounts, error: skillError } = await supabase
+                    .from('skills')
+                    .select('developer_id')
+                    .in('developer_id', architectIds)
+                    .eq('is_verified', true);
+
+                // Count skills per developer
+                const skillCountMap = {};
+                if (skillCounts && !skillError) {
+                    skillCounts.forEach(s => {
+                        skillCountMap[s.developer_id] = (skillCountMap[s.developer_id] || 0) + 1;
+                    });
+                }
+
                 // Clear static content and populate with real data
                 grid.innerHTML = '';
 
                 architects.forEach((arch, index) => {
+                    arch.skill_count = skillCountMap[arch.id] || 0;
                     const card = createArchitectCard(arch, index + 1);
                     grid.appendChild(card);
                 });
@@ -289,8 +306,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const specialtyClass = specialty.toLowerCase().includes('security') ? 'security' :
                               specialty.toLowerCase().includes('data') ? 'dev' : '';
 
-        // Count skills (we'll estimate based on downloads for now)
-        const estimatedSkills = Math.max(1, Math.floor((arch.lifetime_downloads || 0) / 100));
+        // Actual skill count from database
+        const skillCount = arch.skill_count || 0;
 
         card.innerHTML = `
             <div class="rank-badge ${badgeClass}">#${rank}</div>
@@ -307,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="stat-label">SOLD</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-value">${estimatedSkills}</span>
+                        <span class="stat-value">${skillCount}</span>
                         <span class="stat-label">SKILLS</span>
                     </div>
                     <div class="stat-item blurred">

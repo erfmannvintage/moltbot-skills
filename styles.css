@@ -1116,6 +1116,451 @@ h2 {
     color: white;
 }
 
+/* =========================================
+   ELITE PROMISE SECTION - Redesigned
+   ========================================= */
+.elite-promise-section {
+    margin-top: 4rem;
+}
+
+.section-label.elite {
+    color: var(--neon-blue);
+    border-color: var(--neon-blue);
+    background: rgba(41, 121, 255, 0.1);
+}
+
+.elite-subtitle {
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0.5rem auto 0;
+}
+
+/* Promise Hero Box */
+.promise-hero {
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+    padding: 2.5rem;
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.08), rgba(41, 121, 255, 0.08));
+    border: 2px solid rgba(0, 255, 136, 0.3);
+    border-radius: 16px;
+    margin: 3rem 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.promise-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(ellipse at top left, rgba(0, 255, 136, 0.1), transparent 50%);
+    pointer-events: none;
+}
+
+.promise-shield {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.shield-icon {
+    font-size: 5rem;
+    filter: drop-shadow(0 0 20px rgba(0, 255, 136, 0.5));
+}
+
+.shield-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(0, 255, 136, 0.3), transparent 70%);
+    border-radius: 50%;
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
+}
+
+.promise-content {
+    position: relative;
+    z-index: 1;
+}
+
+.promise-content h3 {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    color: var(--neon-green);
+    letter-spacing: 2px;
+    margin-bottom: 1rem;
+}
+
+.promise-headline {
+    font-size: 1.3rem;
+    color: white;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.promise-headline strong {
+    color: var(--neon-green);
+}
+
+.promise-subtext {
+    font-size: 0.95rem;
+    color: var(--text-dim);
+}
+
+@media (max-width: 768px) {
+    .promise-hero {
+        flex-direction: column;
+        text-align: center;
+        padding: 2rem;
+    }
+}
+
+/* Comparison Section */
+.comparison-section {
+    margin: 4rem 0;
+}
+
+.comparison-title,
+.benefits-title {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    text-align: center;
+    letter-spacing: 2px;
+    margin-bottom: 2rem;
+}
+
+.comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.comparison-column {
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.comparison-column:hover {
+    transform: translateY(-5px);
+}
+
+.danger-column {
+    background: rgba(255, 68, 68, 0.05);
+    border: 1px solid rgba(255, 68, 68, 0.2);
+}
+
+.safe-column {
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.08), rgba(41, 121, 255, 0.08));
+    border: 2px solid rgba(0, 255, 136, 0.4);
+    box-shadow: 0 10px 40px rgba(0, 255, 136, 0.1);
+}
+
+.column-header {
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.column-header.danger {
+    background: rgba(255, 68, 68, 0.1);
+    border-bottom: 1px solid rgba(255, 68, 68, 0.2);
+}
+
+.column-header.safe {
+    background: rgba(0, 255, 136, 0.1);
+    border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+}
+
+.column-icon {
+    font-size: 1.5rem;
+}
+
+.column-header h4 {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: white;
+    letter-spacing: 0.5px;
+    flex: 1;
+}
+
+.recommended-badge {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    padding: 4px 10px;
+    background: var(--neon-green);
+    color: #000;
+    border-radius: 4px;
+    font-weight: 700;
+}
+
+.comparison-list {
+    list-style: none;
+    padding: 1.5rem;
+    margin: 0;
+}
+
+.comparison-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.comparison-list li:last-child {
+    border-bottom: none;
+}
+
+.x-mark {
+    color: #ff4444;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.check-mark {
+    color: var(--neon-green);
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.column-verdict {
+    padding: 1rem;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.column-verdict.danger {
+    background: rgba(255, 68, 68, 0.15);
+    color: #ff4444;
+}
+
+.column-verdict.safe {
+    background: rgba(0, 255, 136, 0.15);
+    color: var(--neon-green);
+}
+
+@media (max-width: 768px) {
+    .comparison-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .safe-column {
+        order: -1;
+    }
+}
+
+/* Benefits Section */
+.benefits-section {
+    margin: 4rem 0;
+}
+
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+}
+
+.benefit-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.benefit-card:hover {
+    border-color: var(--neon-blue);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(41, 121, 255, 0.1);
+}
+
+.benefit-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.benefit-card h4 {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: white;
+    margin-bottom: 0.75rem;
+}
+
+.benefit-card p {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+    .benefits-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 500px) {
+    .benefits-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Social Proof Section */
+.social-proof-section {
+    margin: 3rem 0;
+}
+
+.proof-stats {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3rem;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+}
+
+.proof-stat {
+    text-align: center;
+}
+
+.proof-number {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--neon-blue);
+    margin-bottom: 0.25rem;
+}
+
+.proof-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+}
+
+.proof-divider {
+    width: 1px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 768px) {
+    .proof-stats {
+        flex-wrap: wrap;
+        gap: 2rem;
+    }
+
+    .proof-divider {
+        display: none;
+    }
+
+    .proof-stat {
+        flex: 1 1 40%;
+    }
+}
+
+/* Trust Quote Section */
+.trust-quote-section {
+    text-align: center;
+    margin: 3rem 0;
+    padding: 2.5rem;
+    background: linear-gradient(135deg, rgba(187, 41, 235, 0.05), rgba(41, 121, 255, 0.05));
+    border: 1px solid rgba(187, 41, 235, 0.2);
+    border-radius: 16px;
+}
+
+.trust-quote {
+    font-size: 1.2rem;
+    font-style: italic;
+    color: white;
+    line-height: 1.7;
+    margin: 0 0 1rem 0;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.trust-quote::before {
+    content: '"';
+    font-size: 3rem;
+    color: var(--neon-purple);
+    line-height: 0;
+    vertical-align: middle;
+    margin-right: 0.25rem;
+}
+
+.quote-author {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--neon-purple);
+    font-style: normal;
+}
+
+/* Security CTA Section */
+.security-cta-section {
+    margin-top: 3rem;
+}
+
+.cta-box {
+    text-align: center;
+    padding: 3rem;
+    background: linear-gradient(135deg, rgba(41, 121, 255, 0.1), rgba(187, 41, 235, 0.1));
+    border: 1px solid rgba(41, 121, 255, 0.3);
+    border-radius: 16px;
+}
+
+.cta-box h3 {
+    font-size: 1.5rem;
+    color: white;
+    margin-bottom: 0.75rem;
+}
+
+.cta-box p {
+    color: var(--text-dim);
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+}
+
+.cta-btn {
+    display: inline-block;
+    padding: 1rem 2.5rem;
+    font-size: 1rem;
+    background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.cta-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(41, 121, 255, 0.4);
+}
+
 .feature-card {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.05);

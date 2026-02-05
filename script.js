@@ -848,8 +848,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const tierPrices = {
             'free': '£0/mo',
-            'syndicate': '£19/mo',
-            'blackmarket': '£79 (lifetime)'
+            'syndicate': '£39/mo',
+            'blackmarket': '£149 (lifetime)'
         };
 
         if (planName) planName.textContent = tierNames[profile.subscription_tier] || 'FREE_AGENT';
@@ -2999,27 +2999,27 @@ ${skill.description || 'See skill documentation for detailed usage instructions.
         'syndicate': {
             name: 'THE_SYNDICATE',
             tagline: 'Full access. Auto-healing updates. Priority support.',
-            price: '$39/mo',
+            price: '£39/mo',
             accent: 'blue',
             features: [
                 { category: 'MARKETPLACE_ACCESS', items: [['Skill Catalog', 'Unlimited Standard'], ['Purchases', 'All Included'], ['Updates', 'Auto-Healing']] },
                 { category: 'SUPPORT_LEVEL', items: [['Priority', 'Direct Email'], ['Response Time', '< 24h'], ['Architect Tips', 'Weekly Intel']] },
                 { category: 'SECURITY_PROTOCOL', items: [['Verification', 'Blue Label Certified'], ['Malware Scan', 'Real-time'], ['Early Access', 'Experimental Skills']] }
             ],
-            highlights: ['500+ skills included', '20% OFF Black Market purchases', 'Cancel anytime'],
+            highlights: ['500+ skills included', 'Priority support', 'Cancel anytime'],
             cta: 'JOIN_THE_SYNDICATE'
         },
         'black_market': {
             name: 'BLACK_MARKET',
             tagline: 'No restrictions. Elite protocols only.',
-            price: '$99/mo',
+            price: '£149 lifetime',
             accent: 'red',
             features: [
                 { category: 'MARKETPLACE_ACCESS', items: [['Skill Catalog', 'Full / No Limits'], ['Restricted Skills', 'Included'], ['CVE Scanners', 'Enabled']] },
                 { category: 'SUPPORT_LEVEL', items: [['Architect', '1-on-1 Support'], ['Response Time', '< 2h'], ['Recon Protocols', 'Custom Builds']] },
                 { category: 'SECURITY_PROTOCOL', items: [['Protocol', 'Hardened Elite'], ['Audit Logs', 'Deep Trace'], ['Beta Testing', 'Mandatory']] }
             ],
-            highlights: ['Competitor intel tools', 'Exclusive offensive skills', '1-on-1 onboarding call'],
+            highlights: ['Lifetime access', 'Exclusive offensive skills', 'All future Black Market skills'],
             cta: 'ENTER_BLACK_MARKET'
         }
     };

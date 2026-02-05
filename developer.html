@@ -1,0 +1,2085 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEVELOPER_COMMAND_CENTER // MOLTBOT_SKILLS</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        window.supabaseCreateClient = createClient;
+    </script>
+    <style>
+        :root {
+            --dev-purple: #bf00ff;
+            --dev-green: #00ff94;
+            --dev-blue: #00d4ff;
+            --dev-gold: #ffd700;
+            --dev-red: #ff3366;
+            --dev-orange: #ff9900;
+            --glass-bg: rgba(255, 255, 255, 0.02);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #fff;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* Developer Layout */
+        .dev-layout {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        /* Sidebar */
+        .dev-sidebar {
+            background: linear-gradient(180deg, rgba(0, 255, 148, 0.03) 0%, rgba(0, 0, 0, 0.95) 100%);
+            border-right: 1px solid var(--glass-border);
+            padding: 1.5rem;
+            position: fixed;
+            width: 260px;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .dev-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .dev-brand-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--dev-green), var(--dev-blue));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 0 20px rgba(0, 255, 148, 0.3);
+        }
+
+        .dev-brand-text {
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .dev-brand-text small {
+            display: block;
+            font-size: 0.65rem;
+            color: var(--dev-green);
+            font-weight: 400;
+        }
+
+        /* Navigation */
+        .dev-nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .dev-nav-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: #666;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.75rem;
+            padding-left: 0.5rem;
+        }
+
+        .dev-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            margin-bottom: 0.25rem;
+        }
+
+        .dev-nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+
+        .dev-nav-item.active {
+            background: linear-gradient(135deg, rgba(0, 255, 148, 0.15), rgba(0, 212, 255, 0.1));
+            color: #fff;
+            border-left: 3px solid var(--dev-green);
+        }
+
+        .dev-nav-item .nav-icon {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .dev-nav-item .nav-badge {
+            margin-left: auto;
+            background: var(--dev-purple);
+            color: #fff;
+            font-size: 0.65rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .dev-nav-item .nav-badge.success {
+            background: var(--dev-green);
+            color: #000;
+        }
+
+        .dev-nav-item .nav-badge.warning {
+            background: var(--dev-orange);
+            color: #000;
+        }
+
+        /* User Profile in Sidebar */
+        .dev-user-profile {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.5);
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .dev-user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .dev-user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--dev-green), var(--dev-blue));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .dev-user-details {
+            flex: 1;
+        }
+
+        .dev-user-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .dev-user-role {
+            font-size: 0.7rem;
+            color: var(--dev-green);
+        }
+
+        .dev-logout-btn {
+            background: transparent;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .dev-logout-btn:hover {
+            background: rgba(255, 68, 68, 0.1);
+            color: #ff4444;
+        }
+
+        /* Main Content */
+        .dev-main {
+            margin-left: 260px;
+            padding: 2rem 3rem;
+            min-height: 100vh;
+            flex: 1;
+            width: calc(100vw - 260px);
+        }
+
+        .dev-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .dev-header h1 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .dev-header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        /* Section Content */
+        .dev-section {
+            display: none;
+        }
+
+        .dev-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--dev-green), var(--dev-blue));
+        }
+
+        .stat-card .stat-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--dev-green);
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.7rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 0.25rem;
+        }
+
+        .stat-card .stat-trend {
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .stat-trend.positive {
+            color: var(--dev-green);
+        }
+
+        .stat-trend.negative {
+            color: var(--dev-red);
+        }
+
+        /* Glass Panel */
+        .glass-panel {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .glass-panel h4 {
+            margin: 0 0 1rem 0;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Charts */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+
+        /* Data Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .data-table th {
+            font-size: 0.7rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .data-table td {
+            font-size: 0.85rem;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.published {
+            background: rgba(0, 255, 148, 0.1);
+            color: var(--dev-green);
+            border: 1px solid var(--dev-green);
+        }
+
+        .status-badge.pending {
+            background: rgba(255, 153, 0, 0.1);
+            color: var(--dev-orange);
+            border: 1px solid var(--dev-orange);
+        }
+
+        .status-badge.rejected {
+            background: rgba(255, 51, 102, 0.1);
+            color: var(--dev-red);
+            border: 1px solid var(--dev-red);
+        }
+
+        .status-badge.draft {
+            background: rgba(255, 255, 255, 0.05);
+            color: #888;
+            border: 1px solid #444;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--dev-green), var(--dev-blue));
+            color: #000;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(0, 255, 148, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #fff;
+            border: 1px solid var(--glass-border);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--dev-green);
+            color: var(--dev-green);
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: #fff;
+            font-family: inherit;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--dev-green);
+            box-shadow: 0 0 10px rgba(0, 255, 148, 0.2);
+        }
+
+        /* Upload Zone */
+        .upload-zone {
+            border: 2px dashed var(--glass-border);
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--dev-green);
+            background: rgba(0, 255, 148, 0.02);
+        }
+
+        .upload-zone .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Balance Card */
+        .balance-card {
+            background: linear-gradient(135deg, rgba(0, 255, 148, 0.1), rgba(0, 212, 255, 0.05));
+            border: 1px solid var(--dev-green);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .balance-amount {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--dev-green);
+        }
+
+        .balance-label {
+            font-size: 0.8rem;
+            color: #888;
+            text-transform: uppercase;
+            margin-top: 0.5rem;
+        }
+
+        /* Tabs */
+        .dev-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .dev-tab {
+            background: transparent;
+            border: none;
+            color: #888;
+            padding: 0.75rem 1.5rem;
+            font-family: inherit;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .dev-tab:hover {
+            color: #fff;
+        }
+
+        .dev-tab.active {
+            color: var(--dev-green);
+        }
+
+        .dev-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--dev-green);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #888;
+        }
+
+        .empty-state .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Reviews */
+        .review-card {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .review-stars {
+            color: var(--dev-gold);
+        }
+
+        .review-skill {
+            font-size: 0.8rem;
+            color: var(--dev-green);
+        }
+
+        .review-text {
+            font-size: 0.9rem;
+            color: #ccc;
+            margin-bottom: 0.5rem;
+        }
+
+        .review-meta {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--glass-border);
+            border-top-color: var(--dev-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Access Denied */
+        .access-denied {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9998;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .access-denied h2 {
+            color: var(--dev-red);
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .quick-action {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1.5rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-action:hover {
+            border-color: var(--dev-green);
+            background: rgba(0, 255, 148, 0.05);
+        }
+
+        .quick-action-icon {
+            font-size: 2rem;
+        }
+
+        .quick-action-label {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dev-sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .dev-main {
+                margin-left: 0;
+                width: 100%;
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div style="color: var(--dev-green); font-weight: 600;">LOADING_DASHBOARD...</div>
+        <div style="color: #666; font-size: 0.8rem; margin-top: 0.5rem;">Verifying developer credentials</div>
+    </div>
+
+    <!-- Access Denied -->
+    <div id="access-denied" class="access-denied" style="display: none;">
+        <h2>🔒 DEVELOPER_ACCESS_REQUIRED</h2>
+        <p id="access-denied-reason">You need developer status to access this dashboard.</p>
+
+        <!-- GitHub Requirement Notice -->
+        <div class="github-requirement" style="margin: 2rem 0; padding: 1.5rem; background: rgba(0, 255, 148, 0.05); border: 1px solid rgba(0, 255, 148, 0.2); border-radius: 12px; max-width: 500px;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="#00ff94">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                <span style="color: #00ff94; font-weight: 600;">GITHUB VERIFICATION REQUIRED</span>
+            </div>
+            <p style="color: #999; font-size: 0.85rem; line-height: 1.6; margin: 0;">
+                To protect our marketplace from scams and ensure code quality, all developers must verify their identity with a GitHub account. This helps us:
+            </p>
+            <ul style="color: #888; font-size: 0.8rem; margin: 1rem 0 0 1.5rem; line-height: 1.8;">
+                <li>Verify your coding experience and history</li>
+                <li>Prevent fraudulent or malicious uploads</li>
+                <li>Build trust with skill buyers</li>
+                <li>Enable code review and collaboration</li>
+            </ul>
+        </div>
+
+        <div id="github-status" style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(255, 51, 102, 0.1); border: 1px solid rgba(255, 51, 102, 0.3); border-radius: 8px; display: none;">
+            <span style="color: #ff3366;">⚠️ GitHub not connected</span>
+        </div>
+
+        <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+            <button class="btn-primary github-btn" id="btn-connect-github-dev" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem;">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                CONNECT GITHUB FIRST
+            </button>
+            <button class="btn-secondary" id="btn-apply-after-github" style="display: none;" onclick="applyForDeveloper()">APPLY FOR DEVELOPER</button>
+            <a href="index.html" class="btn-outline" style="color: #666;">← RETURN TO MAIN SITE</a>
+        </div>
+    </div>
+
+    <!-- Developer Dashboard -->
+    <div id="dev-dashboard" class="dev-layout" style="display: none;">
+        <!-- Sidebar -->
+        <aside class="dev-sidebar">
+            <div class="dev-brand">
+                <div class="dev-brand-icon">⚡</div>
+                <div class="dev-brand-text">
+                    MOLTBOT
+                    <small>ARCHITECT_HQ</small>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav>
+                <div class="dev-nav-section">
+                    <div class="dev-nav-label">OVERVIEW</div>
+                    <div class="dev-nav-item active" data-section="overview">
+                        <span class="nav-icon">📊</span>
+                        Dashboard
+                    </div>
+                </div>
+
+                <div class="dev-nav-section">
+                    <div class="dev-nav-label">CONTENT</div>
+                    <div class="dev-nav-item" data-section="skills">
+                        <span class="nav-icon">📦</span>
+                        My Skills
+                        <span class="nav-badge" id="nav-skills-count">0</span>
+                    </div>
+                    <div class="dev-nav-item" data-section="upload">
+                        <span class="nav-icon">📤</span>
+                        Upload
+                    </div>
+                </div>
+
+                <div class="dev-nav-section">
+                    <div class="dev-nav-label">ANALYTICS</div>
+                    <div class="dev-nav-item" data-section="analytics">
+                        <span class="nav-icon">📈</span>
+                        Analytics
+                    </div>
+                    <div class="dev-nav-item" data-section="reviews">
+                        <span class="nav-icon">⭐</span>
+                        Reviews
+                        <span class="nav-badge warning" id="nav-reviews-count">0</span>
+                    </div>
+                </div>
+
+                <div class="dev-nav-section">
+                    <div class="dev-nav-label">EARNINGS</div>
+                    <div class="dev-nav-item" data-section="earnings">
+                        <span class="nav-icon">💰</span>
+                        Earnings
+                    </div>
+                    <div class="dev-nav-item" data-section="customers">
+                        <span class="nav-icon">👥</span>
+                        Customers
+                    </div>
+                </div>
+
+                <div class="dev-nav-section">
+                    <div class="dev-nav-label">GROWTH</div>
+                    <div class="dev-nav-item" data-section="marketing">
+                        <span class="nav-icon">📣</span>
+                        Marketing
+                    </div>
+                </div>
+
+                <div class="dev-nav-section">
+                    <div class="dev-nav-label">SYSTEM</div>
+                    <div class="dev-nav-item" data-section="settings">
+                        <span class="nav-icon">⚙️</span>
+                        Settings
+                    </div>
+                </div>
+            </nav>
+
+            <!-- User Profile -->
+            <div class="dev-user-profile">
+                <div class="dev-user-info">
+                    <div class="dev-user-avatar" id="sidebar-avatar">?</div>
+                    <div class="dev-user-details">
+                        <div class="dev-user-name" id="sidebar-name">DEVELOPER</div>
+                        <div class="dev-user-role">⚡ ARCHITECT</div>
+                    </div>
+                    <button class="dev-logout-btn" id="btn-logout" title="Logout">🚪</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dev-main">
+            <!-- SECTION: Overview -->
+            <section class="dev-section active" id="section-overview">
+                <div class="dev-header">
+                    <h1>📊 Developer Dashboard</h1>
+                    <div class="dev-header-actions">
+                        <button class="btn-secondary" onclick="refreshData()">🔄 Refresh</button>
+                        <a href="index.html" class="btn-secondary">🌐 View Site</a>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-value" id="stat-total-revenue">£0</div>
+                        <div class="stat-label">TOTAL_REVENUE</div>
+                        <div class="stat-trend positive">+0% this month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📅</div>
+                        <div class="stat-value" id="stat-month-revenue">£0</div>
+                        <div class="stat-label">THIS_MONTH</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⬇️</div>
+                        <div class="stat-value" id="stat-downloads">0</div>
+                        <div class="stat-label">TOTAL_DOWNLOADS</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📦</div>
+                        <div class="stat-value" id="stat-active-skills">0</div>
+                        <div class="stat-label">ACTIVE_SKILLS</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-value" id="stat-avg-rating">0.0</div>
+                        <div class="stat-label">AVG_RATING</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📝</div>
+                        <div class="stat-value" id="stat-pending-reviews">0</div>
+                        <div class="stat-label">PENDING_REVIEW</div>
+                    </div>
+                </div>
+
+                <!-- Revenue Chart -->
+                <div class="glass-panel">
+                    <h4>📈 REVENUE_OVERVIEW</h4>
+                    <div class="chart-container">
+                        <canvas id="revenue-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Two Column Layout -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <!-- Top Skills -->
+                    <div class="glass-panel">
+                        <h4>🏆 TOP_PERFORMING_SKILLS</h4>
+                        <div id="top-skills-list">
+                            <div class="empty-state">
+                                <p>No skills published yet</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Reviews -->
+                    <div class="glass-panel">
+                        <h4>⭐ RECENT_REVIEWS</h4>
+                        <div id="recent-reviews-list">
+                            <div class="empty-state">
+                                <p>No reviews yet</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="glass-panel">
+                    <h4>⚡ QUICK_ACTIONS</h4>
+                    <div class="quick-actions">
+                        <div class="quick-action" onclick="switchSection('upload')">
+                            <span class="quick-action-icon">📤</span>
+                            <span class="quick-action-label">UPLOAD_NEW_SKILL</span>
+                        </div>
+                        <div class="quick-action" onclick="switchSection('earnings')">
+                            <span class="quick-action-icon">💸</span>
+                            <span class="quick-action-label">REQUEST_PAYOUT</span>
+                        </div>
+                        <div class="quick-action" onclick="switchSection('analytics')">
+                            <span class="quick-action-icon">📊</span>
+                            <span class="quick-action-label">VIEW_ANALYTICS</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: My Skills -->
+            <section class="dev-section" id="section-skills">
+                <div class="dev-header">
+                    <h1>📦 My Skills</h1>
+                    <div class="dev-header-actions">
+                        <button class="btn-primary" onclick="switchSection('upload')">+ UPLOAD_NEW</button>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="dev-tabs">
+                    <button class="dev-tab active" data-filter="all">All</button>
+                    <button class="dev-tab" data-filter="published">Published</button>
+                    <button class="dev-tab" data-filter="pending">Pending</button>
+                    <button class="dev-tab" data-filter="draft">Drafts</button>
+                    <button class="dev-tab" data-filter="rejected">Rejected</button>
+                </div>
+
+                <!-- Skills Table -->
+                <div class="glass-panel">
+                    <table class="data-table" id="skills-table">
+                        <thead>
+                            <tr>
+                                <th>SKILL_NAME</th>
+                                <th>CATEGORY</th>
+                                <th>PRICE</th>
+                                <th>STATUS</th>
+                                <th>DOWNLOADS</th>
+                                <th>REVENUE</th>
+                                <th>RATING</th>
+                                <th>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="skills-tbody">
+                            <tr>
+                                <td colspan="8">
+                                    <div class="empty-state">
+                                        <span class="empty-icon">📦</span>
+                                        <p>No skills yet. Upload your first skill!</p>
+                                        <button class="btn-primary" onclick="switchSection('upload')">UPLOAD_SKILL</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SECTION: Upload -->
+            <section class="dev-section" id="section-upload">
+                <div class="dev-header">
+                    <h1>📤 Upload Skill</h1>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+                    <!-- Upload Form -->
+                    <div class="glass-panel">
+                        <h4>📄 SKILL_DETAILS</h4>
+                        <form id="upload-form">
+                            <!-- File Upload -->
+                            <div class="upload-zone" id="skill-upload-zone">
+                                <span class="upload-icon">📁</span>
+                                <p>Drag & drop your <code>.md</code> file here</p>
+                                <small style="color: #666;">or click to browse</small>
+                                <input type="file" id="skill-file" accept=".md" hidden>
+                            </div>
+
+                            <div class="form-group" style="margin-top: 1.5rem;">
+                                <label>SKILL_NAME</label>
+                                <input type="text" class="form-control" id="skill-name" placeholder="e.g., Ultimate_SEO_Protocol" required>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label>CATEGORY</label>
+                                    <select class="form-control" id="skill-category" required>
+                                        <option value="">Select category...</option>
+                                        <option value="dev">Development</option>
+                                        <option value="business">Business</option>
+                                        <option value="finance">Finance</option>
+                                        <option value="marketing">Marketing</option>
+                                        <option value="research">Research</option>
+                                        <option value="personal">Personal</option>
+                                        <option value="engineering">Engineering</option>
+                                        <option value="fun">Fun</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>TIER_REQUIREMENT</label>
+                                    <select class="form-control" id="skill-tier">
+                                        <option value="free">Free (Anyone)</option>
+                                        <option value="syndicate">Syndicate Only</option>
+                                        <option value="blackmarket">Black Market Only</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>PRICE (£) - Leave 0 for free</label>
+                                <input type="number" class="form-control" id="skill-price" value="0" min="0" step="0.01">
+                            </div>
+
+                            <div class="form-group">
+                                <label>SHORT_DESCRIPTION</label>
+                                <textarea class="form-control" id="skill-description" rows="3" placeholder="Brief description of what your skill does..." maxlength="200"></textarea>
+                                <small style="color: #666;"><span id="desc-count">0</span>/200</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label>TAGS (comma separated)</label>
+                                <input type="text" class="form-control" id="skill-tags" placeholder="automation, productivity, ai">
+                            </div>
+
+                            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                                <button type="button" class="btn-secondary" onclick="saveAsDraft()">💾 SAVE_DRAFT</button>
+                                <button type="submit" class="btn-primary">📤 SUBMIT_FOR_REVIEW</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Guidelines -->
+                    <div class="glass-panel">
+                        <h4>📋 SUBMISSION_GUIDELINES</h4>
+                        <div style="font-size: 0.85rem; color: #888; line-height: 1.6;">
+                            <p><strong style="color: #fff;">File Format:</strong> Markdown (.md) only</p>
+                            <p><strong style="color: #fff;">Max Size:</strong> 500KB</p>
+                            <p><strong style="color: #fff;">Review Time:</strong> 24-48 hours</p>
+                            <hr style="border-color: var(--glass-border); margin: 1rem 0;">
+                            <p><strong style="color: var(--dev-green);">✓ DO:</strong></p>
+                            <ul style="padding-left: 1.5rem; margin: 0.5rem 0;">
+                                <li>Clear, actionable instructions</li>
+                                <li>Proper markdown formatting</li>
+                                <li>Original content only</li>
+                                <li>Test before submitting</li>
+                            </ul>
+                            <p style="margin-top: 1rem;"><strong style="color: var(--dev-red);">✗ DON'T:</strong></p>
+                            <ul style="padding-left: 1.5rem; margin: 0.5rem 0;">
+                                <li>Include harmful content</li>
+                                <li>Copy others' work</li>
+                                <li>Misleading descriptions</li>
+                                <li>Executable code</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Analytics -->
+            <section class="dev-section" id="section-analytics">
+                <div class="dev-header">
+                    <h1>📈 Analytics</h1>
+                    <div class="dev-header-actions">
+                        <select class="form-control" style="width: auto;" id="analytics-period">
+                            <option value="7">Last 7 days</option>
+                            <option value="30" selected>Last 30 days</option>
+                            <option value="90">Last 90 days</option>
+                            <option value="365">Last year</option>
+                        </select>
+                        <button class="btn-secondary">📥 EXPORT</button>
+                    </div>
+                </div>
+
+                <!-- Key Metrics -->
+                <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+                    <div class="stat-card">
+                        <div class="stat-icon">👁️</div>
+                        <div class="stat-value" id="analytics-views">0</div>
+                        <div class="stat-label">TOTAL_VIEWS</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-value" id="analytics-conversions">0%</div>
+                        <div class="stat-label">CONVERSION_RATE</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-value" id="analytics-revenue">£0</div>
+                        <div class="stat-label">REVENUE</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🛒</div>
+                        <div class="stat-value" id="analytics-aov">£0</div>
+                        <div class="stat-label">AVG_ORDER_VALUE</div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+                    <div class="glass-panel">
+                        <h4>📊 VIEWS_&_DOWNLOADS</h4>
+                        <div class="chart-container">
+                            <canvas id="analytics-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="glass-panel">
+                        <h4>🌍 TOP_COUNTRIES</h4>
+                        <div id="countries-list" style="margin-top: 1rem;">
+                            <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--glass-border);">
+                                <span>🇬🇧 United Kingdom</span>
+                                <span>45%</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--glass-border);">
+                                <span>🇺🇸 United States</span>
+                                <span>30%</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--glass-border);">
+                                <span>🇩🇪 Germany</span>
+                                <span>10%</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;">
+                                <span>🌍 Other</span>
+                                <span>15%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Reviews -->
+            <section class="dev-section" id="section-reviews">
+                <div class="dev-header">
+                    <h1>⭐ Reviews</h1>
+                </div>
+
+                <!-- Review Stats -->
+                <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="stat-card">
+                        <div class="stat-icon">📝</div>
+                        <div class="stat-value" id="reviews-total">0</div>
+                        <div class="stat-label">TOTAL_REVIEWS</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-value" id="reviews-avg">0.0</div>
+                        <div class="stat-label">AVG_RATING</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💬</div>
+                        <div class="stat-value" id="reviews-response">0%</div>
+                        <div class="stat-label">RESPONSE_RATE</div>
+                    </div>
+                </div>
+
+                <!-- Reviews List -->
+                <div class="glass-panel">
+                    <div id="reviews-list">
+                        <div class="empty-state">
+                            <span class="empty-icon">⭐</span>
+                            <p>No reviews yet. Reviews will appear here when customers rate your skills.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Earnings -->
+            <section class="dev-section" id="section-earnings">
+                <div class="dev-header">
+                    <h1>💰 Earnings</h1>
+                </div>
+
+                <!-- Balance Card -->
+                <div class="balance-card">
+                    <div class="balance-amount" id="earnings-balance">£0.00</div>
+                    <div class="balance-label">AVAILABLE_BALANCE</div>
+                    <button class="btn-primary" style="margin-top: 1rem;" id="btn-request-payout" disabled>REQUEST_PAYOUT</button>
+                    <p style="font-size: 0.75rem; color: #666; margin-top: 0.5rem;">Minimum payout: £100</p>
+                </div>
+
+                <!-- Earnings Breakdown -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="glass-panel">
+                        <h4>📊 EARNINGS_BREAKDOWN</h4>
+                        <div style="margin-top: 1rem;">
+                            <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border);">
+                                <span>Your Share (70%)</span>
+                                <span style="color: var(--dev-green);" id="earnings-share">£0.00</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border); color: #666;">
+                                <span>Platform Fee (30%)</span>
+                                <span id="earnings-fee">£0.00</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; color: #666;">
+                                <span>Pending Earnings</span>
+                                <span id="earnings-pending">£0.00</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; font-weight: 700;">
+                                <span>Lifetime Earnings</span>
+                                <span style="color: var(--dev-green);" id="earnings-lifetime">£0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel">
+                        <h4>🏦 PAYOUT_SETTINGS</h4>
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label>PAYOUT_EMAIL</label>
+                            <input type="email" class="form-control" id="payout-email" placeholder="your@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label>PAYOUT_METHOD</label>
+                            <select class="form-control" id="payout-method">
+                                <option value="stripe">Stripe</option>
+                                <option value="paypal">PayPal</option>
+                                <option value="crypto">Crypto (USDC)</option>
+                            </select>
+                        </div>
+                        <button class="btn-secondary" onclick="savePayoutSettings()">SAVE_SETTINGS</button>
+                    </div>
+                </div>
+
+                <!-- Payout History -->
+                <div class="glass-panel">
+                    <h4>📜 PAYOUT_HISTORY</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>DATE</th>
+                                <th>AMOUNT</th>
+                                <th>METHOD</th>
+                                <th>STATUS</th>
+                                <th>TRANSACTION_ID</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payouts-tbody">
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state" style="padding: 2rem;">
+                                        <p>No payouts yet</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SECTION: Customers -->
+            <section class="dev-section" id="section-customers">
+                <div class="dev-header">
+                    <h1>👥 Customers</h1>
+                </div>
+
+                <!-- Customer Stats -->
+                <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-value" id="customers-total">0</div>
+                        <div class="stat-label">TOTAL_CUSTOMERS</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔄</div>
+                        <div class="stat-value" id="customers-repeat">0</div>
+                        <div class="stat-label">REPEAT_CUSTOMERS</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💳</div>
+                        <div class="stat-value" id="customers-avg">£0</div>
+                        <div class="stat-label">AVG_SPEND</div>
+                    </div>
+                </div>
+
+                <!-- Customer Table -->
+                <div class="glass-panel">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>CUSTOMER</th>
+                                <th>SKILLS_PURCHASED</th>
+                                <th>TOTAL_SPENT</th>
+                                <th>LAST_PURCHASE</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customers-tbody">
+                            <tr>
+                                <td colspan="4">
+                                    <div class="empty-state">
+                                        <span class="empty-icon">👥</span>
+                                        <p>No customers yet. They'll appear here when they purchase your skills.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SECTION: Marketing -->
+            <section class="dev-section" id="section-marketing">
+                <div class="dev-header">
+                    <h1>📣 Marketing</h1>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <!-- Promo Codes -->
+                    <div class="glass-panel">
+                        <h4>🏷️ PROMO_CODES</h4>
+                        <p style="font-size: 0.85rem; color: #666; margin-bottom: 1rem;">Create discount codes for your skills.</p>
+
+                        <div class="form-group">
+                            <label>CODE_NAME</label>
+                            <input type="text" class="form-control" id="promo-code" placeholder="SUMMER2024">
+                        </div>
+                        <div class="form-group">
+                            <label>DISCOUNT (%)</label>
+                            <input type="number" class="form-control" id="promo-discount" value="10" min="1" max="100">
+                        </div>
+                        <button class="btn-primary">CREATE_CODE</button>
+
+                        <div style="margin-top: 1.5rem; border-top: 1px solid var(--glass-border); padding-top: 1rem;">
+                            <h5 style="font-size: 0.85rem; margin-bottom: 0.5rem;">Active Codes</h5>
+                            <p style="font-size: 0.8rem; color: #666;">No active promo codes</p>
+                        </div>
+                    </div>
+
+                    <!-- Share Links -->
+                    <div class="glass-panel">
+                        <h4>🔗 SHARE_YOUR_SKILLS</h4>
+                        <p style="font-size: 0.85rem; color: #666; margin-bottom: 1rem;">Share your profile and skills on social media.</p>
+
+                        <div class="form-group">
+                            <label>YOUR_PROFILE_LINK</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="text" class="form-control" id="profile-link" value="moltbot.com/dev/username" readonly>
+                                <button class="btn-secondary" onclick="copyProfileLink()">📋</button>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                            <button class="btn-secondary" style="flex: 1;">🐦 Twitter</button>
+                            <button class="btn-secondary" style="flex: 1;">💼 LinkedIn</button>
+                            <button class="btn-secondary" style="flex: 1;">📘 Facebook</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Featured Listing -->
+                <div class="glass-panel">
+                    <h4>⭐ FEATURED_LISTING</h4>
+                    <p style="font-size: 0.85rem; color: #666;">Get your skill featured on the homepage for increased visibility.</p>
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem;">
+                        <span style="color: var(--dev-gold);">✨ £49/week</span>
+                        <button class="btn-primary">REQUEST_FEATURED</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Settings -->
+            <section class="dev-section" id="section-settings">
+                <div class="dev-header">
+                    <h1>⚙️ Settings</h1>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <!-- Developer Profile -->
+                    <div class="glass-panel">
+                        <h4>👤 DEVELOPER_PROFILE</h4>
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label>DISPLAY_NAME</label>
+                            <input type="text" class="form-control" id="settings-name">
+                        </div>
+                        <div class="form-group">
+                            <label>BIO</label>
+                            <textarea class="form-control" id="settings-bio" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>WEBSITE</label>
+                            <input type="url" class="form-control" id="settings-website" placeholder="https://yoursite.com">
+                        </div>
+                        <div class="form-group">
+                            <label>GITHUB</label>
+                            <input type="text" class="form-control" id="settings-github" placeholder="github.com/username">
+                        </div>
+                        <button class="btn-primary" onclick="saveProfile()">SAVE_PROFILE</button>
+                    </div>
+
+                    <!-- Verification Status -->
+                    <div class="glass-panel">
+                        <h4>✅ VERIFICATION_STATUS</h4>
+                        <div style="margin-top: 1rem;">
+                            <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border);">
+                                <span>Email Verified</span>
+                                <span style="color: var(--dev-green);">✓ Verified</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border);">
+                                <span>GitHub Connected</span>
+                                <span id="github-status" style="color: #666;">Not Connected</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border);">
+                                <span>Blue Label Certified</span>
+                                <span id="bluelabel-status" style="color: #666;">Not Certified</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.75rem 0;">
+                                <span>Identity Verified</span>
+                                <span id="identity-status" style="color: #666;">Not Verified</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Access -->
+                <div class="glass-panel">
+                    <h4>🔑 API_ACCESS</h4>
+                    <p style="font-size: 0.85rem; color: #666; margin-bottom: 1rem;">Use API access to integrate with external tools.</p>
+                    <div class="form-group">
+                        <label>API_KEY</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="password" class="form-control" id="api-key" value="sk_live_xxxxxxxxxxxxx" readonly>
+                            <button class="btn-secondary" onclick="toggleApiKey()">👁️</button>
+                            <button class="btn-secondary" onclick="regenerateApiKey()">🔄</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>WEBHOOK_URL (Optional)</label>
+                        <input type="url" class="form-control" id="webhook-url" placeholder="https://yoursite.com/webhook">
+                    </div>
+                    <button class="btn-secondary">SAVE_API_SETTINGS</button>
+                </div>
+
+                <!-- Notification Preferences -->
+                <div class="glass-panel">
+                    <h4>🔔 NOTIFICATION_PREFERENCES</h4>
+                    <div style="margin-top: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border);">
+                            <span>New Sale Notifications</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border);">
+                            <span>New Review Notifications</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0;">
+                            <span>Payout Notifications</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Supabase config
+        const SUPABASE_URL = 'https://dpcrxdsxtaujmclmahvk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwY3J4ZHN4dGF1am1jbG1haHZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjI1NzEsImV4cCI6MjA4NTE5ODU3MX0.FJTvbP3WK6-pX8e37fxq8-a_juG7Hg04gZVa00rNGZk';
+
+        let supabase = null;
+        let currentUser = null;
+        let userProfile = null;
+
+        // Initialize Supabase
+        function initSupabase() {
+            try {
+                const createClientFn = window.supabaseCreateClient;
+                if (createClientFn) {
+                    supabase = createClientFn(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    console.log('[DEV] Supabase initialized');
+                    return true;
+                }
+                console.error('[DEV] Supabase not loaded');
+                return false;
+            } catch (e) {
+                console.error('[DEV] Init error:', e);
+                return false;
+            }
+        }
+
+        // Check developer access
+        async function checkDevAccess() {
+            const loading = document.getElementById('loading-overlay');
+            const denied = document.getElementById('access-denied');
+            const dashboard = document.getElementById('dev-dashboard');
+            const reason = document.getElementById('access-denied-reason');
+
+            function showAccessDenied(message) {
+                loading.classList.add('hidden');
+                dashboard.style.display = 'none';
+                denied.style.display = 'flex';
+                reason.innerHTML = message;
+            }
+
+            if (!supabase) {
+                showAccessDenied('Database connection failed.');
+                return false;
+            }
+
+            try {
+                console.log('[DEV] Checking session...');
+                const { data: { session }, error } = await supabase.auth.getSession();
+
+                if (error || !session?.user) {
+                    showAccessDenied('Please sign in to access the developer dashboard.<br><br><a href="index.html" class="btn-primary">SIGN_IN</a>');
+                    return false;
+                }
+
+                currentUser = session.user;
+                console.log('[DEV] Session found for:', currentUser.email);
+
+                const { data: profile, error: profileError } = await supabase
+                    .from('user_profiles')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                console.log('[DEV] Profile check:', { profile, profileError });
+
+                if (profileError || !profile) {
+                    showAccessDenied('Profile not found. Please complete your profile on the main site first.');
+                    return false;
+                }
+
+                // Check if user is developer or admin
+                if (profile.account_type !== 'developer' && profile.account_type !== 'admin') {
+                    showAccessDenied(`Your account type is <strong>${profile.account_type || 'customer'}</strong>.<br><br>Developer access required.`);
+                    return false;
+                }
+
+                userProfile = profile;
+                loading.classList.add('hidden');
+                denied.style.display = 'none';
+                dashboard.style.display = 'flex';
+
+                // Update sidebar
+                document.getElementById('sidebar-name').textContent = profile.display_name || currentUser.email.split('@')[0];
+                document.getElementById('sidebar-avatar').textContent = (profile.display_name || currentUser.email)[0].toUpperCase();
+
+                console.log('[DEV] Access granted for:', currentUser.email);
+                return true;
+            } catch (err) {
+                console.error('[DEV] Access check error:', err);
+                showAccessDenied('Error: ' + err.message);
+                return false;
+            }
+        }
+
+        // Switch section
+        function switchSection(sectionName) {
+            // Update nav
+            document.querySelectorAll('.dev-nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.section === sectionName) {
+                    item.classList.add('active');
+                }
+            });
+
+            // Update content
+            document.querySelectorAll('.dev-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            const targetSection = document.getElementById(`section-${sectionName}`);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+        }
+
+        // Initialize dashboard
+        function initDashboard() {
+            loadStats();
+            loadSkills();
+            initCharts();
+        }
+
+        // Load stats
+        async function loadStats() {
+            // Placeholder - implement real data loading
+            document.getElementById('stat-total-revenue').textContent = '£0';
+            document.getElementById('stat-month-revenue').textContent = '£0';
+            document.getElementById('stat-downloads').textContent = '0';
+            document.getElementById('stat-active-skills').textContent = '0';
+            document.getElementById('stat-avg-rating').textContent = '0.0';
+            document.getElementById('stat-pending-reviews').textContent = '0';
+        }
+
+        // Load skills
+        async function loadSkills() {
+            if (!supabase || !currentUser) return;
+
+            try {
+                const { data: skills, error } = await supabase
+                    .from('skill_submissions')
+                    .select('*')
+                    .eq('developer_id', currentUser.id)
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error('[DEV] Error loading skills:', error);
+                    return;
+                }
+
+                // Update nav badge
+                document.getElementById('nav-skills-count').textContent = skills?.length || 0;
+
+                // Update table
+                const tbody = document.getElementById('skills-tbody');
+                if (!skills || skills.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="8">
+                                <div class="empty-state">
+                                    <span class="empty-icon">📦</span>
+                                    <p>No skills yet. Upload your first skill!</p>
+                                    <button class="btn-primary" onclick="switchSection('upload')">UPLOAD_SKILL</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = skills.map(skill => `
+                    <tr>
+                        <td><strong>${skill.name}</strong></td>
+                        <td>${skill.category || 'general'}</td>
+                        <td>£${(skill.price || 0).toFixed(2)}</td>
+                        <td><span class="status-badge ${skill.status}">${skill.status}</span></td>
+                        <td>${skill.downloads || 0}</td>
+                        <td>£${((skill.downloads || 0) * (skill.price || 0) * 0.7).toFixed(2)}</td>
+                        <td>⭐ ${skill.rating || 'N/A'}</td>
+                        <td>
+                            <button class="btn-sm" onclick="editSkill('${skill.id}')">Edit</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                // Update active skills count
+                const activeSkills = skills.filter(s => s.status === 'published').length;
+                document.getElementById('stat-active-skills').textContent = activeSkills;
+
+            } catch (err) {
+                console.error('[DEV] Skills load error:', err);
+            }
+        }
+
+        // Initialize charts
+        function initCharts() {
+            if (typeof Chart === 'undefined') {
+                console.warn('[DEV] Chart.js not loaded');
+                return;
+            }
+
+            Chart.defaults.color = '#888';
+            Chart.defaults.borderColor = 'rgba(255,255,255,0.1)';
+
+            // Revenue chart
+            const revenueCtx = document.getElementById('revenue-chart');
+            if (revenueCtx) {
+                new Chart(revenueCtx, {
+                    type: 'line',
+                    data: {
+                        labels: Array.from({length: 30}, (_, i) => {
+                            const d = new Date();
+                            d.setDate(d.getDate() - (29 - i));
+                            return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+                        }),
+                        datasets: [{
+                            label: 'Revenue',
+                            data: Array.from({length: 30}, () => Math.random() * 50),
+                            borderColor: '#00ff94',
+                            backgroundColor: 'rgba(0, 255, 148, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            }
+
+            // Analytics chart
+            const analyticsCtx = document.getElementById('analytics-chart');
+            if (analyticsCtx) {
+                new Chart(analyticsCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'Views',
+                            data: [12, 19, 3, 5, 2, 3, 7],
+                            backgroundColor: 'rgba(0, 212, 255, 0.5)'
+                        }, {
+                            label: 'Downloads',
+                            data: [2, 3, 1, 2, 0, 1, 2],
+                            backgroundColor: 'rgba(0, 255, 148, 0.5)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Refresh data
+        function refreshData() {
+            loadStats();
+            loadSkills();
+        }
+
+        // Check if user has GitHub connected
+        async function checkGitHubConnection() {
+            if (!supabase || !currentUser) return false;
+
+            try {
+                const { data: { identities }, error } = await supabase.auth.getUserIdentities();
+                if (error) throw error;
+
+                const hasGitHub = identities?.some(identity => identity.provider === 'github');
+                return hasGitHub;
+            } catch (err) {
+                console.error('GitHub check error:', err);
+                return false;
+            }
+        }
+
+        // Connect GitHub for developer verification
+        async function connectGitHubForDev() {
+            if (!supabase) {
+                alert('Please wait for the page to load.');
+                return;
+            }
+
+            try {
+                // Try to link identity first (if user already logged in)
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'github',
+                    options: {
+                        redirectTo: window.location.href,
+                        scopes: 'read:user user:email'
+                    }
+                });
+                if (error) throw error;
+            } catch (err) {
+                console.error('GitHub connect error:', err);
+                alert('Error connecting GitHub: ' + err.message);
+            }
+        }
+
+        // Update UI based on GitHub status
+        async function updateGitHubUI() {
+            const hasGitHub = await checkGitHubConnection();
+            const connectBtn = document.getElementById('btn-connect-github-dev');
+            const applyBtn = document.getElementById('btn-apply-after-github');
+            const githubStatus = document.getElementById('github-status');
+
+            if (hasGitHub) {
+                if (connectBtn) {
+                    connectBtn.innerHTML = `
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                        ✓ GITHUB CONNECTED
+                    `;
+                    connectBtn.style.background = 'rgba(0, 255, 148, 0.2)';
+                    connectBtn.style.color = '#00ff94';
+                    connectBtn.style.cursor = 'default';
+                    connectBtn.disabled = true;
+                }
+                if (applyBtn) applyBtn.style.display = 'block';
+                if (githubStatus) githubStatus.style.display = 'none';
+            } else {
+                if (connectBtn) connectBtn.style.display = 'flex';
+                if (applyBtn) applyBtn.style.display = 'none';
+                if (githubStatus) githubStatus.style.display = 'block';
+            }
+        }
+
+        // Apply for developer - submit application for admin review
+        async function applyForDeveloper() {
+            if (!supabase || !currentUser) {
+                alert('Please sign in first on the main site.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Check GitHub is connected
+            const hasGitHub = await checkGitHubConnection();
+            if (!hasGitHub) {
+                alert('⚠️ GITHUB REQUIRED\n\nYou must connect your GitHub account before applying for developer status.\n\nThis helps us verify your identity and protect our marketplace.');
+                return;
+            }
+
+            // Get GitHub info for application
+            let githubUsername = 'unknown';
+            try {
+                const { data: { identities } } = await supabase.auth.getUserIdentities();
+                const githubIdentity = identities?.find(i => i.provider === 'github');
+                if (githubIdentity?.identity_data) {
+                    githubUsername = githubIdentity.identity_data.user_name || githubIdentity.identity_data.preferred_username || 'connected';
+                }
+            } catch (e) {
+                console.log('Could not get GitHub username');
+            }
+
+            const reason = prompt('📝 DEVELOPER APPLICATION\n\nTell us why you want to become a developer and what skills you plan to create:\n\n(This will be reviewed by our team)\n\nGitHub: @' + githubUsername);
+
+            if (!reason || reason.trim().length < 10) {
+                alert('Please provide a reason for your application (at least 10 characters).');
+                return;
+            }
+
+            try {
+                // Submit application to developer_applications table
+                const { error } = await supabase
+                    .from('developer_applications')
+                    .insert({
+                        user_id: currentUser.id,
+                        user_email: currentUser.email,
+                        reason: reason.trim(),
+                        github_username: githubUsername,
+                        github_verified: true,
+                        status: 'pending',
+                        created_at: new Date().toISOString()
+                    });
+
+                if (error) throw error;
+
+                alert('✅ APPLICATION SUBMITTED!\n\nYour developer application has been submitted for review.\n\nGitHub: @' + githubUsername + '\n\nYou will be notified once approved.');
+                window.location.href = 'index.html';
+            } catch (err) {
+                console.error('Application error:', err);
+                if (err.message.includes('duplicate') || err.message.includes('unique')) {
+                    alert('You already have a pending application. Please wait for admin review.');
+                } else {
+                    alert('Error submitting application: ' + err.message);
+                }
+            }
+        }
+
+        // Save developer profile
+        async function saveProfile() {
+            if (!supabase || !currentUser) {
+                alert('Not authenticated');
+                return;
+            }
+
+            const displayName = document.getElementById('dev-display-name')?.value;
+            const bio = document.getElementById('dev-bio')?.value;
+            const website = document.getElementById('dev-website')?.value;
+            const twitter = document.getElementById('dev-twitter')?.value;
+            const github = document.getElementById('dev-github')?.value;
+
+            try {
+                const { error } = await supabase
+                    .from('user_profiles')
+                    .update({
+                        display_name: displayName,
+                        bio: bio,
+                        website_url: website,
+                        twitter_handle: twitter,
+                        github_username: github,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', currentUser.id);
+
+                if (error) throw error;
+                alert('✅ Profile saved successfully!');
+            } catch (err) {
+                console.error('Save profile error:', err);
+                alert('Error saving profile: ' + err.message);
+            }
+        }
+
+        // Save payout settings
+        async function savePayoutSettings() {
+            if (!supabase || !currentUser) {
+                alert('Not authenticated');
+                return;
+            }
+
+            const payoutEmail = document.getElementById('payout-email')?.value;
+            const payoutMethod = document.getElementById('payout-method')?.value;
+            const minPayout = document.getElementById('min-payout')?.value;
+
+            try {
+                const { error } = await supabase
+                    .from('user_profiles')
+                    .update({
+                        payout_email: payoutEmail,
+                        payout_method: payoutMethod,
+                        min_payout_threshold: minPayout ? parseFloat(minPayout) : 100,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', currentUser.id);
+
+                if (error) throw error;
+                alert('✅ Payout settings saved!');
+            } catch (err) {
+                console.error('Save payout error:', err);
+                alert('Error saving payout settings: ' + err.message);
+            }
+        }
+
+        // Copy profile link
+        function copyProfileLink() {
+            const link = document.getElementById('profile-link');
+            navigator.clipboard.writeText(link.value);
+            alert('Link copied!');
+        }
+
+        // Toggle API key visibility
+        function toggleApiKey() {
+            const input = document.getElementById('api-key');
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        // Regenerate API key
+        function regenerateApiKey() {
+            if (confirm('Are you sure? This will invalidate your current API key.')) {
+                alert('New API key generated!');
+            }
+        }
+
+        // Edit skill
+        function editSkill(skillId) {
+            alert('Edit skill: ' + skillId);
+        }
+
+        // Save as draft
+        function saveAsDraft() {
+            alert('Skill saved as draft!');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Wait for Supabase
+            let attempts = 0;
+            while (!window.supabaseCreateClient && attempts < 30) {
+                await new Promise(r => setTimeout(r, 100));
+                attempts++;
+            }
+
+            initSupabase();
+
+            // Navigation
+            document.querySelectorAll('.dev-nav-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const section = item.dataset.section;
+                    if (section) switchSection(section);
+                });
+            });
+
+            // Logout
+            document.getElementById('btn-logout')?.addEventListener('click', async () => {
+                await supabase.auth.signOut();
+                window.location.href = 'index.html';
+            });
+
+            // Tab filtering
+            document.querySelectorAll('.dev-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.dev-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    // Implement filtering
+                });
+            });
+
+            // Upload form
+            document.getElementById('upload-form')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                alert('Skill submitted for review!');
+            });
+
+            // File upload zone
+            const uploadZone = document.getElementById('skill-upload-zone');
+            const fileInput = document.getElementById('skill-file');
+            if (uploadZone && fileInput) {
+                uploadZone.addEventListener('click', () => fileInput.click());
+                uploadZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadZone.style.borderColor = '#00ff94';
+                });
+                uploadZone.addEventListener('dragleave', () => {
+                    uploadZone.style.borderColor = '';
+                });
+                uploadZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadZone.style.borderColor = '';
+                    if (e.dataTransfer.files.length) {
+                        fileInput.files = e.dataTransfer.files;
+                        uploadZone.innerHTML = `<span class="upload-icon">✅</span><p>${e.dataTransfer.files[0].name}</p>`;
+                    }
+                });
+            }
+
+            // Description character count
+            const descInput = document.getElementById('skill-description');
+            const descCount = document.getElementById('desc-count');
+            if (descInput && descCount) {
+                descInput.addEventListener('input', () => {
+                    descCount.textContent = descInput.value.length;
+                });
+            }
+
+            // GitHub connect button handler
+            document.getElementById('btn-connect-github-dev')?.addEventListener('click', connectGitHubForDev);
+
+            // Check access
+            const hasAccess = await checkDevAccess();
+            if (hasAccess) {
+                initDashboard();
+            } else {
+                // Update GitHub UI status when access denied is shown
+                await updateGitHubUI();
+            }
+        });
+    </script>
+</body>
+</html>

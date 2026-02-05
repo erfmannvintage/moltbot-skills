@@ -189,71 +189,36 @@
         <div id="dev-modal" class="modal-overlay">
             <div class="modal-window">
                 <button class="modal-close">&times;</button>
-                <div class="modal-tabs">
-                    <button class="tab-btn active" data-tab="tab-access">REQUEST_ACCESS</button>
-                    <button class="tab-btn" data-tab="tab-validator">PROTOCOL_VALIDATOR</button>
-                </div>
 
-                <!-- Tab 1: Access Request -->
+                <!-- Developer Application -->
                 <div id="tab-access" class="tab-content active">
                     <div class="modal-header">
-                        <h3><span class="purple">></span> DEVELOPER_PORTAL_ACCESS</h3>
+                        <h3><span class="purple">></span> BECOME_AN_ARCHITECT</h3>
                     </div>
                     <div class="modal-body">
-                        <p class="modal-intro">The Mercenary Network is currently in <strong>Closed Beta</strong>. We
-                            are
-                            accepting 50 new architects this week.</p>
+                        <p class="modal-intro">Join our network of elite skill developers. Create, publish, and earn from your AI protocols.</p>
 
-                        <form class="retro-form">
-                            <div class="form-group">
-                                <label>CODENAME</label>
-                                <input type="text" placeholder="e.g. Neo_Architect">
-                            </div>
-                            <div class="form-group">
-                                <label>GITHUB_URL</label>
-                                <input type="text" placeholder="github.com/...">
-                            </div>
-                            <div class="form-group">
-                                <label>PRIMARY_SKILLSET</label>
-                                <select>
-                                    <option>Select Protocol Type...</option>
-                                    <option>Research & Analysis</option>
-                                    <option>DevOps & Infrastructure</option>
-                                    <option>Creative Writing</option>
-                                    <option>Financial Trading</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn-primary full-width">REQUEST_ACCESS</button>
-                        </form>
-                        <p class="modal-note">* You will receive a cryptographic key if accepted.</p>
-                    </div>
-                </div>
-
-                <!-- Tab 2: Protocol Validator -->
-                <div id="tab-validator" class="tab-content">
-                    <div class="modal-header">
-                        <h3><span class="blue">></span> BLUE_LABEL_AUDIT_TOOL</h3>
-                    </div>
-                    <div class="modal-body">
-                        <p class="modal-intro">Upload your <code class="inline-code">.md</code> protocol for a
-                            preliminary
-                            security scan. Malware detection & syntax verification.</p>
-
-                        <div class="upload-zone" id="drop-zone">
-                            <span class="icon">📂</span>
-                            <span>DRAG_PROTOCOL_HERE</span>
-                            <span class="sub-text">or click to browse (.md only)</span>
-                            <input type="file" id="file-upload" accept=".md" hidden>
+                        <div class="dev-benefits" style="margin: 1.5rem 0; padding: 1rem; background: rgba(0, 255, 148, 0.05); border-radius: 8px;">
+                            <h4 style="color: #00ff94; margin-bottom: 0.75rem;">✓ DEVELOPER BENEFITS</h4>
+                            <ul style="color: #888; font-size: 0.85rem; line-height: 1.8; margin-left: 1rem;">
+                                <li>Publish skills to our verified marketplace</li>
+                                <li>Earn 70% revenue share on every sale</li>
+                                <li>Access to Blue Label Audit Tool</li>
+                                <li>Analytics dashboard & customer insights</li>
+                            </ul>
                         </div>
 
-                        <div class="audit-terminal hidden" id="audit-terminal">
-                            <div class="terminal-header-small">
-                                <span>validator_daemon.exe</span>
+                        <div class="github-notice" style="margin: 1.5rem 0; padding: 1rem; background: rgba(191, 0, 255, 0.05); border: 1px solid rgba(191, 0, 255, 0.2); border-radius: 8px;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <span style="color: #bf00ff; font-weight: 600; font-size: 0.8rem;">🔒 GITHUB VERIFICATION REQUIRED</span>
                             </div>
-                            <div class="audit-log" id="audit-log">
-                                <!-- Logs go here -->
-                            </div>
+                            <p style="color: #888; font-size: 0.8rem; margin: 0;">All developers must verify via GitHub to protect our marketplace.</p>
                         </div>
+
+                        <a href="developer.html" class="btn-primary full-width" style="display: block; text-align: center; text-decoration: none;">
+                            APPLY_FOR_DEVELOPER_ACCESS →
+                        </a>
+                        <p class="modal-note" style="margin-top: 1rem;">* Applications reviewed within 24-48 hours.</p>
                     </div>
                 </div>
             </div>

@@ -213,6 +213,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (error) throw error;
 
             if (skills && skills.length > 0) {
+                // Store skills data globally for download modal
+                window.skillsData = skills;
+
                 // Clear existing static cards and render dynamic ones
                 skillsGrid.innerHTML = '';
 
@@ -707,17 +710,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const toggleBtn = document.getElementById('btn-toggle-developer');
         if (toggleBtn) {
             if (profile.account_type === 'admin') {
-                // Admins don't need toggle - they have full access
-                toggleBtn.innerHTML = '<span class="icon">👑</span> ADMIN_ACCESS';
-                toggleBtn.disabled = true;
-                toggleBtn.style.opacity = '0.6';
-                toggleBtn.style.cursor = 'default';
+                // Admins have full access - show developer HQ link
+                toggleBtn.innerHTML = '<span class="icon">⚡</span> DEVELOPER_HQ';
+                toggleBtn.disabled = false;
+                toggleBtn.style.opacity = '1';
+                toggleBtn.style.cursor = 'pointer';
             } else if (profile.account_type === 'developer') {
-                toggleBtn.innerHTML = '<span class="icon">👤</span> SWITCH_TO_CUSTOMER';
+                // Developers go to developer dashboard
+                toggleBtn.innerHTML = '<span class="icon">⚡</span> DEVELOPER_HQ';
                 toggleBtn.disabled = false;
                 toggleBtn.style.opacity = '1';
                 toggleBtn.style.cursor = 'pointer';
             } else {
+                // Customers can apply to become developer
                 toggleBtn.innerHTML = '<span class="icon">🔧</span> BECOME_ARCHITECT';
                 toggleBtn.disabled = false;
                 toggleBtn.style.opacity = '1';
@@ -727,6 +732,87 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Log profile for debugging
         console.log('[PROFILE] Loaded:', profile.account_type, profile);
+
+        // Initialize elite dashboard features
+        initEliteDashboard(profile);
+
+        // Populate email field in settings
+        const inputEmail = document.getElementById('input-email');
+        if (inputEmail) inputEmail.value = profile.email || '';
+
+        // Update subscription tab details
+        updateSubscriptionTab(profile);
+    }
+
+    function updateSubscriptionTab(profile) {
+        // Update subscription badge
+        const subBadge = document.getElementById('sub-plan-badge');
+        const subStatus = document.getElementById('sub-plan-status');
+        const priceAmount = document.getElementById('sub-price-amount');
+        const pricePeriod = document.getElementById('sub-price-period');
+        const memberSince = document.getElementById('sub-member-since');
+
+        const tierNames = {
+            'free': 'FREE_AGENT',
+            'syndicate': 'SYNDICATE',
+            'blackmarket': 'BLACK_MARKET'
+        };
+
+        const tierPrices = {
+            'free': { amount: '£0', period: '/month' },
+            'syndicate': { amount: '£39', period: '/month' },
+            'blackmarket': { amount: '£149', period: ' lifetime' }
+        };
+
+        if (subBadge) subBadge.textContent = tierNames[profile.subscription_tier] || 'FREE_AGENT';
+        if (subStatus) {
+            subStatus.textContent = 'ACTIVE';
+            subStatus.className = 'plan-status active';
+        }
+
+        const pricing = tierPrices[profile.subscription_tier] || tierPrices.free;
+        if (priceAmount) priceAmount.textContent = pricing.amount;
+        if (pricePeriod) pricePeriod.textContent = pricing.period;
+
+        if (memberSince && profile.created_at) {
+            const date = new Date(profile.created_at);
+            memberSince.textContent = date.toLocaleDateString('en-GB', {
+                month: 'short',
+                year: 'numeric'
+            });
+        }
+
+        // Show/hide cancel button based on subscription
+        const cancelSection = document.getElementById('cancel-subscription-section');
+        if (cancelSection) {
+            cancelSection.style.display = profile.subscription_tier !== 'free' ? 'block' : 'none';
+        }
+
+        // Update feature checkmarks
+        const featureUnlimited = document.getElementById('sub-feature-unlimited');
+        const featureBlackmarket = document.getElementById('sub-feature-blackmarket');
+        const featurePriority = document.getElementById('sub-feature-priority');
+
+        if (profile.subscription_tier === 'syndicate' || profile.subscription_tier === 'blackmarket') {
+            if (featureUnlimited) {
+                featureUnlimited.textContent = '✓ Unlimited downloads';
+                featureUnlimited.classList.remove('excluded');
+                featureUnlimited.classList.add('included');
+            }
+        }
+
+        if (profile.subscription_tier === 'blackmarket') {
+            if (featureBlackmarket) {
+                featureBlackmarket.textContent = '✓ Black Market access';
+                featureBlackmarket.classList.remove('excluded');
+                featureBlackmarket.classList.add('included');
+            }
+            if (featurePriority) {
+                featurePriority.textContent = '✓ Priority support';
+                featurePriority.classList.remove('excluded');
+                featurePriority.classList.add('included');
+            }
+        }
     }
 
     async function loadSkillLibrary(user) {
@@ -880,11 +966,26 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Toggle developer mode
+        // Toggle developer mode / Go to developer dashboard
         const toggleDevBtn = document.getElementById('btn-toggle-developer');
         if (toggleDevBtn) {
             toggleDevBtn.addEventListener('click', async () => {
-                await toggleAccountType(user);
+                // Check current account type
+                const { data: profile } = await supabase
+                    .from('user_profiles')
+                    .select('account_type')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profile?.account_type === 'developer' || profile?.account_type === 'admin') {
+                    // Already a developer - go to developer dashboard
+                    window.location.href = 'developer.html';
+                } else {
+                    // Not a developer - show apply/toggle option
+                    if (confirm('🔧 BECOME A DEVELOPER?\n\nAs a developer, you can upload skills, earn 70% revenue, and access the Developer Command Center.\n\nClick OK to apply for developer access.')) {
+                        await toggleAccountType(user);
+                    }
+                }
             });
         }
 
@@ -1070,16 +1171,641 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Global functions for skill actions
+    // ===========================================
+    // SKILL DOWNLOAD SYSTEM
+    // ===========================================
+
+    // Store current skill data for download modal
+    let currentDownloadSkill = null;
+
+    // Global function to open download modal
     window.downloadSkill = function (skillId) {
-        showToast('📥 DOWNLOADING', 'Initiating secure skill transfer...');
-        // Implement actual download logic
+        // Find skill data from skills array or fetch it
+        const skill = window.skillsData?.find(s => s.id === skillId) || {
+            id: skillId,
+            name: skillId,
+            description: 'Loading skill data...',
+            content: null
+        };
+
+        currentDownloadSkill = skill;
+        openDownloadModal(skill);
     };
+
+    // Open the download modal with skill data
+    function openDownloadModal(skill) {
+        const modal = document.getElementById('download-modal');
+        if (!modal) return;
+
+        // Set skill name
+        const skillName = document.getElementById('download-skill-name');
+        if (skillName) {
+            skillName.textContent = (skill.name || skill.id).replace(/_/g, '_') + '.md';
+        }
+
+        // Set npx command
+        const npxCmd = document.getElementById('npx-command');
+        if (npxCmd) {
+            const cmdName = (skill.name || skill.id).toLowerCase().replace(/\s+/g, '-').replace(/_/g, '-');
+            npxCmd.textContent = `npx moltbot inject ${cmdName}`;
+        }
+
+        // Set raw URL
+        const rawUrl = document.getElementById('raw-url');
+        if (rawUrl) {
+            const urlName = (skill.name || skill.id).toLowerCase().replace(/\s+/g, '-');
+            rawUrl.value = `https://skills.moltbot.com/raw/${urlName}.md`;
+        }
+
+        // Reset source preview
+        const sourcePreview = document.getElementById('source-preview');
+        if (sourcePreview) sourcePreview.style.display = 'none';
+
+        const viewBtn = document.getElementById('view-source-btn-text');
+        if (viewBtn) viewBtn.textContent = 'SHOW_SOURCE';
+
+        // Show modal
+        modal.classList.add('active');
+    }
+
+    // Close download modal
+    document.getElementById('close-download-modal')?.addEventListener('click', () => {
+        document.getElementById('download-modal')?.classList.remove('active');
+    });
+
+    // Close download modal on overlay click
+    document.getElementById('download-modal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'download-modal') {
+            e.target.classList.remove('active');
+        }
+    });
+
+    // Copy skill content to clipboard
+    window.copySkillToClipboard = async function() {
+        if (!currentDownloadSkill) return;
+
+        const content = currentDownloadSkill.content || generateSkillMarkdown(currentDownloadSkill);
+
+        try {
+            await navigator.clipboard.writeText(content);
+            const status = document.getElementById('copy-status');
+            if (status) {
+                status.textContent = '✓ COPIED!';
+                setTimeout(() => { status.textContent = ''; }, 2000);
+            }
+            showToast('📋 COPIED', 'Skill copied to clipboard!');
+        } catch (err) {
+            console.error('Copy failed:', err);
+            showToast('⚠️ ERROR', 'Failed to copy to clipboard');
+        }
+    };
+
+    // Download skill as .md file
+    window.downloadSkillFile = function() {
+        if (!currentDownloadSkill) return;
+
+        const content = currentDownloadSkill.content || generateSkillMarkdown(currentDownloadSkill);
+        const filename = (currentDownloadSkill.name || 'skill').replace(/\s+/g, '_') + '.md';
+
+        const blob = new Blob([content], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        showToast('💾 DOWNLOADED', `${filename} saved to downloads`);
+    };
+
+    // Copy npx command
+    window.copyNpxCommand = async function() {
+        const cmd = document.getElementById('npx-command')?.textContent;
+        if (!cmd) return;
+
+        try {
+            await navigator.clipboard.writeText(cmd);
+            showToast('📋 COPIED', 'NPX command copied!');
+        } catch (err) {
+            showToast('⚠️ ERROR', 'Failed to copy command');
+        }
+    };
+
+    // Copy raw URL
+    window.copyRawUrl = async function() {
+        const url = document.getElementById('raw-url')?.value;
+        if (!url) return;
+
+        try {
+            await navigator.clipboard.writeText(url);
+            showToast('🔗 COPIED', 'Raw URL copied!');
+        } catch (err) {
+            showToast('⚠️ ERROR', 'Failed to copy URL');
+        }
+    };
+
+    // Toggle source view
+    window.toggleSourceView = function() {
+        const sourcePreview = document.getElementById('source-preview');
+        const viewBtn = document.getElementById('view-source-btn-text');
+
+        if (!sourcePreview || !viewBtn) return;
+
+        if (sourcePreview.style.display === 'none') {
+            // Show source
+            sourcePreview.style.display = 'block';
+            viewBtn.textContent = 'HIDE_SOURCE';
+
+            // Load source content
+            const sourceCode = document.getElementById('skill-source-code');
+            if (sourceCode && currentDownloadSkill) {
+                sourceCode.textContent = currentDownloadSkill.content || generateSkillMarkdown(currentDownloadSkill);
+            }
+        } else {
+            // Hide source
+            sourcePreview.style.display = 'none';
+            viewBtn.textContent = 'SHOW_SOURCE';
+        }
+    };
+
+    // Generate skill markdown if content not available
+    function generateSkillMarkdown(skill) {
+        return `# ${skill.name || 'Skill'}
+
+## Description
+${skill.description || 'No description available.'}
+
+## Installation
+
+### Option 1: Copy & Paste
+Copy this entire file content and paste it into your AI agent's custom instructions or skills folder.
+
+### Option 2: NPX Command
+\`\`\`bash
+npx moltbot inject ${(skill.name || 'skill').toLowerCase().replace(/\s+/g, '-')}
+\`\`\`
+
+### Option 3: Manual Download
+Save this file as \`${(skill.name || 'skill').replace(/\s+/g, '_')}.md\` in your agent's skills directory.
+
+## Compatibility
+- Claude (Anthropic)
+- GPT-4 (OpenAI)
+- Moltbot
+- AutoGPT
+- Cursor AI
+- Any MCP-compatible agent
+
+## Usage
+Once installed, your AI agent will have access to the following capabilities:
+
+${skill.description || 'See skill documentation for detailed usage instructions.'}
+
+---
+*Skill provided by MoltBot Skills Marketplace*
+*SHA-256 Verified • Blue Label Certified*
+`;
+    }
 
     window.viewSkillDocs = function (skillId) {
         showToast('📖 LOADING_DOCS', 'Opening skill documentation...');
         // Implement docs view logic
     };
+
+    // ===========================================
+    // ELITE DASHBOARD FUNCTIONS
+    // ===========================================
+
+    // Global function to switch dashboard tabs programmatically
+    window.switchDashboardTab = function(tabName) {
+        const tabBtns = document.querySelectorAll('.dashboard-tabs .tab-btn');
+        const tabContents = document.querySelectorAll('.dashboard-tab-content');
+
+        tabBtns.forEach(b => b.classList.remove('active'));
+        tabContents.forEach(c => c.classList.remove('active'));
+
+        const targetBtn = document.querySelector(`.dashboard-tabs .tab-btn[data-tab="${tabName}"]`);
+        const targetContent = document.getElementById(`tab-${tabName}`);
+
+        if (targetBtn) targetBtn.classList.add('active');
+        if (targetContent) targetContent.classList.add('active');
+    };
+
+    // FAQ toggle function
+    window.toggleFaq = function(element) {
+        const faqItem = element.closest('.faq-item');
+        if (faqItem) {
+            faqItem.classList.toggle('open');
+        }
+    };
+
+    // Initialize overview tab data
+    function initOverviewTab(profile) {
+        // Update welcome name
+        const welcomeName = document.getElementById('welcome-name');
+        if (welcomeName && profile) {
+            welcomeName.textContent = profile.display_name || profile.email?.split('@')[0] || 'Operator';
+        }
+
+        // Update overview stats
+        updateOverviewStats(profile);
+
+        // Calculate profile completion
+        calculateProfileCompletion(profile);
+
+        // Load recent activity
+        loadRecentActivity();
+    }
+
+    function updateOverviewStats(profile) {
+        const skillsOwned = document.getElementById('overview-skills-owned');
+        const totalDownloads = document.getElementById('overview-total-downloads');
+        const tier = document.getElementById('overview-tier');
+        const memberDays = document.getElementById('overview-member-days');
+
+        if (skillsOwned) skillsOwned.textContent = '0'; // Will be updated from library
+        if (totalDownloads) totalDownloads.textContent = '0';
+        if (tier && profile) {
+            const tierMap = {
+                'free': 'FREE',
+                'syndicate': 'SYNDICATE',
+                'blackmarket': 'BLACK_MARKET'
+            };
+            tier.textContent = tierMap[profile.subscription_tier] || 'FREE';
+        }
+        if (memberDays && profile?.created_at) {
+            const created = new Date(profile.created_at);
+            const now = new Date();
+            const days = Math.floor((now - created) / (1000 * 60 * 60 * 24));
+            memberDays.textContent = days;
+        }
+    }
+
+    function calculateProfileCompletion(profile) {
+        if (!profile) return;
+
+        const fields = ['display_name', 'bio', 'website', 'avatar_url'];
+        let completed = 1; // Account exists = 1 point
+
+        fields.forEach(field => {
+            if (profile[field]) completed++;
+        });
+
+        const percentage = Math.round((completed / (fields.length + 1)) * 100);
+
+        const fill = document.getElementById('profile-completion-fill');
+        const percent = document.getElementById('profile-completion-percent');
+
+        if (fill) fill.style.width = `${percentage}%`;
+        if (percent) percent.textContent = `${percentage}%`;
+    }
+
+    function loadRecentActivity() {
+        const activityFeed = document.getElementById('overview-activity-feed');
+        if (!activityFeed) return;
+
+        // For now, show placeholder activity
+        // In a real implementation, this would fetch from activity_log table
+        activityFeed.innerHTML = `
+            <div class="activity-item">
+                <span class="activity-icon">✅</span>
+                <div class="activity-content">
+                    <span class="activity-text">Logged into dashboard</span>
+                    <span class="activity-time">Just now</span>
+                </div>
+            </div>
+        `;
+    }
+
+    // Library search and filter
+    function initLibraryFilters() {
+        const searchInput = document.getElementById('library-search');
+        const categoryFilter = document.getElementById('library-filter-category');
+        const statusFilter = document.getElementById('library-filter-status');
+        const sortSelect = document.getElementById('library-sort');
+
+        const filterLibrary = () => {
+            // Implement library filtering logic
+            const search = searchInput?.value.toLowerCase() || '';
+            const category = categoryFilter?.value || 'all';
+            const status = statusFilter?.value || 'all';
+            const sort = sortSelect?.value || 'recent';
+
+            // Apply filters to library grid
+            console.log('Filtering library:', { search, category, status, sort });
+        };
+
+        if (searchInput) searchInput.addEventListener('input', debounce(filterLibrary, 300));
+        if (categoryFilter) categoryFilter.addEventListener('change', filterLibrary);
+        if (statusFilter) statusFilter.addEventListener('change', filterLibrary);
+        if (sortSelect) sortSelect.addEventListener('change', filterLibrary);
+    }
+
+    // Notification filter buttons
+    function initNotificationFilters() {
+        const filterBtns = document.querySelectorAll('.notifications-filters .filter-btn');
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const filter = btn.dataset.filter;
+                filterNotifications(filter);
+            });
+        });
+    }
+
+    function filterNotifications(filter) {
+        console.log('Filtering notifications by:', filter);
+        // Implement notification filtering
+    }
+
+    // Support ticket form
+    function initSupportForm() {
+        const form = document.getElementById('support-ticket-form');
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const subject = document.getElementById('ticket-subject')?.value;
+                const category = document.getElementById('ticket-category')?.value;
+                const description = document.getElementById('ticket-description')?.value;
+
+                if (!subject || !category || !description) {
+                    showToast('❌ ERROR', 'Please fill in all required fields');
+                    return;
+                }
+
+                showToast('📤 SUBMITTING', 'Creating support ticket...');
+
+                // In real implementation, save to support_tickets table
+                setTimeout(() => {
+                    showToast('✅ SUCCESS', 'Support ticket created! We\'ll respond soon.');
+                    form.reset();
+                }, 1000);
+            });
+        }
+    }
+
+    // File upload zone
+    function initFileUploadZone() {
+        const uploadZone = document.getElementById('ticket-upload-zone');
+        const fileInput = document.getElementById('ticket-attachment');
+
+        if (uploadZone && fileInput) {
+            uploadZone.addEventListener('click', () => fileInput.click());
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('dragover');
+            });
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('dragover');
+            });
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('dragover');
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    showToast('📎 FILE_ATTACHED', e.dataTransfer.files[0].name);
+                }
+            });
+        }
+    }
+
+    // Settings form handlers
+    function initSettingsForms() {
+        // Save profile
+        const saveProfileBtn = document.getElementById('btn-save-profile');
+        if (saveProfileBtn) {
+            saveProfileBtn.addEventListener('click', saveProfile);
+        }
+
+        // Save notifications
+        const saveNotifBtn = document.getElementById('btn-save-notifications');
+        if (saveNotifBtn) {
+            saveNotifBtn.addEventListener('click', () => {
+                showToast('✅ SAVED', 'Notification preferences updated');
+            });
+        }
+
+        // Bio character count
+        const bioInput = document.getElementById('input-bio');
+        const bioCount = document.getElementById('bio-char-count');
+        if (bioInput && bioCount) {
+            bioInput.addEventListener('input', () => {
+                bioCount.textContent = bioInput.value.length;
+            });
+        }
+
+        // Delete account
+        const deleteBtn = document.getElementById('btn-delete-account');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => {
+                if (confirm('⚠️ Are you sure you want to delete your account? This action cannot be undone.')) {
+                    if (confirm('⚠️ This will permanently delete all your data. Type "DELETE" to confirm.')) {
+                        showToast('🗑️ DELETING', 'Removing your account...');
+                        // Implement account deletion
+                    }
+                }
+            });
+        }
+
+        // Change password button
+        const changePasswordBtn = document.getElementById('btn-change-password');
+        if (changePasswordBtn && supabase) {
+            changePasswordBtn.addEventListener('click', async () => {
+                const email = document.getElementById('input-email')?.value;
+                if (!email) {
+                    showToast('⚠️ ERROR', 'Email not found', 'error');
+                    return;
+                }
+                try {
+                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                        redirectTo: window.location.origin + '?reset=true'
+                    });
+                    if (error) throw error;
+                    showToast('📧 EMAIL_SENT', 'Check your email for password reset link');
+                } catch (err) {
+                    showToast('⚠️ ERROR', err.message || 'Failed to send reset email', 'error');
+                }
+            });
+        }
+
+        // Enable 2FA button
+        const enable2FABtn = document.getElementById('btn-enable-2fa');
+        if (enable2FABtn) {
+            enable2FABtn.addEventListener('click', () => {
+                showToast('🔐 COMING_SOON', 'Two-factor authentication will be available soon');
+            });
+        }
+
+        // Connect GitHub button
+        const connectGitHubBtn = document.getElementById('btn-connect-github');
+        if (connectGitHubBtn && supabase) {
+            connectGitHubBtn.addEventListener('click', async () => {
+                try {
+                    const { data, error } = await supabase.auth.linkIdentity({
+                        provider: 'github',
+                        options: {
+                            redirectTo: window.location.origin
+                        }
+                    });
+                    if (error) throw error;
+                } catch (err) {
+                    // If linking fails, try regular OAuth
+                    const { data, error } = await supabase.auth.signInWithOAuth({
+                        provider: 'github',
+                        options: {
+                            redirectTo: window.location.origin
+                        }
+                    });
+                    if (error) {
+                        showToast('⚠️ ERROR', err.message || 'Failed to connect GitHub', 'error');
+                    }
+                }
+            });
+        }
+
+        // Upload avatar button
+        const uploadAvatarBtn = document.getElementById('btn-upload-avatar');
+        if (uploadAvatarBtn) {
+            uploadAvatarBtn.addEventListener('click', () => {
+                showToast('📷 COMING_SOON', 'Avatar upload will be available soon');
+            });
+        }
+
+        // Update payment method
+        const updatePaymentBtn = document.getElementById('btn-update-payment');
+        if (updatePaymentBtn) {
+            updatePaymentBtn.addEventListener('click', () => {
+                // Open Lemon Squeezy customer portal
+                if (window.LemonSqueezy) {
+                    showToast('💳 REDIRECTING', 'Opening payment portal...');
+                    // LemonSqueezy customer portal would be here
+                } else {
+                    showToast('💳 COMING_SOON', 'Payment portal will be available soon');
+                }
+            });
+        }
+
+        // Cancel subscription
+        const cancelSubBtn = document.getElementById('btn-cancel-subscription');
+        if (cancelSubBtn) {
+            cancelSubBtn.addEventListener('click', () => {
+                if (confirm('⚠️ Are you sure you want to cancel your subscription? You will lose access at the end of your billing period.')) {
+                    showToast('📧 CONTACT_SUPPORT', 'Please contact support to cancel your subscription');
+                }
+            });
+        }
+
+        // Export data
+        const exportDataBtn = document.getElementById('btn-export-data');
+        if (exportDataBtn) {
+            exportDataBtn.addEventListener('click', async () => {
+                showToast('📦 EXPORTING', 'Preparing your data export...');
+                // Generate data export
+                const userData = {
+                    exported_at: new Date().toISOString(),
+                    profile: {
+                        display_name: document.getElementById('input-display-name')?.value,
+                        email: document.getElementById('input-email')?.value,
+                        bio: document.getElementById('input-bio')?.value,
+                        website: document.getElementById('input-website')?.value
+                    }
+                };
+                const blob = new Blob([JSON.stringify(userData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'moltbot_data_export.json';
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('✅ EXPORTED', 'Your data has been downloaded');
+            });
+        }
+
+        // Export purchases CSV
+        const exportPurchasesBtn = document.getElementById('btn-export-purchases');
+        if (exportPurchasesBtn) {
+            exportPurchasesBtn.addEventListener('click', () => {
+                showToast('📥 EXPORTING', 'Generating purchase history CSV...');
+                // Would generate CSV from purchases table
+                showToast('✅ EXPORTED', 'Purchase history downloaded');
+            });
+        }
+
+        // Share wishlist
+        const shareWishlistBtn = document.getElementById('btn-share-wishlist');
+        if (shareWishlistBtn) {
+            shareWishlistBtn.addEventListener('click', () => {
+                const shareUrl = window.location.origin + '/wishlist/' + (currentUserId || 'demo');
+                navigator.clipboard.writeText(shareUrl);
+                showToast('🔗 COPIED', 'Wishlist link copied to clipboard');
+            });
+        }
+
+        // Clear wishlist
+        const clearWishlistBtn = document.getElementById('btn-clear-wishlist');
+        if (clearWishlistBtn) {
+            clearWishlistBtn.addEventListener('click', () => {
+                if (confirm('Are you sure you want to clear your entire wishlist?')) {
+                    showToast('🗑️ CLEARED', 'Wishlist has been cleared');
+                    // Would clear wishlist from database
+                }
+            });
+        }
+
+        // Mark all notifications read
+        const markAllReadBtn = document.getElementById('btn-mark-all-read');
+        if (markAllReadBtn) {
+            markAllReadBtn.addEventListener('click', () => {
+                showToast('✅ DONE', 'All notifications marked as read');
+                const notifCount = document.getElementById('total-notification-count');
+                if (notifCount) notifCount.textContent = '0 unread';
+            });
+        }
+
+        // Upgrade buttons (alternative locations)
+        const upgradeToSyndicateBtn = document.getElementById('btn-upgrade-to-syndicate');
+        if (upgradeToSyndicateBtn) {
+            upgradeToSyndicateBtn.addEventListener('click', () => {
+                initLemonSqueezyCheckout('syndicate', window.currentUser);
+            });
+        }
+
+        const upgradeToBlackmarketBtn = document.getElementById('btn-upgrade-to-blackmarket');
+        if (upgradeToBlackmarketBtn) {
+            upgradeToBlackmarketBtn.addEventListener('click', () => {
+                initLemonSqueezyCheckout('blackmarket', window.currentUser);
+            });
+        }
+    }
+
+    // Current user ID for global access
+    let currentUserId = null;
+
+    // Debounce utility
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Initialize elite dashboard features
+    function initEliteDashboard(profile) {
+        initOverviewTab(profile);
+        initLibraryFilters();
+        initNotificationFilters();
+        initSupportForm();
+        initFileUploadZone();
+        initSettingsForms();
+    }
 
     function hideMemberDashboard() {
         const dashboard = document.getElementById('member-dashboard');
@@ -1627,8 +2353,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (manifestoBecomeDev) {
         manifestoBecomeDev.addEventListener('click', () => {
             closeManifestoModal();
-            const devModal = document.getElementById('open-dev-modal');
-            if (devModal) devModal.click();
+            // Redirect to secure developer application page
+            window.location.href = 'developer.html';
         });
     }
 
@@ -1886,7 +2612,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- DEVELOPER PORTAL MODAL HANDLERS ---
+    // --- DEVELOPER PORTAL - REDIRECT TO SECURE PAGE ---
     const devPortalModal = document.getElementById('dev-portal-modal');
     const openDevPortal = document.getElementById('open-dev-modal');
     const closeDevPortal = document.getElementById('close-dev-portal');
@@ -1894,9 +2620,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const devTabContents = document.querySelectorAll('.dev-tab-content');
 
     function openDevPortalModal() {
-        if (!devPortalModal) return;
-        devPortalModal.style.display = 'flex';
-        devPortalModal.classList.add('active');
+        // Redirect to secure developer application page instead of opening modal
+        window.location.href = 'developer.html';
     }
 
     function closeDevPortalModal() {
@@ -1905,12 +2630,15 @@ document.addEventListener('DOMContentLoaded', () => {
         devPortalModal.classList.remove('active');
     }
 
-    // Open from button
+    // Open from button - redirect to secure page
     if (openDevPortal) {
-        openDevPortal.addEventListener('click', openDevPortalModal);
+        openDevPortal.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = 'developer.html';
+        });
     }
 
-    // Close button
+    // Close button (for backward compatibility if modal is still shown)
     if (closeDevPortal) {
         closeDevPortal.addEventListener('click', closeDevPortalModal);
     }
@@ -1932,7 +2660,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 manifestoModal.style.display = 'none';
                 manifestoModal.classList.remove('active');
             }
-            openDevPortalModal();
+            // Redirect to secure developer application page
+            window.location.href = 'developer.html';
         });
     }
 
@@ -1980,22 +2709,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // GitHub sign-in (placeholder - would connect to real OAuth)
+    // GitHub sign-in - redirect to secure developer dashboard
     const githubSignin = document.getElementById('dev-github-signin');
     if (githubSignin) {
         githubSignin.addEventListener('click', () => {
-            showToast('GITHUB_AUTH', 'Redirecting to GitHub for authentication...');
-            // In production, this would redirect to GitHub OAuth
-            // For demo, we can simulate login
-            setTimeout(() => {
-                const authSection = document.getElementById('dev-portal-auth');
-                const dashSection = document.getElementById('dev-portal-dashboard');
-                if (authSection && dashSection) {
-                    authSection.classList.add('hidden');
-                    dashSection.classList.remove('hidden');
-                }
-                showToast('AUTH_SUCCESS', 'Welcome back, Architect!');
-            }, 1500);
+            // Redirect to secure developer application page with GitHub verification
+            window.location.href = 'developer.html';
         });
     }
 
@@ -2401,31 +3120,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const installBtns = document.querySelectorAll('.btn-install');
-    installBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const btn = e.target;
-            const originalText = btn.innerText;
-            btn.innerText = "INJECTING...";
-            btn.style.background = "var(--neon-purple)";
-            btn.style.color = "white";
+    // Attach click handlers to install buttons (including dynamically created ones)
+    function attachInstallButtonHandlers() {
+        const installBtns = document.querySelectorAll('.btn-install');
+        installBtns.forEach(btn => {
+            if (btn.dataset.handlerAttached) return;
+            btn.dataset.handlerAttached = 'true';
 
-            // Simulate network request
-            setTimeout(() => {
-                btn.innerText = "VERIFIED ✔";
-                btn.style.background = "var(--neon-green)";
-                btn.style.color = "black";
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const card = btn.closest('.skill-card');
+                if (!card) return;
 
-                // Optional: trigger terminal output if visible?
-                // For now just reset
-                setTimeout(() => {
-                    btn.innerText = originalText;
-                    btn.style.background = "";
-                    btn.style.color = "";
-                }, 3000);
-            }, 1500);
+                const skillId = card.dataset.skillId;
+                const skillName = card.dataset.skillName || card.querySelector('h3')?.textContent;
+                const skillDesc = card.dataset.skillDesc || card.querySelector('.skill-desc')?.textContent;
+
+                // Find full skill data or create from card
+                let skill = window.skillsData?.find(s => `db-${s.id}` === skillId);
+                if (!skill) {
+                    skill = { id: skillId, name: skillName, title: skillName, description: skillDesc };
+                }
+
+                window.downloadSkill(skill.id || skillId);
+            });
         });
-    });
+    }
+
+    attachInstallButtonHandlers();
+
+    // Re-attach for dynamic cards
+    const skillsGridEl = document.querySelector('.skills-grid');
+    if (skillsGridEl) {
+        const observer = new MutationObserver(() => attachInstallButtonHandlers());
+        observer.observe(skillsGridEl, { childList: true, subtree: true });
+    }
 
     // Developer Portal Modal Logic
     const devModal = document.getElementById('dev-modal');

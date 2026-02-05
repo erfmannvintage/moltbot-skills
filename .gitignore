@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+
+# Planning & Documentation (local only)
+*_PLAN.md
+*_IMPLEMENTATION*.md
+IMPLEMENTATION_*.md
+*_ROADMAP.md
+*_INSTRUCTIONS.md
+*_CHECKLIST.md
+*_REPORT.md
+*_SUMMARY.md
+*_CHECKPOINT.md
+*_EXPLAINED.md
+*_COMPARISON.md
+*_DASHBOARD.md
+HOW_TO_*.md
+QUICK_START*.md
+REPAIR_*.md
+FIX_*.md
+
+# SQL migration files (local only)
+*.sql
+
+# Supabase local config
+supabase/
+
+# Test files
+test_protocols/
+
+# Backup files
+*.BACKUP*
+*.LIVE_VERSION
+*-OPTION*.js
+
+# OS files
+.DS_Store
+Thumbs.db
+nul
+
+# Environment
+.env
+.env.local
+.env.production

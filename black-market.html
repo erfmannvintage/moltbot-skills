@@ -763,13 +763,12 @@
                     return false;
                 }
 
-                // Allow access if: admin, blackmarket tier, or syndicate tier
-                const allowedTiers = ['blackmarket', 'syndicate'];
+                // Allow access if: admin or blackmarket tier only (syndicate must purchase separately)
                 const isAdmin = profile.account_type === 'admin';
-                const hasTier = allowedTiers.includes(profile.subscription_tier?.toLowerCase());
+                const hasBlackMarket = profile.subscription_tier?.toLowerCase() === 'blackmarket';
 
-                if (!isAdmin && !hasTier) {
-                    showAccessDenied('ACCESS_DENIED', 'Black Market access requires Syndicate or Black Market tier subscription.');
+                if (!isAdmin && !hasBlackMarket) {
+                    showAccessDenied('ACCESS_DENIED', 'Black Market access requires a one-time Black Market purchase (£149 lifetime).');
                     return false;
                 }
 

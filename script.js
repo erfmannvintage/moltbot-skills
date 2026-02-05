@@ -503,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loadMemberDashboard(activeUser); // New: Load dashboard
         } else {
             // Check for Demo Mode Persistence
-            const storedDemo = localStorage.getItem('moltbot_demo_user');
+            const storedDemo = localStorage.getItem('aiagent_demo_user');
             if (storedDemo) {
                 try {
                     activeUser = JSON.parse(storedDemo);
@@ -511,7 +511,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     loadMemberDashboard(activeUser);
                 } catch (e) {
                     console.error('Failed to restore demo session', e);
-                    localStorage.removeItem('moltbot_demo_user');
+                    localStorage.removeItem('aiagent_demo_user');
                 }
             }
         }
@@ -521,13 +521,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (session) {
                 activeUser = session.user;
                 // Clear demo if real login happens
-                localStorage.removeItem('moltbot_demo_user');
+                localStorage.removeItem('aiagent_demo_user');
             } else {
                 // Determine if we should fallback to demo or clear
                 // Ideally, sign out should clear everything.
                 if (_event === 'SIGNED_OUT') {
                     activeUser = null;
-                    localStorage.removeItem('moltbot_demo_user');
+                    localStorage.removeItem('aiagent_demo_user');
                 }
             }
 
@@ -1291,10 +1291,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Use LemonSqueezy overlay
         if (window.LemonSqueezy) {
-            window.LemonSqueezy.Url.Open(`https://moltbot.lemonsqueezy.com/checkout/buy/${productId}?checkout[email]=${encodeURIComponent(user.email)}&checkout[custom][user_id]=${user.id}`);
+            window.LemonSqueezy.Url.Open(`https://aiagentskills.lemonsqueezy.com/checkout/buy/${productId}?checkout[email]=${encodeURIComponent(user.email)}&checkout[custom][user_id]=${user.id}`);
         } else {
             // Fallback to redirect
-            window.location.href = `https://moltbot.lemonsqueezy.com/checkout/buy/${productId}?checkout[email]=${encodeURIComponent(user.email)}&checkout[custom][user_id]=${user.id}`;
+            window.location.href = `https://aiagentskills.lemonsqueezy.com/checkout/buy/${productId}?checkout[email]=${encodeURIComponent(user.email)}&checkout[custom][user_id]=${user.id}`;
         }
     }
 
@@ -1368,14 +1368,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const npxCmd = document.getElementById('npx-command');
         if (npxCmd) {
             const cmdName = (skill.name || skill.id).toLowerCase().replace(/\s+/g, '-').replace(/_/g, '-');
-            npxCmd.textContent = `npx moltbot inject ${cmdName}`;
+            npxCmd.textContent = `npx aiagentskills inject ${cmdName}`;
         }
 
         // Set raw URL
         const rawUrl = document.getElementById('raw-url');
         if (rawUrl) {
             const urlName = (skill.name || skill.id).toLowerCase().replace(/\s+/g, '-');
-            rawUrl.value = `https://skills.moltbot.com/raw/${urlName}.md`;
+            rawUrl.value = `https://skills.aiagentskillsmd.com/raw/${urlName}.md`;
         }
 
         // Reset source preview
@@ -1505,7 +1505,7 @@ Copy this entire file content and paste it into your AI agent's custom instructi
 
 ### Option 2: NPX Command
 \`\`\`bash
-npx moltbot inject ${(skill.name || 'skill').toLowerCase().replace(/\s+/g, '-')}
+npx aiagentskills inject ${(skill.name || 'skill').toLowerCase().replace(/\s+/g, '-')}
 \`\`\`
 
 ### Option 3: Manual Download
@@ -1525,7 +1525,7 @@ Once installed, your AI agent will have access to the following capabilities:
 ${skill.description || 'See skill documentation for detailed usage instructions.'}
 
 ---
-*Skill provided by MoltBot Skills Marketplace*
+*Skill provided by AI Agent Skills Marketplace*
 *SHA-256 Verified • Blue Label Certified*
 `;
     }
@@ -1877,7 +1877,7 @@ ${skill.description || 'See skill documentation for detailed usage instructions.
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'moltbot_data_export.json';
+                a.download = 'aiagentskills_data_export.json';
                 a.click();
                 URL.revokeObjectURL(url);
                 showToast('✅ EXPORTED', 'Your data has been downloaded');
@@ -4098,7 +4098,7 @@ ${skill.description || 'See skill documentation for detailed usage instructions.
 
         const demoUser = {
             id: 'demo-dev-001',
-            email: 'dev@moltbot.demo',
+            email: 'dev@aiagentskills.demo',
             user_metadata: {
                 user_name: 'Dev_Architect',
                 role: 'developer',
@@ -4110,7 +4110,7 @@ ${skill.description || 'See skill documentation for detailed usage instructions.
         };
 
         activeUser = demoUser;
-        localStorage.setItem('moltbot_demo_user', JSON.stringify(demoUser));
+        localStorage.setItem('aiagent_demo_user', JSON.stringify(demoUser));
 
         updateUIForLoggedUser(activeUser);
         loadMemberDashboard(activeUser);
@@ -4121,7 +4121,7 @@ ${skill.description || 'See skill documentation for detailed usage instructions.
     }
 
     // Check for Demo User on Load
-    const storedDemoUser = localStorage.getItem('moltbot_demo_user');
+    const storedDemoUser = localStorage.getItem('aiagent_demo_user');
     if (storedDemoUser && !activeUser) {
         // Only load if Supabase didn't already find a real user
         // But initAuth runs async. Ideally we hook into initAuth.

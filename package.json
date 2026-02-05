@@ -1,7 +1,7 @@
 {
-  "name": "moltbot-skills",
+  "name": "ai-agent-skills",
   "version": "1.0.0",
-  "description": "Moltbot Skills Marketplace",
+  "description": "AI Agent Skills Marketplace",
   "type": "module",
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",

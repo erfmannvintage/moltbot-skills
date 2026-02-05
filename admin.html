@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ELITE_COMMAND_CENTER // MOLTBOT_SKILLS</title>
+    <title>ELITE_COMMAND_CENTER // AI_AGENT_SKILLS</title>
     <link rel="stylesheet" href="styles.css">
     <!-- Chart.js for analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -1278,7 +1278,7 @@
             <div class="admin-brand">
                 <div class="admin-brand-icon">👑</div>
                 <div class="admin-brand-text">
-                    MOLTBOT
+                    AI_AGENT_SKILLS
                     <small>COMMAND_CENTER</small>
                 </div>
             </div>
@@ -2043,11 +2043,11 @@
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
                             <div class="form-group">
                                 <label>Site Name</label>
-                                <input type="text" class="form-control" value="MOLTBOT_SKILLS" id="setting-site-name">
+                                <input type="text" class="form-control" value="AI_AGENT_SKILLS" id="setting-site-name">
                             </div>
                             <div class="form-group">
                                 <label>Support Email</label>
-                                <input type="email" class="form-control" value="support@moltbot.com" id="setting-support-email">
+                                <input type="email" class="form-control" value="support@aiagentskillsmd.com" id="setting-support-email">
                             </div>
                             <div class="form-group">
                                 <label>Maintenance Mode</label>
@@ -2194,7 +2194,7 @@
 
             try {
                 // Check for demo mode
-                if (localStorage.getItem('moltbot_demo_user')) {
+                if (localStorage.getItem('aiagent_demo_user')) {
                     showAccessDenied('⚠️ <strong>Demo Mode</strong> cannot access admin. Sign in with real credentials:');
                     return false;
                 }
@@ -2272,7 +2272,7 @@
             }, 15000);
 
             try {
-                localStorage.removeItem('moltbot_demo_user');
+                localStorage.removeItem('aiagent_demo_user');
                 console.log('[ADMIN] Attempting login for:', email);
 
                 const { data, error } = await supabase.auth.signInWithPassword({ email, password });

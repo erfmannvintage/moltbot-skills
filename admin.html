@@ -1082,6 +1082,162 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Admin Notifications */
+        .admin-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .admin-notification.success {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 255, 136, 0.1));
+            border: 1px solid #00ff88;
+            color: #00ff88;
+        }
+
+        .admin-notification.error {
+            background: linear-gradient(135deg, rgba(255, 68, 68, 0.2), rgba(255, 68, 68, 0.1));
+            border: 1px solid #ff4444;
+            color: #ff4444;
+        }
+
+        .admin-notification.info {
+            background: linear-gradient(135deg, rgba(41, 121, 255, 0.2), rgba(41, 121, 255, 0.1));
+            border: 1px solid #2979ff;
+            color: #2979ff;
+        }
+
+        .admin-notification button {
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+
+        .admin-notification button:hover {
+            opacity: 1;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Review Modal */
+        .review-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .review-modal {
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .review-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .review-modal-header h3 {
+            margin: 0;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .review-modal-header button {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .review-modal-meta {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid #333;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .review-modal-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            margin: 0;
+            background: #0a0a0f;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: #aaa;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .review-modal-actions {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #333;
+            justify-content: flex-end;
+        }
+
+        .review-modal-actions .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .review-modal-actions .btn-success {
+            background: #00ff88;
+            color: #000;
+        }
+
+        .review-modal-actions .btn-danger {
+            background: #ff4444;
+            color: #fff;
+        }
+
+        .review-modal-actions .btn:hover {
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 
@@ -1997,6 +2153,23 @@
             }
         }
 
+        // Notification helper
+        function showNotification(message, type = 'info') {
+            const existing = document.querySelector('.admin-notification');
+            if (existing) existing.remove();
+
+            const notification = document.createElement('div');
+            notification.className = `admin-notification ${type}`;
+            notification.innerHTML = `
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()">&times;</button>
+            `;
+            document.body.appendChild(notification);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => notification.remove(), 5000);
+        }
+
         // Check admin access
         async function checkAdminAccess() {
             const loading = document.getElementById('loading-overlay');
@@ -2798,57 +2971,201 @@
 
         // Approve/Reject Dev Applications
         async function approveDevApp(appId) {
-            if (!confirm('Approve this developer application?')) return;
+            if (!confirm('Approve this developer application?\n\nThis will grant them developer access.')) return;
             try {
-                await supabase.from('developer_applications').update({ status: 'approved' }).eq('id', appId);
+                // Get the application to find the user_id
+                const { data: app, error: fetchError } = await supabase
+                    .from('developer_applications')
+                    .select('user_id, github_username')
+                    .eq('id', appId)
+                    .single();
+
+                if (fetchError) throw fetchError;
+
+                // Update application status
+                const { error: updateError } = await supabase
+                    .from('developer_applications')
+                    .update({
+                        status: 'approved',
+                        reviewed_at: new Date().toISOString(),
+                        reviewed_by: currentUser?.id
+                    })
+                    .eq('id', appId);
+
+                if (updateError) throw updateError;
+
+                // Update user profile to developer
+                const { error: profileError } = await supabase
+                    .from('user_profiles')
+                    .update({
+                        account_type: 'developer',
+                        developer_status: 'approved',
+                        is_verified: true,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', app.user_id);
+
+                if (profileError) throw profileError;
+
                 loadDeveloperApplications();
-                alert('Application approved!');
+                showNotification('Developer approved successfully!', 'success');
             } catch (err) {
-                alert('Error: ' + err.message);
+                console.error('Approval error:', err);
+                showNotification('Error: ' + err.message, 'error');
             }
         }
 
         async function rejectDevApp(appId) {
+            const reason = prompt('Rejection reason (optional):');
             if (!confirm('Reject this developer application?')) return;
             try {
-                await supabase.from('developer_applications').update({ status: 'rejected' }).eq('id', appId);
+                const { error } = await supabase
+                    .from('developer_applications')
+                    .update({
+                        status: 'rejected',
+                        rejection_reason: reason || 'Application did not meet requirements',
+                        reviewed_at: new Date().toISOString(),
+                        reviewed_by: currentUser?.id
+                    })
+                    .eq('id', appId);
+
+                if (error) throw error;
+
                 loadDeveloperApplications();
-                alert('Application rejected');
+                showNotification('Application rejected', 'info');
             } catch (err) {
-                alert('Error: ' + err.message);
+                console.error('Rejection error:', err);
+                showNotification('Error: ' + err.message, 'error');
             }
         }
 
         // Submission actions
-        function reviewSubmission(subId) {
-            alert('Review submission: ' + subId);
+        async function reviewSubmission(subId) {
+            // Open skill content in a modal for review
+            try {
+                const { data: sub, error } = await supabase
+                    .from('skill_submissions')
+                    .select('*')
+                    .eq('id', subId)
+                    .single();
+
+                if (error) throw error;
+
+                // Show review modal
+                const content = sub.skill_content || 'No content available';
+                const modal = document.createElement('div');
+                modal.className = 'review-modal-overlay';
+                modal.innerHTML = `
+                    <div class="review-modal">
+                        <div class="review-modal-header">
+                            <h3>Review: ${sub.skill_name}</h3>
+                            <button onclick="this.closest('.review-modal-overlay').remove()">&times;</button>
+                        </div>
+                        <div class="review-modal-meta">
+                            <span>Category: ${sub.category}</span>
+                            <span>Price: $${sub.price}</span>
+                            <span>Security: ${sub.security_status || 'Not scanned'}</span>
+                        </div>
+                        <pre class="review-modal-content">${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+                        <div class="review-modal-actions">
+                            <button class="btn btn-success" onclick="approveSubmission('${subId}'); this.closest('.review-modal-overlay').remove();">Approve</button>
+                            <button class="btn btn-danger" onclick="rejectSubmission('${subId}'); this.closest('.review-modal-overlay').remove();">Reject</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            } catch (err) {
+                showNotification('Error loading submission: ' + err.message, 'error');
+            }
         }
 
         async function approveSubmission(subId) {
-            if (!confirm('Approve this skill submission?')) return;
+            if (!confirm('Approve this skill and make it LIVE in the marketplace?')) return;
             try {
-                await supabase.from('skill_submissions').update({ status: 'approved' }).eq('id', subId);
+                // Get the submission details
+                const { data: sub, error: fetchError } = await supabase
+                    .from('skill_submissions')
+                    .select('*')
+                    .eq('id', subId)
+                    .single();
+
+                if (fetchError) throw fetchError;
+
+                // Create the skill in the skills table
+                const { data: newSkill, error: skillError } = await supabase
+                    .from('skills')
+                    .insert([{
+                        title: sub.skill_name,
+                        description: sub.description || sub.skill_name,
+                        short_description: (sub.description || '').substring(0, 100),
+                        category: sub.category,
+                        price: sub.price,
+                        developer_id: sub.developer_id,
+                        skill_content: sub.skill_content,
+                        file_url: sub.file_url,
+                        icon: sub.icon || '💻',
+                        is_verified: true,
+                        is_top_seller: false,
+                        downloads_count: 0,
+                        avg_rating: 0,
+                        rating_count: 0,
+                        created_at: new Date().toISOString()
+                    }])
+                    .select()
+                    .single();
+
+                if (skillError) throw skillError;
+
+                // Update submission status
+                const { error: updateError } = await supabase
+                    .from('skill_submissions')
+                    .update({
+                        status: 'approved',
+                        approved_skill_id: newSkill.id,
+                        reviewed_at: new Date().toISOString(),
+                        reviewed_by: currentUser?.id
+                    })
+                    .eq('id', subId);
+
+                if (updateError) throw updateError;
+
+                // Update developer's lifetime downloads (increment skill count conceptually)
                 loadSubmissions();
-                alert('Submission approved!');
+                showNotification('Skill approved and now LIVE in marketplace!', 'success');
             } catch (err) {
-                alert('Error: ' + err.message);
+                console.error('Approval error:', err);
+                showNotification('Error: ' + err.message, 'error');
             }
         }
 
         async function rejectSubmission(subId) {
+            const reason = prompt('Rejection reason (helps the developer improve):');
             if (!confirm('Reject this skill submission?')) return;
             try {
-                await supabase.from('skill_submissions').update({ status: 'rejected' }).eq('id', subId);
+                const { error } = await supabase
+                    .from('skill_submissions')
+                    .update({
+                        status: 'rejected',
+                        rejection_reason: reason || 'Submission did not meet quality standards',
+                        reviewed_at: new Date().toISOString(),
+                        reviewed_by: currentUser?.id
+                    })
+                    .eq('id', subId);
+
+                if (error) throw error;
+
                 loadSubmissions();
-                alert('Submission rejected');
+                showNotification('Submission rejected', 'info');
             } catch (err) {
-                alert('Error: ' + err.message);
+                console.error('Rejection error:', err);
+                showNotification('Error: ' + err.message, 'error');
             }
         }
 
         // Flagged content actions
-        function reviewFlagged(itemId) {
-            alert('Review flagged item: ' + itemId);
+        async function reviewFlagged(itemId) {
+            showNotification('Opening flagged item review...', 'info');
+            // TODO: Implement flagged content review modal
         }
 
         async function clearFlag(itemId) {
